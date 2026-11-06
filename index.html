@@ -598,6 +598,7 @@ function makePerson(g,campus,i){
 }
 const target=()=>S.profile&&S.profile.gender==="여"?"남":"여";
 function newDeck(){
+  if(LIVE){loadDeck();return;}
   const camp=S.profile&&S.profile.pref!=="상관없음"?S.profile.pref:null;
   S.deck=Array.from({length:20},(_,i)=>makePerson(i%2?"남":"여",camp,i).id);
   if(!S.firstDeal){S.firstDeal=true;P(S.deck[0]).willAccept=true;}
@@ -718,11 +719,12 @@ function renderReq(){
 /* 오늘의 카드 */
 const P=id=>people.find(p=>p.id==id);
 function avatar(p,cls=""){return p.photo?`<div class="avatar ${cls}" aria-hidden="true"><img src="${p.photo}" alt=""></div>`:`<div class="avatar ani ${cls}" style="background:${p.color}" aria-hidden="true">${animalSVG(p.animal)}</div>`;}
-function deptLine(p,full){return `${p.campus} · ${p.year} · ${full||p.show==="dept"?p.dept:collegeOf(p.campus,p.dept)}`;}
+function deptLine(p,full){return `${p.campus} · ${p.year} · ${(full||p.show==="dept")&&p.dept?p.dept:(p.collegeName||collegeOf(p.campus,p.dept))}`;}
+const idv=v=>LIVE?String(v):+v;
 function visible(){return S.deck.map(P);}
 function renderCards(){
   const list=visible();
-  if(!list.length){$("#cards").innerHTML=`<div class="card empty">오늘은 조건에 맞는 카드가 없어요.<br>다음 카드 시간에 다시 확인해 주세요.</div>`;return;}
+  if(!list.length){$("#cards").innerHTML=LIVE&&S.deckLoading?`<div class="card empty">카드를 불러오는 중이에요…</div>`:`<div class="card empty">${LIVE?"지금은 조건에 맞는 외대생이 없어요.<br>친구에게 HUFSONLY를 알려 주세요!":"오늘은 조건에 맞는 카드가 없어요.<br>다음 카드 시간에 다시 확인해 주세요."}</div>`;return;}
   $("#cards").innerHTML=list.map(p=>{
     const s=S.sent[p.id];let foot;
     if(!s) foot=`<div class="row"><button class="btn line" data-skip="${p.id}">넘기기</button><button class="btn" data-like="${p.id}">관심 보내기</button></div>`;
@@ -738,10 +740,11 @@ function renderCards(){
 }
 $("#cards").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
-  if(b.dataset.open){openChat(+b.dataset.open);return;}
+  if(b.dataset.open){openChat(idv(b.dataset.open));return;}
   if(b.dataset.skip){S.sent[b.dataset.skip]="skip";renderCards();return;}
   if(!b.dataset.like)return;
   const p=P(b.dataset.like);
+  if(LIVE){liveLike(p,b);return;}
   S.sent[p.id]="wait";setOut(p.id,"wait");renderCards();toast("관심을 보냈어요");
   setTimeout(()=>{
     if(!S.approved)return;
@@ -755,6 +758,7 @@ $("#cards").addEventListener("click",e=>{
 function startChat(id){
   if(S.chats[id])return;
   S.chats[id]={msgs:[{sys:"서로 관심을 수락해서 대화가 열렸어요. 불편하면 언제든 신고·차단할 수 있어요."}],ri:0,unread:0,review:null,draft:{stars:0,tags:[]},rvOpen:false};
+  if(LIVE){S.chats[id].msgs.push({sys:"매칭됐어요! 채팅은 곧 열려요. 다음 업데이트를 기다려 주세요."});return;}
   const p=P(id);
   setTimeout(()=>{if(!S.chats[id])return;pushThem(id,p.replies[0]);},2500);
 }
@@ -765,7 +769,7 @@ function pushThem(id,text){
 function openChat(id){
   S.cur=id;const p=P(id),c=S.chats[id];c.unread=0;
   $("#chatWho").innerHTML=`${avatar(p,"k")}<div class="who"><b>${esc(p.nick)}</b><div>${p.age}살 · ${deptLine(p,true)}</div></div>`;
-  renderMsgs();show("chat");
+  renderMsgs();show("chat");if(LIVE)$("#composer").hidden=true;
 }
 function renderMsgs(){
   const c=S.chats[S.cur],p=P(S.cur);let prev=null,h="";
@@ -822,7 +826,7 @@ function reviewHTML(id){
 function setOut(id,st){S.out=S.out||[];let o=S.out.find(x=>x.id===id);if(o)o.st=st;else{o={id,st};S.out.unshift(o);}
   o.fresh=st!=="wait"&&!S.outOpen;renderMatchList();}
 const statsHTML=p=>{const lk=`<span class="lockt">비공개</span>`;return `<div class="spec">
-  <div><small>키</small><b>${p.h}</b></div>
+  <div><small>키</small><b>${p.h||lk}</b></div>
   <div><small>몸무게</small><b>${p.w?(p.wPub?p.w:lk):`<span class="lockt">-</span>`}</b></div>
   <div><small>외모 점수</small><b>${p.sPub?p.score+"/10":lk}</b></div>
   <div><small>캠퍼스</small><b>${p.pref==="상관없음"?"상관없음":p.pref+"만"}</b></div></div>`;};
@@ -852,11 +856,11 @@ function renderMatchList(){
     (S.out.some(o=>o.st!=="wait")?`<button class="clearall" data-clear="1">응답 확인한 것 모두 지우기</button>`:"")+
     `</div></div></div>`;
   }
-  const ids=Object.keys(S.chats).map(Number);
+  const ids=Object.keys(S.chats).map(idv);
   h+=`<div class="sec">대화</div>`;
   if(ids.length){
     h+=`<div class="klist">`+ids.map(id=>{const p=P(id),c=S.chats[id],last=lastOf(c);
-      return `<button class="krow" data-open="${id}">${avatar(p,"k52")}<div style="min-width:0"><b>${esc(p.nick)}</b><div class="last">${last?esc(last.them||last.me||"사진을 보냈어요"):"대화가 열렸어요. 먼저 인사해 보세요!"}</div></div><div class="kright"><span class="ktime">${last?last.t:""}</span>${c.unread?`<span class="kcount">${c.unread}</span>`:""}</div></button>`;}).join("")+`</div>`;
+      return `<button class="krow" data-open="${id}">${avatar(p,"k52")}<div style="min-width:0"><b>${esc(p.nick)}</b><div class="last">${last?esc(last.them||last.me||"사진을 보냈어요"):(LIVE?"매칭됐어요 · 채팅은 곧 열려요":"대화가 열렸어요. 먼저 인사해 보세요!")}</div></div><div class="kright"><span class="ktime">${last?last.t:""}</span>${c.unread?`<span class="kcount">${c.unread}</span>`:""}</div></button>`;}).join("")+`</div>`;
     const pend=ids.filter(id=>!S.chats[id].review),done=ids.length-pend.length;
     h+=`<button class="inbox" data-acc="rv" aria-expanded="${!!S.rvOpen}" aria-controls="acc-rv"><span class="inico" aria-hidden="true">${ic("star",24)}</span><span><b>후기 보내기</b><small>${pend.length?pend.length+"명에게 후기를 남길 수 있어요":"모든 후기를 보냈어요"}${done?` · ${done}개 작성 완료`:""}</small></span>${pend.length?`<span class="cnt" style="background:var(--accent)">${pend.length}</span>`:`<span></span>`}<span class="chev" aria-hidden="true">${ic("chev",20)}</span></button>
     <div class="acc${S.rvOpen?" open":""}" id="acc-rv"><div><div class="stack" style="gap:10px;padding-top:12px">`+
@@ -870,15 +874,17 @@ $("#matchList").addEventListener("click",e=>{
   if(b.dataset.acc){const k={in:"inOpen",out:"outOpen",rv:"rvOpen"}[b.dataset.acc];S[k]=!S[k];
     if(k==="outOpen"&&S[k]){S.out.forEach(o=>o.fresh=false);const c=b.querySelector(".cnt");if(c)c.replaceWith(document.createElement("span"));}$("#acc-"+b.dataset.acc).classList.toggle("open",S[k]);
     if(S[k])setTimeout(()=>b.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"}),60);b.setAttribute("aria-expanded",S[k]);return;}
-  if(b.dataset.del){const row=b.closest(".outrow");row.classList.add("bye");setTimeout(()=>{S.out=S.out.filter(o=>o.id!=b.dataset.del);renderMatchList();},230);return;}
-  if(b.dataset.clear){S.out=S.out.filter(o=>o.st==="wait");renderMatchList();toast("확인한 응답을 지웠어요");return;}
-  if(b.dataset.review){openSheet(+b.dataset.review);return;}
-  if(b.dataset.open)openChat(+b.dataset.open);
+  if(b.dataset.del){const row=b.closest(".outrow");row.classList.add("bye");setTimeout(()=>{S.out=S.out.filter(o=>o.id!=b.dataset.del);if(LIVE)hideOut([b.dataset.del]);renderMatchList();},230);return;}
+  if(b.dataset.clear){if(LIVE)hideOut(S.out.filter(o=>o.st!=="wait").map(o=>o.id));S.out=S.out.filter(o=>o.st==="wait");renderMatchList();toast("확인한 응답을 지웠어요");return;}
+  if(b.dataset.review){openSheet(idv(b.dataset.review));return;}
+  if(b.dataset.open)openChat(idv(b.dataset.open));
   else if(b.dataset.m){const c=S.chats[b.dataset.m];c.rvOpen=true;
     if(b.dataset.star)c.draft.stars=+b.dataset.star;
     else if(b.dataset.tag){const t=b.dataset.tag,i=c.draft.tags.indexOf(t);i<0?c.draft.tags.push(t):c.draft.tags.splice(i,1);}
     else if(b.dataset.send){if(!c.draft.stars){toast("별점을 먼저 골라 주세요");return;}c.review={...c.draft};toast("후기 고마워요!");}
     renderMatchList();}
+  else if(b.dataset.accept&&LIVE){liveRespond(b.dataset.accept,true,b);}
+  else if(b.dataset.decline&&LIVE){liveRespond(b.dataset.decline,false,b);}
   else if(b.dataset.accept){const id=+b.dataset.accept;S.incoming=S.incoming.filter(x=>x!==id);startChat(id);openChat(id);toast("매칭됐어요!");}
   else if(b.dataset.decline){S.incoming=S.incoming.filter(x=>x!=b.dataset.decline);renderMatchList();toast("거절했어요. 상대에겐 따로 알림이 가지 않아요");}
 });
@@ -983,6 +989,8 @@ const extOf=f=>((f.name||"").split(".").pop()||"jpg").toLowerCase().replace(/[^a
 function enterMain(firstTime){
   S.approved=true;newDeck();renderMe();renderCards();
   loading(3000,"step","오늘의 카드 20장을 고르는 중","today").then(()=>toast(firstTime?"승인 완료! 오늘의 카드가 도착했어요":"오늘의 카드가 도착했어요"));
+  if(LIVE){loadInterests(true);clearInterval(S.poll);S.poll=setInterval(()=>loadInterests(false),20000);
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.approved)loadInterests(false);});return;}
   setTimeout(()=>{if(!S.approved)return;S.incoming.push(makePerson(target()).id,makePerson(target()).id);S.unseen+=2;renderBadge();renderMatchList();toast("2명이 나에게 관심을 보냈어요");},5000);
 }
 async function liveLogin(){
@@ -1031,6 +1039,7 @@ async function route(){
   if(data.status==="rejected")return showWait("rejected",data.reject_reason);
   if(!data.nick)return show("profile");
   if(data.status!=="approved")return showWait("pending");
+  if(!data.college&&S.college)sb.from("profiles").update({college:S.college}).eq("id",S.user.id).then(()=>{});
   enterMain(false);
 }
 async function liveSubmitVerify(){
@@ -1041,7 +1050,7 @@ async function liveSubmitVerify(){
     const path=`${S.user.id}/${Date.now()}.${extOf(S.imgFile)}`;
     const up=await sb.storage.from("verify").upload(path,S.imgFile,{contentType:S.imgFile.type||"image/jpeg"});
     if(up.error)throw up.error;
-    const row={id:S.user.id,campus:S.campus,dept:S.dept,year:S.year,verify_method:S.method,verify_path:path,status:"pending",reject_reason:null};
+    const row={id:S.user.id,campus:S.campus,dept:S.dept,college:S.college,year:S.year,verify_method:S.method,verify_path:path,status:"pending",reject_reason:null};
     const {data,error}=await sb.from("profiles").upsert(row).select().single();
     if(error)throw error;
     applyRow(data);toast("인증 요청을 보냈어요");
@@ -1061,7 +1070,7 @@ async function liveSaveProfile(){
     }
     const upd={gender:p.gender,nick:p.nick,age:parseInt(p.age),mbti:p.mbti||null,height:p.h,height_pub:p.hPub,weight:p.w,weight_pub:p.wPub,
       score:p.score,score_pub:p.sPub,smoke:p.smoke,likes:p.likes,intro:p.intro,pref:p.pref,show_dept:p.show,
-      avatar_animal:p.animal,avatar_color:p.color,photo_url:photo};
+      avatar_animal:p.animal,avatar_color:p.color,photo_url:photo,college:S.college};
     const {data,error}=await sb.from("profiles").update(upd).eq("id",S.user.id).select().single();
     if(error)throw error;
     applyRow(data);
@@ -1071,9 +1080,77 @@ async function liveSaveProfile(){
   }catch(e){$("#pErr").textContent="저장하지 못했어요: "+(e.message||e);$("#pErr").hidden=false;}
   finally{btn.disabled=false;btn.textContent=label;}
 }
+/* ===== 2단계: 진짜 카드 · 관심 · 매칭 ===== */
+function toPerson(j){
+  const old=P(j.id);
+  const p={id:j.id,nick:j.nick,gender:j.gender,age:+j.age||"",campus:esc(j.campus),year:esc(j.year),dept:esc(j.dept||""),
+    collegeName:esc(j.college||(j.dept?collegeOf(j.campus,j.dept):"")),show:j.show_dept||"college",mbti:esc(j.mbti||"MBTI -"),
+    h:j.height!=null?(+j.height)+"cm":null,w:j.weight_set?(j.weight_pub&&j.weight!=null?(+j.weight)+"kg":"x"):null,wPub:!!j.weight_pub,
+    score:+j.score||"",sPub:!!j.score_pub,smoke:esc(j.smoke||"비흡연"),likes:(j.likes||[]).map(esc),intro:esc(j.intro||""),pref:esc(j.pref||"상관없음"),
+    animal:j.avatar_animal||"bear",color:/^#[0-9a-f]{6}$/i.test(j.avatar_color||"")?j.avatar_color:COLORS[0],
+    photo:/^https:\/\/[^"'<>\s]+$/.test(j.photo_url||"")?j.photo_url:null};
+  if(old)Object.assign(old,p);else people.push(p);
+  return p;
+}
+async function loadDeck(){
+  S.deckLoading=true;S.deck=[];S.sent={};renderCards();
+  const {data,error}=await sb.rpc("get_deck",{n:20});
+  S.deckLoading=false;
+  if(error){toast("카드를 불러오지 못했어요: "+error.message);renderCards();return;}
+  S.deck=(data||[]).map(j=>toPerson(j).id);renderCards();
+}
+async function liveLike(p,btn){
+  btn.disabled=true;
+  const {data,error}=await sb.rpc("send_interest",{target:p.id});
+  if(error){btn.disabled=false;toast("관심을 보내지 못했어요: "+error.message);return;}
+  if(data==="matched"){S.sent[p.id]="matched";startChat(p.id);S.unseen++;renderBadge();toast("상대도 나에게 관심이 있었어요! 매칭됐어요");}
+  else{S.sent[p.id]="wait";toast("관심을 보냈어요");}
+  renderCards();loadInterests(false);
+}
+async function liveRespond(id,accept,btn){
+  btn.disabled=true;
+  const {error}=await sb.rpc("respond_interest",{from_user:id,accept});
+  if(error){btn.disabled=false;toast("처리하지 못했어요: "+error.message);loadInterests(false);return;}
+  S.incoming=S.incoming.filter(x=>x!==id);
+  if(accept){startChat(id);toast("매칭됐어요!");await loadInterests(false);openChat(id);}
+  else{renderMatchList();toast("거절했어요. 상대에겐 따로 알림이 가지 않아요");}
+}
+const hidKey=()=>"hufs-hide-out-"+(S.user?S.user.id:"");
+function hiddenOut(){try{return new Set(JSON.parse(localStorage.getItem(hidKey())||"[]"));}catch(e){return new Set();}}
+function hideOut(ids){const h=hiddenOut();ids.forEach(i=>h.add(String(i)));try{localStorage.setItem(hidKey(),JSON.stringify([...h]));}catch(e){}}
+async function loadInterests(first){
+  if(!LIVE||!S.user)return;
+  const {data,error}=await sb.from("interests").select("from_id,to_id,status,created_at").order("created_at",{ascending:false});
+  if(error)return;
+  const me=S.user.id,ids=new Set();
+  data.forEach(r=>ids.add(r.from_id===me?r.to_id:r.from_id));
+  const need=[...ids].filter(i=>!P(i)||!P(i).fromPeople);
+  if(need.length){const {data:ps}=await sb.rpc("get_people",{ids:need});(ps||[]).forEach(j=>{toPerson(j).fromPeople=true;});}
+  const matched=new Set();
+  data.forEach(r=>{if(r.status==="accepted")matched.add(r.from_id===me?r.to_id:r.from_id);});
+  // 받은 관심
+  const inc=data.filter(r=>r.to_id===me&&r.status==="pending"&&P(r.from_id)&&!matched.has(r.from_id)).map(r=>r.from_id);
+  const prevIn=new Set(S.incoming);const newIn=inc.filter(i=>!prevIn.has(i));
+  S.incoming=inc;
+  // 보낸 관심
+  const hid=hiddenOut(),prevOut=new Map((S.out||[]).map(o=>[o.id,o.st]));
+  S.out=data.filter(r=>r.from_id===me&&P(r.to_id)&&!hid.has(r.to_id)).map(r=>{
+    const st=matched.has(r.to_id)?"matched":r.status==="declined"?"no":"wait";
+    const was=prevOut.get(r.to_id),prevO=(S.out||[]).find(o=>o.id===r.to_id);
+    return {id:r.to_id,st,fresh:(prevO&&prevO.fresh)||(!first&&was==="wait"&&st!=="wait"&&!S.outOpen)};
+  });
+  // 매칭
+  let newMatch=0;
+  matched.forEach(id=>{if(P(id)&&!S.chats[id]){startChat(id);if(!first)newMatch++;}});
+  if(first){S.unseen+=inc.length;}else{S.unseen+=newIn.length+newMatch;}
+  if(!first&&newIn.length)toast(`${newIn.length}명이 나에게 관심을 보냈어요`);
+  else if(!first&&newMatch)toast("새로 매칭된 사람이 있어요!");
+  renderBadge();renderMatchList();
+}
+
 async function boot(){
   if(!LIVE){show("start");return;}
-  $("#demoBadge").textContent="BETA · 카드는 예시";
+  $("#demoBadge").textContent="BETA";
   $("#startBtn").classList.add("kakao");$("#startBtn").innerHTML=KAKAO_ICON+"카카오로 시작하기";
   $("#adminPrev").hidden=true;$("#waitHint").hidden=true;$("#liveWait").hidden=false;$("#logout").textContent="로그아웃";
   $("#refreshSt").onclick=()=>route();$("#reVerify").onclick=()=>show("verify");$("#logout2").onclick=liveLogout;
