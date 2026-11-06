@@ -214,6 +214,11 @@ input,textarea,select{font-size:max(16px,1em)}
 .disclaim{margin:0;text-align:center;font-size:12px;line-height:1.6;color:var(--muted)}
 .online{display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--ok);vertical-align:1px}
 .online::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.rsn{display:flex;flex-wrap:wrap;gap:6px}
+.rsn .opt{border-radius:999px;padding:6px 12px;font-size:13.5px}
+.rsn .opt[aria-pressed="true"]{border-color:var(--peach);color:var(--peach);background:color-mix(in srgb,var(--peach) 10%,var(--bg))}
+.blk{display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer}
+.blk input{width:20px;height:20px;accent-color:var(--accent);margin-top:2px;flex:none}
 .tw{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
 .tw .thread{border:0;border-radius:0}
 .tw details{border-top:1px solid var(--line);padding:10px 14px}
@@ -815,7 +820,7 @@ function clearPending(){S.pendingImg=null;S.pendingFile=null;$("#ppv").hidden=tr
 $("#ppvCancel").onclick=clearPending;
 $("#ppvSend").onclick=()=>{if(!S.pendingImg||S.cur==null)return;const img=S.pendingImg,file=S.pendingFile;clearPending();sendMine({img,file});};
 $("#back").onclick=()=>{if(LIVE)leavePair();S.cur=null;clearPending();show("match");};
-$("#chatReport").onclick=()=>toast("신고가 접수됐어요. 운영자가 24시간 안에 확인해요");
+$("#chatReport").onclick=()=>LIVE?openReport(S.cur):toast("신고가 접수됐어요. 운영자가 24시간 안에 확인해요");
 
 /* 후기 */
 const TAGS=["대화가 잘 통했어요","매너가 좋았어요","프로필이랑 같았어요","약속 시간을 잘 지켰어요"];
@@ -895,17 +900,18 @@ $("#matchList").addEventListener("click",e=>{
   else if(b.dataset.decline){S.incoming=S.incoming.filter(x=>x!=b.dataset.decline);renderMatchList();toast("거절했어요. 상대에겐 따로 알림이 가지 않아요");}
 });
 /* 만남 후기 시트 */
-function openSheet(id){S.sheetId=id;$("#sheetTitle").textContent="만남 후기";renderSheet();$("#scrim").hidden=false;$("#sheet").hidden=false;
+function openSheet(id){S.sheetMode="review";S.sheetId=id;$("#sheetTitle").textContent="만남 후기";renderSheet();$("#scrim").hidden=false;$("#sheet").hidden=false;
   requestAnimationFrame(()=>requestAnimationFrame(()=>{$("#scrim").classList.add("show");$("#sheet").classList.add("show");}));}
 function closeSheet(){$("#scrim").classList.remove("show");$("#sheet").classList.remove("show");setTimeout(()=>{$("#scrim").hidden=true;$("#sheet").hidden=true;},330);}
 function renderSheet(){const p=P(S.sheetId);
   $("#sheetBody").innerHTML=`<div class="ph" style="margin-bottom:16px">${avatar(p,"k52")}<div class="who"><b>${esc(p.nick)}</b>${gtag(p.gender)}<div>별점과 태그로 알려 주세요. 이름 없이 반영돼요.</div></div></div>`+reviewHTML(S.sheetId);}
 $("#scrim").onclick=closeSheet;$("#sheetClose").onclick=closeSheet;
 $("#sheetBody").addEventListener("click",e=>{
-  const b=e.target.closest("button");if(!b||!b.dataset.m)return;const c=S.chats[b.dataset.m];
+  const b0=e.target.closest("button");if(b0&&S.sheetMode==="report"){reportClick(b0);return;}
+  const b=b0;if(!b||!b.dataset.m)return;const c=S.chats[b.dataset.m];
   if(b.dataset.star)c.draft.stars=+b.dataset.star;
   else if(b.dataset.tag){const t=b.dataset.tag,i=c.draft.tags.indexOf(t);i<0?c.draft.tags.push(t):c.draft.tags.splice(i,1);}
-  else if(b.dataset.send){if(!c.draft.stars){toast("별점을 먼저 골라 주세요");return;}c.review={...c.draft};renderSheet();renderMatchList();toast("후기 고마워요!");setTimeout(closeSheet,600);return;}
+  else if(b.dataset.send){if(!c.draft.stars){toast("별점을 먼저 골라 주세요");return;}if(LIVE){liveReview(b.dataset.m,c,b);return;}c.review={...c.draft};renderSheet();renderMatchList();toast("후기 고마워요!");setTimeout(closeSheet,600);return;}
   renderSheet();
 });
 
@@ -926,6 +932,7 @@ function renderFb(){
     <button class="likebtn" data-fb="${i}" aria-pressed="${!!f.liked}" aria-label="공감 ${f.likes}개">${ic("heart",15)} 공감 ${f.likes}</button></article>`).join("");
 }
 $("#fbList").addEventListener("click",e=>{const b=e.target.closest("[data-fb]");if(!b)return;const f=S.feedback[b.dataset.fb];
+  if(LIVE){liveLikeFb(f,b);return;}
   f.liked=!f.liked;f.likes+=f.liked?1:-1;f.fresh=false;b.setAttribute("aria-pressed",f.liked);b.innerHTML=`${ic("heart",15)} 공감 ${f.likes}`;});
 renderFb();
 
@@ -962,6 +969,7 @@ $("#pubCard").addEventListener("click",e=>{
 });
 $("#fbSend").onclick=()=>{
   const t=$("#fbText").value.trim();if(!t){toast("내용을 적어 주세요");return;}
+  if(LIVE){liveFeedback(t);return;}
   S.feedback.forEach(f=>f.fresh=false);
   const me=S.profile;S.feedback.unshift({nick:me.nick,animal:me.animal,color:me.color,photo:me.photo,t,time:"방금",likes:0,liked:false,mine:true,fresh:true});
   $("#fbText").value="";renderFb();
@@ -1022,9 +1030,14 @@ function applyRow(r){
   setSeg("#campusSeg","c",r.campus);fillDept();
   if(r.nick){S.profile=rowToProfile(r);fillForm(S.profile);}
 }
-function showWait(state,reason){
+function showWait(state,reason,until){
   const pill=$("#waitPill");
-  if(state==="rejected"){
+  if(state==="banned"){
+    pill.className="pill";pill.style.cssText="color:var(--peach);background:color-mix(in srgb,var(--peach) 15%,transparent)";pill.textContent="이용 정지";
+    $("#waitTitle").textContent=until?new Date(until).toLocaleString("ko-KR",{month:"long",day:"numeric",hour:"numeric",minute:"2-digit"})+"까지 이용이 정지됐어요":"이용이 영구 정지됐어요";
+    $("#waitSub").textContent=(reason?"사유: "+reason+". ":"")+"문의가 있으면 운영자에게 연락해 주세요.";
+    $("#reVerify").hidden=true;$("#refreshSt").hidden=true;
+  }else if(state==="rejected"){
     pill.className="pill";pill.style.cssText="color:var(--peach);background:color-mix(in srgb,var(--peach) 15%,transparent)";pill.textContent="반려됨";
     $("#waitTitle").textContent="인증을 다시 해 주세요";
     $("#waitSub").textContent=reason?"사유: "+reason:"캡처에서 학번과 학과가 잘 보이게 다시 올려 주세요.";
@@ -1042,6 +1055,10 @@ async function route(){
   if(error){toast("정보를 불러오지 못했어요: "+error.message);show("start");return;}
   if(!data){loading(1700,"smooth","가입 화면 준비 중","verify");return;}
   applyRow(data);
+  if(data.status==="banned"){
+    if(data.banned_until&&new Date(data.banned_until)<=new Date()){const {data:st}=await sb.rpc("lift_my_ban");if(st==="approved")return route();}
+    return showWait("banned",data.reject_reason,data.banned_until);
+  }
   if(data.status==="rejected")return showWait("rejected",data.reject_reason);
   if(!data.nick)return show("profile");
   if(data.status!=="approved")return showWait("pending");
@@ -1152,7 +1169,7 @@ async function loadInterests(first){
   if(!first&&newIn.length)toast(`${newIn.length}명이 나에게 관심을 보냈어요`);
   else if(!first&&newMatch)toast("새로 매칭된 사람이 있어요!");
   renderBadge();renderMatchList();
-  if(first){liveChatStart();livePresenceStart();}
+  if(first){liveChatStart().then(loadMyReviews);livePresenceStart();loadFeedback();}
 }
 
 /* ===== 3단계: 실시간 채팅 ===== */
@@ -1286,9 +1303,80 @@ $("#onlineToggle").addEventListener("click",async()=>{
   toast(error?"저장하지 못했어요: "+error.message:on?"현재 활동 상태를 보여 줘요":"현재 활동 상태를 숨겼어요");
 });
 
+/* ===== 5단계: 신고 · 차단 · 후기 · 피드백 ===== */
+const REPORTS=["불쾌하거나 성적인 메시지","사진·프로필 도용","돈 요구·홍보·광고","외대생이 아닌 것 같아요","미성년자 같아요","기타"];
+function openReport(id){
+  if(!id)return;const p=P(id);S.sheetMode="report";S.sheetId=id;S.rsn=[];
+  $("#sheetTitle").textContent="신고 · 차단";
+  $("#sheetBody").innerHTML=`<div class="stack">
+    <div class="ph">${avatar(p,"k52")}<div class="who"><b>${esc(p.nick)}</b>${gtag(p.gender)}<div>신고 내용은 상대에게 알려지지 않아요.</div></div></div>
+    <div class="f"><span class="lab">신고 이유 (여러 개 골라도 돼요)</span><div class="rsn">${REPORTS.map(r=>`<button class="opt" data-rr="${r}" aria-pressed="false">${r}</button>`).join("")}</div></div>
+    <div class="f"><label for="rDetail">자세한 내용 (선택)</label><div class="field"><textarea id="rDetail" maxlength="500" placeholder="어떤 일이 있었는지 적어 주면 확인이 빨라요"></textarea></div></div>
+    <label class="blk"><input type="checkbox" id="rBlock" checked><span><b>이 사람 차단하기</b><br><span class="hint">서로 카드, 관심, 채팅에서 사라지고 다시 연락할 수 없어요.</span></span></label>
+    <div class="row"><button class="btn line" data-bonly="1">차단만 하기</button><button class="btn" data-rsend="1">신고 보내기</button></div>
+  </div>`;
+  $("#scrim").hidden=false;$("#sheet").hidden=false;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{$("#scrim").classList.add("show");$("#sheet").classList.add("show");}));
+}
+async function reportClick(b){
+  if(b.dataset.rr){const on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",on);on?S.rsn.push(b.dataset.rr):S.rsn.splice(S.rsn.indexOf(b.dataset.rr),1);return;}
+  const id=S.sheetId,me=S.user.id;
+  if(b.dataset.bonly){b.disabled=true;const ok=await liveBlock(id);if(ok){closeSheet();toast("차단했어요");}else b.disabled=false;return;}
+  if(b.dataset.rsend){
+    if(!S.rsn.length){toast("신고 이유를 하나 이상 골라 주세요");return;}
+    b.disabled=true;
+    const {error}=await sb.from("reports").insert({reporter:me,target:id,reason:S.rsn.join(", "),detail:$("#rDetail").value.trim()||null,context:"chat"});
+    if(error){b.disabled=false;toast("신고를 보내지 못했어요: "+error.message);return;}
+    if($("#rBlock").checked)await liveBlock(id);
+    closeSheet();toast("신고가 접수됐어요. 운영자가 확인할게요");
+  }
+}
+async function liveBlock(id){
+  const {error}=await sb.from("blocks").insert({blocker:S.user.id,blocked:id});
+  if(error&&!/duplicate/i.test(error.message)){toast("차단하지 못했어요: "+error.message);return false;}
+  delete S.chats[id];S.incoming=S.incoming.filter(x=>x!==id);S.out=(S.out||[]).filter(o=>o.id!==id);
+  S.deck=S.deck.filter(x=>x!==id);
+  if(S.cur===id){leavePair();S.cur=null;show("match");}
+  renderMatchList();renderCards();renderBadge();
+  return true;
+}
+async function liveReview(id,c,btn){
+  btn.disabled=true;
+  const {error}=await sb.from("reviews").insert({reviewer:S.user.id,target:id,stars:c.draft.stars,tags:c.draft.tags});
+  if(error&&!/duplicate/i.test(error.message)){btn.disabled=false;toast("후기를 보내지 못했어요: "+error.message);return;}
+  c.review={...c.draft};renderSheet();renderMatchList();toast("후기 고마워요!");setTimeout(closeSheet,600);
+}
+async function loadMyReviews(){
+  const {data}=await sb.from("reviews").select("target,stars,tags");
+  (data||[]).forEach(r=>{const c=S.chats[r.target];if(c)c.review={stars:r.stars,tags:r.tags||[]};});
+  renderMatchList();
+}
+const agoK=t=>{const m=Math.round((Date.now()-new Date(t))/60000);if(m<1)return"방금";if(m<60)return m+"분 전";const h=Math.round(m/60);if(h<24)return h+"시간 전";const d=Math.round(h/24);return d===1?"어제":d+"일 전";};
+async function loadFeedback(){
+  const {data,error}=await sb.rpc("get_feedback");if(error)return;
+  S.feedback=(data||[]).map(j=>({id:j.id,nick:j.nick||"익명",animal:j.avatar_animal||"bear",
+    color:/^#[0-9a-f]{6}$/i.test(j.avatar_color||"")?j.avatar_color:COLORS[0],
+    photo:/^https:\/\/[^"'<>\s]+$/.test(j.photo_url||"")?j.photo_url:null,
+    t:j.body,time:agoK(j.created_at),likes:+j.likes||0,liked:!!j.liked,mine:!!j.mine,reply:j.reply}));
+  renderFb();
+}
+async function liveFeedback(t){
+  const btn=$("#fbSend");btn.disabled=true;
+  const {error}=await sb.from("feedback").insert({user_id:S.user.id,body:t});
+  btn.disabled=false;
+  if(error){toast("보내지 못했어요: "+error.message);return;}
+  $("#fbText").value="";await loadFeedback();if(S.feedback[0])S.feedback[0].fresh=true;renderFb();
+  toast("보냈어요! 운영자가 확인할게요");
+}
+async function liveLikeFb(f,b){
+  const {data,error}=await sb.rpc("toggle_feedback_like",{fid:f.id});
+  if(error){toast("공감하지 못했어요");return;}
+  f.liked=!!data;f.likes+=data?1:-1;f.fresh=false;b.setAttribute("aria-pressed",f.liked);b.innerHTML=`${ic("heart",15)} 공감 ${f.likes}`;
+}
+
 async function boot(){
   if(!LIVE){show("start");return;}
-  $("#demoBadge").textContent="BETA";
+  $("#demoBadge").textContent="BETA";S.feedback=[];renderFb();
   $("#startBtn").classList.add("kakao");$("#startBtn").innerHTML=KAKAO_ICON+"카카오로 시작하기";
   $("#adminPrev").hidden=true;$("#waitHint").hidden=true;$("#liveWait").hidden=false;$("#logout").textContent="로그아웃";
   $("#refreshSt").onclick=()=>route();$("#reVerify").onclick=()=>show("verify");$("#logout2").onclick=liveLogout;
