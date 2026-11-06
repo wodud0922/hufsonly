@@ -212,6 +212,8 @@ input,textarea,select{font-size:max(16px,1em)}
 .btn.kakao{background:#FEE500;color:#191919;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn[disabled]{opacity:.55;cursor:default}
 .disclaim{margin:0;text-align:center;font-size:12px;line-height:1.6;color:var(--muted)}
+.online{display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--ok);vertical-align:1px}
+.online::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
 .tw{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
 .tw .thread{border:0;border-radius:0}
 .tw details{border-top:1px solid var(--line);padding:10px 14px}
@@ -476,6 +478,7 @@ nav .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(
     <div class="card" style="margin-top:14px">
       <div class="set"><div>같은 학과 피하기<small>같은 학과 사람은 카드에 안 나와요</small></div><button class="toggle" aria-pressed="true" aria-label="같은 학과 피하기"></button></div>
       <div class="set"><div>연락처 속 지인 피하기<small>휴대폰 연락처에 있는 사람 제외</small></div><button class="toggle" aria-pressed="false" aria-label="연락처 속 지인 피하기"></button></div>
+      <div class="set"><div>현재 활동 상태 표시<small>켜면 대화 중인 상대가 내가 접속해 있는지 볼 수 있어요. 끄면 나도 다른 사람의 상태를 볼 수 없어요.</small></div><button class="toggle" id="onlineToggle" aria-pressed="true" aria-label="현재 활동 상태 표시"></button></div>
       <div class="set"><div>신고 · 차단<small>카드, 매칭, 대화방에서 바로 신고할 수 있어요</small></div><span class="hint">항상 켜짐</span></div>
     </div>
     <div class="card stack" style="margin-top:14px">
@@ -758,7 +761,7 @@ $("#cards").addEventListener("click",e=>{
 function startChat(id){
   if(S.chats[id])return;
   S.chats[id]={msgs:[{sys:"서로 관심을 수락해서 대화가 열렸어요. 불편하면 언제든 신고·차단할 수 있어요."}],ri:0,unread:0,review:null,draft:{stars:0,tags:[]},rvOpen:false};
-  if(LIVE){S.chats[id].msgs.push({sys:"매칭됐어요! 채팅은 곧 열려요. 다음 업데이트를 기다려 주세요."});return;}
+  if(LIVE)return;
   const p=P(id);
   setTimeout(()=>{if(!S.chats[id])return;pushThem(id,p.replies[0]);},2500);
 }
@@ -768,21 +771,23 @@ function pushThem(id,text){
 }
 function openChat(id){
   S.cur=id;const p=P(id),c=S.chats[id];c.unread=0;
-  $("#chatWho").innerHTML=`${avatar(p,"k")}<div class="who"><b>${esc(p.nick)}</b><div>${p.age}살 · ${deptLine(p,true)}</div></div>`;
-  renderMsgs();show("chat");if(LIVE)$("#composer").hidden=true;
+  $("#chatWho").innerHTML=`${avatar(p,"k")}<div class="who"><b>${esc(p.nick)}</b><span class="online" id="chatOnline" hidden>현재 활동 중</span><div>${p.age}살 · ${deptLine(p,true)}</div></div>`;
+  if(LIVE){joinPair(id);updateChatHead();}
+  renderMsgs();show("chat");
+  if(LIVE)liveMarkRead(id);
 }
 function renderMsgs(){
   const c=S.chats[S.cur],p=P(S.cur);let prev=null,h="";
   c.msgs.forEach((m,i)=>{
     if(m.sys){h+=`<div class="sys">${m.sys}</div>`;prev=null;return;}
     const next=c.msgs[i+1];
-    if(m.them){
-      const first=prev!=="them",endT=!next||!next.them||next.t!==m.t;
-      h+=`<div class="krow-them${first?" first":""}">${first?avatar(p,"k"):`<span class="kspace"></span>`}<div class="kcol">${first?`<div class="kname">${esc(p.nick)}</div>`:""}<div class="kline"><div class="bub them">${esc(m.them)}</div>${endT?`<span class="ktime">${m.t}</span>`:""}</div></div></div>`;
+    if(m.them||m.themImg){
+      const first=prev!=="them",endT=!next||!(next.them||next.themImg)||next.t!==m.t;
+      h+=`<div class="krow-them${first?" first":""}">${first?avatar(p,"k"):`<span class="kspace"></span>`}<div class="kcol">${first?`<div class="kname">${esc(p.nick)}</div>`:""}<div class="kline">${(m.img||m.themImg)?`<div class="bub them pic"><img src="${m.img||BLANK}" alt="받은 사진"></div>`:`<div class="bub them">${esc(m.them)}</div>`}${endT?`<span class="ktime">${m.t}</span>`:""}</div></div></div>`;
       prev="them";
     }else{
-      const endT=!next||next.sys||next.them||next.t!==m.t;
-      h+=`<div class="kline me">${m.img?`<div class="bub me pic"><img src="${m.img}" alt="보낸 사진"></div>`:`<div class="bub me">${esc(m.me)}</div>`}<span class="kmeta">${m.read?"":`<span class="unread1" aria-label="안 읽음">1</span>`}${endT?`<span class="ktime">${m.t}</span>`:""}</span></div>`;
+      const endT=!next||next.sys||next.them||next.themImg||next.t!==m.t;
+      h+=`<div class="kline me">${(m.img||m.path)?`<div class="bub me pic"><img src="${m.img||BLANK}" alt="보낸 사진"></div>`:`<div class="bub me">${esc(m.me)}</div>`}<span class="kmeta">${m.pending?`<span class="ktime">전송 중</span>`:m.read?"":`<span class="unread1" aria-label="안 읽음">1</span>`}${endT?`<span class="ktime">${m.t}</span>`:""}</span></div>`;
       prev="me";
     }
   });
@@ -792,6 +797,7 @@ function renderMsgs(){
 }
 function markRead(id){S.chats[id].msgs.forEach(m=>{if(!m.sys&&!m.them)m.read=true;});if(S.cur===id)renderMsgs();}
 function sendMine(msg){
+  if(LIVE){liveSend(msg);return;}
   const id=S.cur,c=S.chats[id],p=P(id);c.msgs.push({...msg,t:nowTime(),read:false});renderMsgs();
   if(c.ri<p.replies.length&&!c.typing){
     c.typing=true;
@@ -804,11 +810,11 @@ function sendMine(msg){
 }
 $("#chatForm").onsubmit=e=>{e.preventDefault();const v=$("#chatInput").value.trim();if(!v||S.cur==null)return;$("#chatInput").value="";sendMine({me:v});};
 $("#chatPhoto").onchange=e=>{const f=e.target.files[0];if(!f||S.cur==null)return;const r=new FileReader();
-  r.onload=()=>{S.pendingImg=r.result;$("#ppvImg").src=r.result;const v=$("#ppv");v.hidden=false;v.classList.remove("up");void v.offsetWidth;v.classList.add("up");e.target.value="";};r.readAsDataURL(f);};
-function clearPending(){S.pendingImg=null;$("#ppv").hidden=true;$("#ppvImg").removeAttribute("src");}
+  S.pendingFile=f;r.onload=()=>{S.pendingImg=r.result;$("#ppvImg").src=r.result;const v=$("#ppv");v.hidden=false;v.classList.remove("up");void v.offsetWidth;v.classList.add("up");e.target.value="";};r.readAsDataURL(f);};
+function clearPending(){S.pendingImg=null;S.pendingFile=null;$("#ppv").hidden=true;$("#ppvImg").removeAttribute("src");}
 $("#ppvCancel").onclick=clearPending;
-$("#ppvSend").onclick=()=>{if(!S.pendingImg||S.cur==null)return;const img=S.pendingImg;clearPending();sendMine({img});};
-$("#back").onclick=()=>{S.cur=null;clearPending();show("match");};
+$("#ppvSend").onclick=()=>{if(!S.pendingImg||S.cur==null)return;const img=S.pendingImg,file=S.pendingFile;clearPending();sendMine({img,file});};
+$("#back").onclick=()=>{if(LIVE)leavePair();S.cur=null;clearPending();show("match");};
 $("#chatReport").onclick=()=>toast("신고가 접수됐어요. 운영자가 24시간 안에 확인해요");
 
 /* 후기 */
@@ -860,7 +866,7 @@ function renderMatchList(){
   h+=`<div class="sec">대화</div>`;
   if(ids.length){
     h+=`<div class="klist">`+ids.map(id=>{const p=P(id),c=S.chats[id],last=lastOf(c);
-      return `<button class="krow" data-open="${id}">${avatar(p,"k52")}<div style="min-width:0"><b>${esc(p.nick)}</b><div class="last">${last?esc(last.them||last.me||"사진을 보냈어요"):(LIVE?"매칭됐어요 · 채팅은 곧 열려요":"대화가 열렸어요. 먼저 인사해 보세요!")}</div></div><div class="kright"><span class="ktime">${last?last.t:""}</span>${c.unread?`<span class="kcount">${c.unread}</span>`:""}</div></button>`;}).join("")+`</div>`;
+      return `<button class="krow" data-open="${id}">${avatar(p,"k52")}<div style="min-width:0"><b>${esc(p.nick)}</b><div class="last">${last?esc(last.them||last.me||(last.themImg?"사진을 보냈어요":"사진을 보냈어요")):"대화가 열렸어요. 먼저 인사해 보세요!"}</div></div><div class="kright"><span class="ktime">${last?last.t:""}</span>${c.unread?`<span class="kcount">${c.unread}</span>`:""}</div></button>`;}).join("")+`</div>`;
     const pend=ids.filter(id=>!S.chats[id].review),done=ids.length-pend.length;
     h+=`<button class="inbox" data-acc="rv" aria-expanded="${!!S.rvOpen}" aria-controls="acc-rv"><span class="inico" aria-hidden="true">${ic("star",24)}</span><span><b>후기 보내기</b><small>${pend.length?pend.length+"명에게 후기를 남길 수 있어요":"모든 후기를 보냈어요"}${done?` · ${done}개 작성 완료`:""}</small></span>${pend.length?`<span class="cnt" style="background:var(--accent)">${pend.length}</span>`:`<span></span>`}<span class="chev" aria-hidden="true">${ic("chev",20)}</span></button>
     <div class="acc${S.rvOpen?" open":""}" id="acc-rv"><div><div class="stack" style="gap:10px;padding-top:12px">`+
@@ -1103,7 +1109,7 @@ async function liveLike(p,btn){
   btn.disabled=true;
   const {data,error}=await sb.rpc("send_interest",{target:p.id});
   if(error){btn.disabled=false;toast("관심을 보내지 못했어요: "+error.message);return;}
-  if(data==="matched"){S.sent[p.id]="matched";startChat(p.id);S.unseen++;renderBadge();toast("상대도 나에게 관심이 있었어요! 매칭됐어요");}
+  if(data==="matched"){S.sent[p.id]="matched";ensureChat(p.id);S.unseen++;renderBadge();toast("상대도 나에게 관심이 있었어요! 매칭됐어요");}
   else{S.sent[p.id]="wait";toast("관심을 보냈어요");}
   renderCards();loadInterests(false);
 }
@@ -1112,7 +1118,7 @@ async function liveRespond(id,accept,btn){
   const {error}=await sb.rpc("respond_interest",{from_user:id,accept});
   if(error){btn.disabled=false;toast("처리하지 못했어요: "+error.message);loadInterests(false);return;}
   S.incoming=S.incoming.filter(x=>x!==id);
-  if(accept){startChat(id);toast("매칭됐어요!");await loadInterests(false);openChat(id);}
+  if(accept){ensureChat(id);toast("매칭됐어요!");await loadInterests(false);openChat(id);}
   else{renderMatchList();toast("거절했어요. 상대에겐 따로 알림이 가지 않아요");}
 }
 const hidKey=()=>"hufs-hide-out-"+(S.user?S.user.id:"");
@@ -1141,12 +1147,144 @@ async function loadInterests(first){
   });
   // 매칭
   let newMatch=0;
-  matched.forEach(id=>{if(P(id)&&!S.chats[id]){startChat(id);if(!first)newMatch++;}});
+  matched.forEach(id=>{if(P(id)&&!S.chats[id]){ensureChat(id);if(!first)newMatch++;}});
   if(first){S.unseen+=inc.length;}else{S.unseen+=newIn.length+newMatch;}
   if(!first&&newIn.length)toast(`${newIn.length}명이 나에게 관심을 보냈어요`);
   else if(!first&&newMatch)toast("새로 매칭된 사람이 있어요!");
   renderBadge();renderMatchList();
+  if(first){liveChatStart();livePresenceStart();}
 }
+
+/* ===== 3단계: 실시간 채팅 ===== */
+const BLANK="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22210%22 height=%22160%22/%3E";
+const fmtT=iso=>{const d=new Date(iso);return `${d.getHours()<12?"오전":"오후"} ${(d.getHours()%12)||12}:${String(d.getMinutes()).padStart(2,"0")}`;};
+const urlCache={};
+async function signed(path){
+  if(urlCache[path])return urlCache[path];
+  const {data}=await sb.storage.from("chat").createSignedUrl(path,3600);
+  if(data&&data.signedUrl)urlCache[path]=data.signedUrl;
+  return urlCache[path]||null;
+}
+function rowToMsg(r){
+  const mine=r.sender_id===S.user.id,m={id:r.id,t:fmtT(r.created_at),at:r.created_at,read:!!r.read_at,path:r.image_path};
+  if(mine){if(r.image_path)m.img=urlCache[r.image_path]||"";else m.me=r.body;}
+  else{if(r.image_path){m.themImg=true;m.img=urlCache[r.image_path]||"";}else m.them=r.body;}
+  return m;
+}
+function ensureChat(other){
+  if(!S.chats[other])S.chats[other]={msgs:[{sys:"서로 관심을 수락해서 대화가 열렸어요. 불편하면 언제든 신고·차단할 수 있어요."}],ri:0,unread:0,review:null,draft:{stars:0,tags:[]},rvOpen:false};
+  return S.chats[other];
+}
+function addRow(r,live){
+  const me=S.user.id,other=r.sender_id===me?r.receiver_id:r.sender_id;
+  if(!P(other))return null;
+  const c=ensureChat(other);
+  if(c.msgs.some(m=>m.id===r.id))return null;
+  const m=rowToMsg(r);c.msgs.push(m);
+  if(m.path&&!m.img)signed(m.path).then(u=>{if(u){m.img=u;if(S.cur===other)renderMsgs();}});
+  if(r.receiver_id===me&&!r.read_at){
+    if(S.cur===other&&!document.hidden){liveMarkRead(other);}
+    else{c.unread++;if(live){S.unseen++;renderBadge();toast(`${P(other).nick}님이 메시지를 보냈어요`);}}
+  }
+  return other;
+}
+async function loadMessages(){
+  const {data,error}=await sb.from("messages").select("*").order("created_at",{ascending:true}).limit(2000);
+  if(error)return;
+  Object.values(S.chats).forEach(c=>{c.unread=0;});
+  data.forEach(r=>{addRow(r,false);});
+  data.forEach(r=>{const o=r.sender_id===S.user.id?r.receiver_id:r.sender_id,c=S.chats[o];if(c){const m=c.msgs.find(x=>x.id===r.id);if(m)m.read=!!r.read_at;}});
+  Object.keys(S.chats).forEach(k=>{const c=S.chats[k];c.unread=c.msgs.filter(m=>(m.them||m.themImg)&&!m.read).length;});
+  S.unseen=Math.max(S.unseen,Object.values(S.chats).reduce((a,c)=>a+c.unread,0));
+  renderBadge();renderMatchList();if(S.cur&&S.chats[S.cur])renderMsgs();
+}
+async function liveChatStart(){
+  await loadMessages();
+  if(S.rt)return;
+  const me=S.user.id;
+  S.rt=sb.channel("msgs-"+me)
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"receiver_id=eq."+me},async pl=>{
+      const r=pl.new;if(!P(r.sender_id))await loadInterests(false);
+      const oc=S.chats[r.sender_id];if(oc&&oc.showTyping){oc.showTyping=false;clearTimeout(oc.tt);}
+      const other=addRow(r,true);if(other){renderMatchList();if(S.cur===other)renderMsgs();}
+    })
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages",filter:"sender_id=eq."+me},pl=>{
+      const r=pl.new,c=S.chats[r.receiver_id];if(!c)return;
+      const m=c.msgs.find(x=>x.id===r.id);if(m&&r.read_at&&!m.read){m.read=true;if(S.cur===r.receiver_id)renderMsgs();}
+    })
+    .subscribe();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){loadMessages();if(S.cur)liveMarkRead(S.cur);}});
+}
+async function liveMarkRead(other){
+  const c=S.chats[other];if(!c)return;
+  c.msgs.forEach(m=>{if(m.them||m.themImg)m.read=true;});
+  if(c.unread){S.unseen=Math.max(0,S.unseen-c.unread);c.unread=0;renderBadge();}
+  await sb.rpc("mark_read",{other});
+}
+async function liveSend(msg){
+  const other=S.cur,c=ensureChat(other),me=S.user.id;
+  const temp={t:nowTime(),read:false,pending:true};
+  if(msg.img){temp.img=msg.img;}else temp.me=msg.me;
+  c.msgs.push(temp);renderMsgs();
+  try{
+    const row={sender_id:me,receiver_id:other};
+    if(msg.file){
+      const path=`${me}/${other}/${Date.now()}.${extOf(msg.file)}`;
+      const up=await sb.storage.from("chat").upload(path,msg.file,{contentType:msg.file.type||"image/jpeg"});
+      if(up.error)throw up.error;
+      row.image_path=path;urlCache[path]=msg.img;
+    }else row.body=msg.me;
+    const {data,error}=await sb.from("messages").insert(row).select().single();
+    if(error)throw error;
+    Object.assign(temp,{id:data.id,t:fmtT(data.created_at),pending:false,path:data.image_path});
+  }catch(e){
+    c.msgs.splice(c.msgs.indexOf(temp),1);toast("보내지 못했어요: "+(e.message||e));
+    if(msg.me)$("#chatInput").value=msg.me;
+  }
+  renderMsgs();renderMatchList();
+}
+
+/* ===== 4단계: 입력 중 표시 · 현재 활동 상태 ===== */
+const pairName=o=>"pair-"+[S.user.id,String(o)].sort().join("-");
+function joinPair(o){
+  leavePair();
+  const ch=sb.channel(pairName(o));
+  ch.on("broadcast",{event:"typing"},({payload})=>{if(!payload||payload.from!==o)return;showTypingFor(o);}).subscribe();
+  S.pair=ch;
+}
+function leavePair(){if(S.pair){try{sb.removeChannel(S.pair);}catch(e){}S.pair=null;}}
+function showTypingFor(o){
+  const c=S.chats[o];if(!c)return;
+  const was=c.showTyping;c.showTyping=true;if(S.cur===o&&!was)renderMsgs();
+  clearTimeout(c.tt);c.tt=setTimeout(()=>{c.showTyping=false;if(S.cur===o)renderMsgs();},3500);
+}
+let lastTypingSent=0;
+$("#chatInput").addEventListener("input",()=>{
+  if(!LIVE||!S.pair||!$("#chatInput").value.trim())return;
+  if(Date.now()-lastTypingSent<1500)return;lastTypingSent=Date.now();
+  S.pair.send({type:"broadcast",event:"typing",payload:{from:S.user.id}});
+});
+function updateChatHead(){
+  const el=$("#chatOnline");if(!el)return;
+  el.hidden=!(S.showOnline&&S.cur&&S.onlineSet&&S.onlineSet.has(String(S.cur)));
+}
+function livePresenceStart(){
+  if(S.pres)return;
+  S.showOnline=!(S.row&&S.row.show_online===false);
+  $("#onlineToggle").setAttribute("aria-pressed",S.showOnline);
+  S.onlineSet=new Set();
+  S.pres=sb.channel("online",{config:{presence:{key:S.user.id}}});
+  S.pres.on("presence",{event:"sync"},()=>{S.onlineSet=new Set(Object.keys(S.pres.presenceState()));updateChatHead();})
+    .subscribe(async st=>{if(st==="SUBSCRIBED"&&S.showOnline){try{await S.pres.track({at:Date.now()});}catch(e){}}});
+}
+$("#onlineToggle").addEventListener("click",async()=>{
+  if(!LIVE)return;
+  const on=$("#onlineToggle").getAttribute("aria-pressed")==="true";
+  S.showOnline=on;updateChatHead();
+  if(S.pres){try{on?await S.pres.track({at:Date.now()}):await S.pres.untrack();}catch(e){}}
+  const {error}=await sb.from("profiles").update({show_online:on}).eq("id",S.user.id);
+  toast(error?"저장하지 못했어요: "+error.message:on?"현재 활동 상태를 보여 줘요":"현재 활동 상태를 숨겼어요");
+});
 
 async function boot(){
   if(!LIVE){show("start");return;}
