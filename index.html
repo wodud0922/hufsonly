@@ -395,6 +395,7 @@ nav .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(
         <span class="hint">사진을 안 올리면 귀여운 동물 프로필이 랜덤으로 들어가요.</span>
       </div>
       <div class="f"><span class="lab">성별</span><div class="seg" id="genderSeg"><button class="opt" data-g="남" aria-pressed="false">남자</button><button class="opt" data-g="여" aria-pressed="false">여자</button></div></div>
+      <div class="f"><span class="lab">카드에서 보고 싶은 사람</span><div class="seg" id="wantSeg"><button class="opt" data-w="all" aria-pressed="true">모두</button><button class="opt" data-w="남" aria-pressed="false">남자</button><button class="opt" data-w="여" aria-pressed="false">여자</button></div><span class="hint">서로 조건이 맞는 사람끼리만 카드에 떠요.</span></div>
       <div class="f"><label for="pNick">닉네임</label><div class="field"><input id="pNick" class="nx" placeholder="예: 봄바람" maxlength="10" enterkeyhint="next" autocomplete="off"></div></div>
       <div class="f"><label for="pAge">나이</label><div class="field"><input id="pAge" class="nx" type="number" inputmode="numeric" min="19" max="35" placeholder="예: 22" enterkeyhint="next"><span class="unit">살</span></div></div>
       <div class="f"><label for="pH">키</label>
@@ -638,7 +639,7 @@ function single(g,attr,cb){document.querySelectorAll(g+" .opt").forEach(b=>b.onc
 const pressed=(g,attr)=>document.querySelector(g+' .opt[aria-pressed="true"]').dataset[attr];
 single("#campusSeg","c",v=>{S.campus=v;fillDept();});
 single("#methodSel","m",v=>S.method=v);
-single("#smokeSeg","s");
+single("#smokeSeg","s");single("#wantSeg","w");
 const renderPfp=()=>$("#pfpPrev").innerHTML=avatar(S.pf);
 $("#pfpFile").onchange=e=>{const f=e.target.files[0];if(!f)return;S.pfFile=f;const r=new FileReader();r.onload=()=>{S.pf.photo=r.result;renderPfp();toast("프로필 사진을 올렸어요");};r.readAsDataURL(f);};
 $("#pfpAnimal").onclick=()=>{S.pfFile=null;S.pf={photo:null,animal:pick(ANIMALS.filter(a=>a!==S.pf.animal)),color:pick(COLORS)};$("#pfpFile").value="";renderPfp();};single("#genderSeg","g");
@@ -700,7 +701,7 @@ $("#saveP").onclick=()=>{
   if(wRaw&&!(w>=35&&w<=150))return bad("몸무게는 35~150kg 사이로 적어 주세요.");
   $("#pErr").hidden=true;
   const pub=k=>document.querySelector(`.vis[data-vis="${k}"]`).getAttribute("aria-pressed")==="true";
-  S.profile={...S.pf,gender:gb.dataset.g,nick,age:age+"살",mbti:$("#pMbti").value,h,hPub:pub("h"),w:wRaw?w:null,wPub:pub("w"),score:+$("#pScore").value,sPub:pub("s"),smoke:pressed("#smokeSeg","s"),likes,intro:$("#pIntro").value.trim(),pref:pressed("#prefSeg","p"),show:pressed("#deptShow","d")};
+  S.profile={...S.pf,gender:gb.dataset.g,nick,age:age+"살",mbti:$("#pMbti").value,h,hPub:pub("h"),w:wRaw?w:null,wPub:pub("w"),score:+$("#pScore").value,sPub:pub("s"),smoke:pressed("#smokeSeg","s"),likes,intro:$("#pIntro").value.trim(),pref:pressed("#prefSeg","p"),want:pressed("#wantSeg","w"),show:pressed("#deptShow","d")};
   if(LIVE){liveSaveProfile();return;}
   if(S.approved){newDeck();renderMe();renderCards();show("me");toast("프로필을 저장했어요");return;}
   renderReq();show("wait");
@@ -951,6 +952,7 @@ function renderMe(){
       <dt>몸무게</dt><dd>${p.w?p.w+"kg"+lock(p.wPub):`<span class="lockt">입력 안 함</span>`}</dd>
       <dt>셀프 외모 점수</dt><dd>${p.score}/10${lock(p.sPub)}</dd>
       <dt>흡연</dt><dd>${p.smoke}</dd>
+      <dt>보고 싶은 사람</dt><dd>${{all:"모두",남:"남자",여:"여자"}[p.want||"all"]||"모두"}</dd>
       <dt>만나고 싶은 사람</dt><dd>${p.pref==="상관없음"?"캠퍼스 상관없음":p.pref+"만"}</dd>
     </dl>
     <div class="f"><span class="lab">관심사</span><div class="chips">${p.likes.map(l=>`<span class="chip">#${l}</span>`).join("")}</div></div>
@@ -1013,14 +1015,14 @@ async function liveLogin(){
 }
 async function liveLogout(){try{await sb.auth.signOut();}catch(e){}location.replace(location.origin+location.pathname);}
 function rowToProfile(r){return {gender:r.gender,nick:r.nick,age:r.age+"살",mbti:r.mbti||"",h:+r.height,hPub:!!r.height_pub,w:r.weight==null?null:+r.weight,wPub:!!r.weight_pub,
-  score:r.score??5,sPub:!!r.score_pub,smoke:r.smoke||"비흡연",likes:r.likes||[],intro:r.intro||"",pref:r.pref||"상관없음",show:r.show_dept||"college",
+  score:r.score??5,sPub:!!r.score_pub,smoke:r.smoke||"비흡연",likes:r.likes||[],intro:r.intro||"",pref:r.pref||"상관없음",want:["all","남","여"].includes(r.want_gender)?r.want_gender:"all",show:r.show_dept||"college",
   animal:r.avatar_animal||"bear",color:r.avatar_color||COLORS[0],photo:r.photo_url||null};}
 function setSeg(g,attr,val){document.querySelectorAll(g+" .opt").forEach(b=>b.setAttribute("aria-pressed",b.dataset[attr]===val));}
 function fillForm(p){
   setSeg("#genderSeg","g",p.gender);$("#pNick").value=p.nick;$("#pAge").value=parseInt(p.age);$("#pH").value=p.h;$("#pW").value=p.w??"";
   setVis(document.querySelector('.vis[data-vis="h"]'),p.hPub);setVis(document.querySelector('.vis[data-vis="w"]'),p.wPub);setVis(document.querySelector('.vis[data-vis="s"]'),p.sPub);
   $("#pScore").value=p.score;$("#scoreOut").textContent=p.score+"점";$("#pMbti").value=p.mbti||"";
-  setSeg("#smokeSeg","s",p.smoke);setSeg("#deptShow","d",p.show);setSeg("#prefSeg","p",p.pref);
+  setSeg("#smokeSeg","s",p.smoke);setSeg("#deptShow","d",p.show);setSeg("#prefSeg","p",p.pref);setSeg("#wantSeg","w",p.want||"all");
   p.likes.forEach(l=>{if(![...document.querySelectorAll("#likeSel .opt")].some(b=>b.dataset.l===l)){const b=document.createElement("button");b.className="opt";b.dataset.l=l;b.textContent="#"+l;$("#likeSel").appendChild(b);}});
   document.querySelectorAll("#likeSel .opt").forEach(b=>b.setAttribute("aria-pressed",p.likes.includes(b.dataset.l)));
   $("#pIntro").value=p.intro;S.pf={photo:p.photo,animal:p.animal,color:p.color};S.pfFile=null;renderPfp();
@@ -1092,7 +1094,7 @@ async function liveSaveProfile(){
       photo=sb.storage.from("avatars").getPublicUrl(path).data.publicUrl;S.pfFile=null;
     }
     const upd={gender:p.gender,nick:p.nick,age:parseInt(p.age),mbti:p.mbti||null,height:p.h,height_pub:p.hPub,weight:p.w,weight_pub:p.wPub,
-      score:p.score,score_pub:p.sPub,smoke:p.smoke,likes:p.likes,intro:p.intro,pref:p.pref,show_dept:p.show,
+      score:p.score,score_pub:p.sPub,smoke:p.smoke,likes:p.likes,intro:p.intro,pref:p.pref,want_gender:p.want||"all",show_dept:p.show,
       avatar_animal:p.animal,avatar_color:p.color,photo_url:photo,college:S.college};
     const {data,error}=await sb.from("profiles").update(upd).eq("id",S.user.id).select().single();
     if(error)throw error;
