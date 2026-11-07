@@ -17,6 +17,11 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="apple-touch-icon" href="/icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="유니로그">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg viewBox='0 0 32 32' aria-hidden='true'><rect width='32' height='32' rx='10' fill='%23E35C0B'/><path d='M6.5 15.5h19a9.5 9.5 0 0 1-19 0z' fill='%23fff'/><path d='M10.5 4.5l7.5 10M15 3.5l6 11' stroke='%23fff' stroke-width='2.3' stroke-linecap='round' fill='none'/></svg>">
@@ -696,6 +701,29 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .intro-screen .cdock,.intro-screen .actbar{position:absolute;left:0;right:0;bottom:0;margin:0;z-index:3}
 .intro-screen .locbtn{position:absolute}
 .intro-screen *{animation:none!important;transition:none!important}
+
+/* 알림 설정 */
+.pnudge{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:10px 12px;font:inherit;color:var(--ink);cursor:pointer}
+.pnudge b{font-size:13.5px;color:var(--accent)}
+.pnudge span{font-size:12px;color:var(--sub)}
+.pset{display:flex;flex-direction:column;gap:10px}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.prow span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.prow b{font-size:14px}
+.prow small{font-size:12px;color:var(--sub)}
+.prow.main{border-color:var(--accent)}
+.pcats{display:flex;flex-direction:column;gap:8px}
+.pcats.off{opacity:.45}
+.tg{flex:none;width:46px;height:28px;border-radius:999px;border:0;padding:0;background:var(--line);position:relative;cursor:pointer;transition:background .2s}
+.tg i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.tg[aria-checked="true"]{background:var(--accent)}
+.tg[aria-checked="true"] i{transform:translateX(18px)}
+.tg:disabled{cursor:not-allowed;opacity:.6}
+.tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pguide{background:var(--sunk);border-radius:10px;padding:12px 14px;font-size:12.5px;color:var(--sub);display:flex;flex-direction:column;gap:4px}
+.pguide b{color:var(--ink);font-size:13px}
+.pguide ol{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+@media (prefers-reduced-motion: reduce){.tg,.tg i{transition:none}}
 </style>
 </head>
 <body>
@@ -878,23 +906,34 @@ const SCHOOLS=[
  SC('jejunu','제주대학교','제주대','제주','제주시'),SC('jeju-intl','제주국제대학교','제주국제대','제주','제주시'),
 ];
 const REGIONS=['전체','서울','경기','인천','부산','대구','광주','대전','울산','제주'];
-const HUFS_SEOUL={'영어대학':['ELLT학과','영미문학·문화학과','EICC학과'],
+/* 한국외대 학과 목록: 2026학년도 모집요강 모집단위 기준 + 예전 이름(재학생용) */
+const HUFS_SEOUL={'영어대학':['ELLT학과','영미문학·문화학과','영어통번역학과'],
  '서양어대학':['프랑스어학부','독일어과','노어과','스페인어과','이탈리아어과','포르투갈어과','네덜란드어과','스칸디나비아어과'],
- '아시아언어문화대학':['말레이·인도네시아어과','아랍어과','태국어과','베트남어과','힌디어과','터키·아제르바이잔어과','페르시아어·이란학과','몽골어과'],
- '중국학대학':['중국언어문화학부','중국외교통상학부'],'일본학대학':['일본언어문화학부','융합일본지역학부'],
- '사회과학대학':['정치외교학과','행정학과','미디어커뮤니케이션학부'],'상경·경영대학':['국제통상학과','경제학부','경영학부'],
- '사범대학':['영어교육과','한국어교육과','프랑스어교육과','독일어교육과','중국어교육과']};
-const HUFS_GLOBAL={'통번역대학':['영어통번역학부','독일어통번역학과','스페인어통번역학과','이탈리아어통번역학과','중국어통번역학과','일본어통번역학과'],
- '경상대학':['GBT학부','국제금융학과'],'자연과학대학':['수학과','통계학과','전자물리학과','환경학과','생명공학과','화학과'],
- '공과대학':['컴퓨터공학부','정보통신공학과','전자공학과','산업경영공학과','바이오메디컬공학부']};
-const FIELDS={'인문':['국어국문학과','영어영문학과','중어중문학과','일어일문학과','독어독문학과','불어불문학과','사학과','철학과','문헌정보학과','심리학과'],
- '사회':['정치외교학과','행정학과','사회학과','미디어커뮤니케이션학과','사회복지학과','법학과','지리학과'],
- '경상':['경영학과','경제학과','회계학과','국제통상학과','무역학과','관광경영학과'],
- '자연':['수학과','통계학과','물리학과','화학과','생명과학과','지구과학과','식품영양학과'],
- '공학':['컴퓨터공학과','소프트웨어학과','인공지능학과','전자공학과','전기공학과','기계공학과','화학공학과','신소재공학과','산업공학과','건축학과','토목공학과'],
- '예체능':['시각디자인학과','산업디자인학과','미술학과','음악학과','실용음악과','연극영화학과','체육학과'],
- '의약':['의예과','치의예과','한의예과','약학과','간호학과','물리치료학과'],
- '교육':['교육학과','국어교육과','영어교육과','수학교육과','초등교육과']};
+ '아시아언어문화대학':['말레이·인도네시아어과','아랍어과','태국학과','베트남어과','인도어과','튀르키예·아제르바이잔학과','페르시아어·이란학과','몽골어과'],
+ '중국학대학':['중국언어문화학부','중국외교통상학부'],
+ '일본학대학':['일본언어문화학부','융합일본지역학부'],
+ '사회과학대학':['정치외교학과','행정학과','미디어커뮤니케이션학부'],
+ '상경대학':['국제통상학과','경제학부'],
+ '경영대학':['경영학부'],
+ '사범대학':['영어교육과','한국어교육과','외국어교육학부 프랑스어교육전공','외국어교육학부 독일어교육전공','외국어교육학부 중국어교육전공'],
+ 'AI융합대학':['Language & AI융합학부','Social Science & AI융합학부'],
+ '학부':['국제학부','Language & Diplomacy학부','Language & Trade학부','KFL학부','자유전공학부(서울)'],
+ '예전 학과명 (재학생)':['EICC학과','태국어과','힌디어과','터키·아제르바이잔어과','프랑스어교육과','독일어교육과','중국어교육과','상경대학 경영학부'],
+ '전공 배정 전':['통합모집·계열 (전공 배정 전)']};
+const HUFS_GLOBAL={'인문대학':['철학과','사학과','언어인지과학과'],
+ '국가전략언어대학':['폴란드학과','루마니아학과','체코·슬로바키아학과','헝가리학과','세르비아·크로아티아학과','그리스·불가리아학과','중앙아시아학과','아프리카학부','우크라이나학과','한국학과'],
+ '경상대학':['Global Business & Technology학부','국제금융학과'],
+ '자연과학대학':['수학과','통계학과','전자물리학과','환경학과','생명공학과','화학과'],
+ '공과대학':['컴퓨터공학부','정보통신공학과','반도체전자공학부 반도체공학전공','반도체전자공학부 전자공학전공','산업경영공학과','바이오메디컬공학부'],
+ '융합인재대학':['융합인재학부'],
+ 'Culture & Technology융합대학':['디지털콘텐츠학부','투어리즘 & 웰니스학부','글로벌스포츠산업학부'],
+ 'AI융합대학':['AI데이터융합학부','Finance & AI융합학부'],
+ '학부':['기후변화융합학부','자유전공학부(글로벌)'],
+ '예전 학과명 (재학생)':['GBT학부','전자공학과','글로벌자유전공학부','지식콘텐츠학부',
+   '영어통번역학부','독일어통번역학과','스페인어통번역학과','이탈리아어통번역학과','중국어통번역학과','일본어통번역학과','말레이·인도네시아어통번역학과','태국어통번역학과',
+   '폴란드어과','루마니아어과','체코·슬로바키아어과','헝가리어과','세르비아·크로아티아어과','우크라이나어과',
+   '프랑스학과','브라질학과','그리스·불가리아학과','인도학과','러시아학과','중앙아시아학과(국제지역대학)','한국학과(국제지역대학)'],
+ '전공 배정 전':['통합모집·계열 (전공 배정 전)']};
 const opt=(v,sel)=>`<option value="${v}" ${sel===v?'selected':''}>${v}</option>`;
 
 /* ---------- 상태 ---------- */
@@ -1618,15 +1657,18 @@ async function loadNotis(){
 }
 function updateBadges(){const n=unread(),b=$('#meBadge');b.hidden=!n;b.textContent=n>99?'99+':n;
   const bell=$('#profile .bell');if(bell){bell.setAttribute('aria-label',`알림 ${n}개`);let d=bell.querySelector('.nbadge');if(n){if(!d){d=document.createElement('span');d.className='nbadge num';bell.appendChild(d);}d.textContent=n>99?'99+':n;}else if(d)d.remove();}}
-function openNoti(){S.notiAll=false;renderNoti();$('#nscrim').hidden=false;}
+function openNoti(){S.notiAll=false;S.notiSet=false;renderNoti();$('#nscrim').hidden=false;}
 function renderNoti(){
+  if(S.notiSet)return renderPushSet();
   const L=S.notis,SHOW=8,list=S.notiAll?L:L.slice(0,SHOW),un=unread();
   $('#nsheet').innerHTML=`<div class="gut pe-wrap" style="gap:10px">
-    <div class="nhead"><h3>알림 ${un?`<span class="nbadge num" style="position:static">${un}</span>`:''}</h3><span>${un?'<button class="report" type="button" data-nreadall>모두 읽음</button>':''}<button class="x" type="button" data-nclose aria-label="닫기">×</button></span></div>
+    <div class="nhead"><h3>알림 ${un?`<span class="nbadge num" style="position:static">${un}</span>`:''}</h3><span>${un?'<button class="report" type="button" data-nreadall>모두 읽음</button>':''}<button class="report" type="button" data-nset>⚙ 설정</button><button class="x" type="button" data-nclose aria-label="닫기">×</button></span></div>
     ${L.length?`<div class="nlist">${list.map(n=>`<button class="nitem ${n.read?'':'unread'}" type="button" data-nopen="${n.id}"><span class="nic t-${nIcon(n.type)}">${NICON[nIcon(n.type)]}</span><span class="ntx"><span>${notiText(n)}</span><time>${rel(n.updated_at)}</time></span>${n.read?'':'<i class="ndot" aria-label="안 읽음"></i>'}</button>`).join('')}</div>
       ${L.length>SHOW?`<button class="morebtn" type="button" data-nmore>${S.notiAll?'접기 ▲':`알림 ${L.length}개 모두 보기 ▼`}</button>`:''}`:'<div class="empty">아직 알림이 없어요.</div>'}
+    ${S.push&&S.push.sub?'':`<button class="pnudge" type="button" data-nset>🔔 <b>폰으로도 알림 받기</b><span>인증 결과, 내 글 댓글 같은 소식을 바로 알려드려요 ›</span></button>`}
     <p class="hint" style="margin:0;font-size:11.5px;color:var(--sub)">같은 글·리뷰에서 생긴 "도움돼요"와 댓글 알림은 하나로 묶어서 보내드려요.</p></div>`;
   const sh=$('#nsheet');
+  sh.querySelectorAll('[data-nset]').forEach(x=>x.onclick=()=>{S.notiSet=true;renderNoti();loadPushState().then(()=>{if(S.notiSet)renderNoti();});});
   sh.querySelectorAll('[data-nclose]').forEach(x=>x.onclick=()=>$('#nscrim').hidden=true);
   sh.querySelectorAll('[data-nmore]').forEach(x=>x.onclick=()=>{S.notiAll=!S.notiAll;renderNoti();});
   sh.querySelectorAll('[data-nreadall]').forEach(x=>x.onclick=async()=>{await sb.from('ul_notifications').update({read:true}).eq('user_id',S.uid).eq('read',false);S.notis.forEach(n=>n.read=true);updateBadges();renderNoti();toast('알림을 모두 읽었어요');});
@@ -1654,7 +1696,7 @@ function renderPE(){
     <div class="two"><button class="btn line" type="button" data-peclose>취소</button><button class="btn" type="button" id="peSave" ${pe.ok&&!pe.busy?'':'disabled'}>${pe.busy?'저장하는 중…':'저장'}</button></div>
     <button class="report" type="button" data-logout style="align-self:center">로그아웃</button></div>`;
   sh.querySelectorAll('[data-peclose]').forEach(x=>x.onclick=()=>$('#pescrim').hidden=true);
-  sh.querySelector('[data-logout]').onclick=async()=>{await sb.auth.signOut();location.replace(location.origin+location.pathname);};
+  sh.querySelector('[data-logout]').onclick=async()=>{await pushOff(true);await sb.auth.signOut();location.replace(location.origin+location.pathname);};
   sh.querySelector('#peFile').onchange=e=>{const f=e.target.files&&e.target.files[0];if(f){pe.file=f;renderPE();}};
   sh.querySelectorAll('[data-pereset]').forEach(x=>x.onclick=()=>{pe.file=null;pe.photo=null;renderPE();});
   sh.querySelector('#peNick').oninput=e=>{pe.nick=e.target.value.trim();clearTimeout(peT);const m=$('#peMsg'),b=$('#peSave');
@@ -1669,6 +1711,76 @@ function renderPE(){
 }
 
 /* =====================================================================
+   폰 알림 (웹 푸시) — 켜고 끄기, 종류별 설정
+   ===================================================================== */
+const PUSH_KEY='BEW_Xf2COsiDNxZeiAmPuZscxTObTffXAS6ePGv04zpTb1F9WJ1C9bbPcE2-Gb30lM_LkbeLmkWg0SgAYcvpRms';
+const PUSH_CATS=[['verify','재학생 인증 결과','승인·반려되면 알려드려요'],['talk','로그톡 댓글·답글','내 글에 댓글, 내 댓글에 답글, 답변 채택'],['likes','도움돼요·등급','내 리뷰·댓글에 도움돼요, 등급 올라감']];
+const pushSupported=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+const isIOS=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isStandalone=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+function b64u(s){const p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...b].map(c=>c.charCodeAt(0)));}
+async function swReg(){if(!('serviceWorker' in navigator))return null;try{return await navigator.serviceWorker.register('/sw.js');}catch(e){return null;}}
+async function loadPushState(){
+  const P=S.push=S.push||{prefs:{verify:true,talk:true,likes:true}};
+  P.supported=pushSupported();P.perm=('Notification' in window)?Notification.permission:'unsupported';P.sub=null;
+  try{if(P.supported){const reg=await swReg();if(reg){const sub=await reg.pushManager.getSubscription();P.sub=sub||null;}}}catch(e){}
+  try{const {data}=await sb.from('ul_push_prefs').select('verify,talk,likes').eq('user_id',S.uid).maybeSingle();if(data)P.prefs=data;}catch(e){}
+}
+async function pushOn(){
+  const P=S.push;if(!P||P.busy)return;
+  if(!pushSupported()){toast(isIOS()?'아이폰은 홈 화면에 추가한 유니로그에서 켤 수 있어요':'이 브라우저는 폰 알림을 지원하지 않아요');return;}
+  P.busy=true;renderNoti();
+  try{
+    const perm=await Notification.requestPermission();P.perm=perm;
+    if(perm!=='granted'){toast(perm==='denied'?'알림이 차단돼 있어요. 브라우저 설정에서 유니로그 알림을 허용해 주세요':'알림 허용을 눌러야 켤 수 있어요');return;}
+    const reg=await swReg();if(!reg)throw new Error('서비스 워커를 등록하지 못했어요');
+    await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(PUSH_KEY)});
+    const j=sub.toJSON();
+    const {error}=await sb.rpc('ul_push_subscribe',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent.slice(0,200)});
+    if(error)throw error;
+    P.sub=sub;toast('이제 폰으로 알림을 받아요');
+  }catch(e){toast('알림을 켜지 못했어요: '+errText(e));}
+  finally{P.busy=false;renderNoti();}
+}
+async function pushOff(silent){
+  try{
+    const reg=('serviceWorker' in navigator)?await navigator.serviceWorker.getRegistration():null;
+    const sub=reg?await reg.pushManager.getSubscription():null;
+    if(sub){await sb.rpc('ul_push_unsubscribe',{p_endpoint:sub.endpoint});await sub.unsubscribe();}
+    if(S.push)S.push.sub=null;if(!silent){toast('폰 알림을 껐어요');renderNoti();}
+  }catch(e){if(!silent)toast('끄지 못했어요: '+errText(e));}
+}
+async function setPushPref(k,v){
+  const P=S.push;P.prefs[k]=v;renderNoti();
+  const row={user_id:S.uid,verify:P.prefs.verify,talk:P.prefs.talk,likes:P.prefs.likes,updated_at:new Date().toISOString()};
+  const {error}=await sb.from('ul_push_prefs').upsert(row,{onConflict:'user_id'});
+  if(error){P.prefs[k]=!v;renderNoti();toast('저장하지 못했어요: '+errText(error));}
+}
+function renderPushSet(){
+  const P=S.push||{prefs:{verify:true,talk:true,likes:true}},on=!!P.sub;
+  const sw=(attr,checked,dis)=>`<button class="tg" type="button" role="switch" aria-checked="${checked}" ${attr} ${dis?'disabled':''}><i></i></button>`;
+  let guide='';
+  if(!P.supported&&isIOS()&&!isStandalone())guide=`<div class="pguide"><b>아이폰은 홈 화면에 추가해야 알림을 받을 수 있어요</b><ol><li>사파리 아래쪽 <b>공유</b> 버튼(네모에 화살표)을 눌러요</li><li><b>홈 화면에 추가</b>를 눌러요</li><li>홈 화면의 <b>유니로그</b> 아이콘으로 들어와서 여기서 알림을 켜요</li></ol></div>`;
+  else if(!P.supported)guide=`<div class="pguide"><b>이 브라우저는 폰 알림을 지원하지 않아요</b><span>크롬이나 사파리(아이폰은 홈 화면에 추가) 최신 버전에서 켤 수 있어요. 앱 안 알림 목록은 그대로 볼 수 있어요.</span></div>`;
+  else if(!on&&P.perm==='denied')guide=`<div class="pguide"><b>알림이 차단돼 있어요</b><span>브라우저(또는 폰) 설정에서 유니로그 알림을 허용한 뒤 다시 켜 주세요.</span></div>`;
+  $('#nsheet').innerHTML=`<div class="gut pe-wrap" style="gap:12px">
+    <div class="nhead"><h3>알림 설정</h3><span><button class="report" type="button" data-nback>‹ 알림 목록</button><button class="x" type="button" data-nclose aria-label="닫기">×</button></span></div>
+    <div class="pset">
+      <div class="prow main"><span><b>폰으로 알림 받기</b><small>${P.busy?'설정하는 중…':on?'이 기기에서 알림을 받고 있어요':'이 기기는 꺼져 있어요'}</small></span>${sw('data-pmain',on,P.busy||!P.supported)}</div>
+      ${guide}
+      <div class="pcats${on?'':' off'}">${PUSH_CATS.map(([k,n,d])=>`<div class="prow"><span><b>${n}</b><small>${d}</small></span>${sw(`data-pcat="${k}"`,P.prefs[k]!==false,!on)}</div>`).join('')}</div>
+    </div>
+    <p class="hint" style="margin:0;font-size:11.5px;color:var(--sub)">폰 알림을 꺼도 종 모양 알림 목록에서는 계속 볼 수 있어요. 알림은 기기마다 따로 켜요.</p></div>`;
+  const sh=$('#nsheet');
+  sh.querySelector('[data-nclose]').onclick=()=>$('#nscrim').hidden=true;
+  sh.querySelector('[data-nback]').onclick=()=>{S.notiSet=false;renderNoti();};
+  const m=sh.querySelector('[data-pmain]');if(m)m.onclick=()=>on?pushOff(false):pushOn();
+  sh.querySelectorAll('[data-pcat]').forEach(b=>b.onclick=()=>setPushPref(b.dataset.pcat,b.getAttribute('aria-checked')!=='true'));
+}
+
+/* =====================================================================
    시작·가입 (카카오 로그인 → 약관 → 학교 → 재학생 인증 → 프로필)
    ===================================================================== */
 const YEARS=['26학번','25학번','24학번','23학번','22학번','21학번','20학번','19학번 이전'];
@@ -1679,9 +1791,7 @@ function deptField(){
   const sc=curSchool(),etcIn=ob.etc?`<div class="fld"><label for="obDeptEtc">학과 이름</label><input id="obDeptEtc" maxlength="30" value="${esc(ob.dept)}" placeholder="예) 문화콘텐츠학과" autocomplete="off"></div>`:'';
   if(sc&&sc.short==='외대'){const G=sc.id==='hufs-g'?HUFS_GLOBAL:HUFS_SEOUL;
     return `<div class="fld"><label for="obDept">학과</label><select id="obDept"><option value="">학과 선택</option>${Object.entries(G).map(([g,l])=>`<optgroup label="${g}">${l.map(d=>opt(d,ob.etc?'':ob.dept)).join('')}</optgroup>`).join('')}<option value="__etc" ${ob.etc?'selected':''}>목록에 없어요</option></select></div>${etcIn}`;}
-  const L=FIELDS[ob.field]||[];
-  return `<div class="two"><div class="fld"><label for="obField">계열</label><select id="obField"><option value="">계열 선택</option>${Object.keys(FIELDS).map(f=>opt(f,ob.field)).join('')}<option value="__etc" ${ob.field==='__etc'?'selected':''}>목록에 없어요</option></select></div>
-    <div class="fld"><label for="obDept">학과</label><select id="obDept" ${L.length?'':'disabled'}><option value="">${ob.field&&!L.length?'직접 입력':ob.field?'학과 선택':'계열 먼저'}</option>${L.map(d=>opt(d,ob.dept)).join('')}</select></div></div>${etcIn}`;
+  return `<div class="fld"><label for="obDeptEtc">학과</label><input id="obDeptEtc" maxlength="30" value="${esc(ob.dept)}" placeholder="학과(학부) 이름을 그대로 적어 주세요" autocomplete="off"><span class="msg">예) 경영학과, 컴퓨터공학부, 자유전공학부</span></div>`;
 }
 const schoolList=()=>{const q=ob.sq.trim();
   const L=SCHOOLS.filter(x=>(ob.region==='전체'||x.r===ob.region)&&(!q||x.n.includes(q)||x.short.includes(q)||x.cityDisp.includes(q)||x.campus.includes(q)));
@@ -1808,7 +1918,7 @@ function obRender(){
   const moved=obLast!==ob.step;obLast=ob.step;
   stopIntro();
   el.innerHTML=`<div class="wrap gut${moved?' step-in':''}">${obHTML()}</div>`;if(moved)el.scrollTop=0;obSync();
-  if(ob.step===0)initIntro();
+  if(ob.step===0){initIntro();kakaoPrep();}
   const vm=ob.mode==='verify',bar=el.querySelector('.ob-prog i'),to=typeof ob.step==='number'?(vm?(ob.step-2)/2*100:ob.step/4*100):0;
   if(bar){bar.style.transition='none';bar.style.width=obPrevW+'%';void bar.offsetWidth;bar.style.transition='width .45s cubic-bezier(.4,0,.2,1)';bar.style.width=to+'%';}
   obPrevW=ob.step>=1&&ob.step<=4?to:0;
@@ -1869,7 +1979,37 @@ function bindOb(){
         const m2=$('#nickMsg');if(m2){m2.className='msg '+(ob.nickOk?'ok':'bad');m2.textContent=ob.nickMsg;}obSync();},350);}
   });
 }
-async function kakaoLogin(){const {error}=await sb.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:location.origin+location.pathname}});if(error)toast('로그인을 시작하지 못했어요: '+errText(error));}
+/* 카카오 로그인: 휴대폰에서는 카카오톡 앱으로 한 번에 로그인 (카카오 JS SDK)
+   - 로그인 주소(state 포함)를 미리 받아 두었다가, 버튼을 누르는 순간 바로 카카오톡을 열어요
+     (누르는 순간이 아니면 브라우저가 앱 실행을 막아요)
+   - 준비가 안 됐거나 실패하면 기존 카카오 로그인 화면으로 가요 */
+const KSDK='https://t1.kakaocdn.net/kakao_js_sdk/2.8.4/kakao.min.js';
+let kPre=null,kPreAt=0,kPreBusy=false;
+function kRedirectTo(){return location.origin+location.pathname;}
+function loadKakaoSdk(){if(window.Kakao)return Promise.resolve(window.Kakao);
+  return new Promise((ok,no)=>{const s=document.createElement('script');s.src=KSDK;s.async=true;s.crossOrigin='anonymous';s.onload=()=>window.Kakao?ok(window.Kakao):no();s.onerror=no;document.head.appendChild(s);});}
+async function kakaoPrep(){
+  if(!sb||!CFG.KAKAO_JS_KEY||window.__PREVIEW||kPreBusy)return;
+  if(!kakaoPrep.t)kakaoPrep.t=setInterval(()=>{const o=$('#ob');if(o&&!o.hidden&&ob.step===0&&!document.hidden)kakaoPrep();},60000);
+  if(kPre&&Date.now()-kPreAt<180000)return;
+  kPreBusy=true;
+  try{
+    const K=await loadKakaoSdk();if(!K.isInitialized())K.init(CFG.KAKAO_JS_KEY);
+    const r=await fetch(CFG.SUPABASE_URL+'/functions/v1/kakao-start?redirect_to='+encodeURIComponent(kRedirectTo()));
+    if(!r.ok)throw 0;const j=await r.json();const u=new URL(j.url);
+    if(u.hostname!=='kauth.kakao.com')throw 0;
+    const q=u.searchParams,ru=q.get('redirect_uri'),st=q.get('state');if(!ru||!st)throw 0;
+    kPre={redirectUri:ru,state:st,scope:(q.get('scope')||'').split(/[\s,]+/).filter(Boolean).join(',')};kPreAt=Date.now();
+  }catch(e){kPre=null;}
+  finally{kPreBusy=false;}
+}
+async function kakaoLogin(){
+  if(kPre&&Date.now()-kPreAt<240000&&window.Kakao&&Kakao.isInitialized()){
+    const o={redirectUri:kPre.redirectUri,state:kPre.state};if(kPre.scope)o.scope=kPre.scope;
+    kPre=null;
+    try{Kakao.Auth.authorize(o);return;}catch(e){}
+  }
+  const {error}=await sb.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:kRedirectTo()}});if(error)toast('로그인을 시작하지 못했어요: '+errText(error));}
 
 /* =====================================================================
    시작
@@ -1888,6 +2028,8 @@ function startPresence(uid){
 async function boot(){
   if(!sb){fatal('config.js의 Supabase 주소와 키를 확인해 주세요.');return;}
   bindOb();
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='go'){try{goTo(new URL(e.data.url).searchParams.get('go'));}catch(_){}}});}
   const {data:{session}}=await sb.auth.getSession();
   startPresence(session&&session.user.id);
   if(!session){ob.step=0;obRender();return;}
@@ -1914,6 +2056,14 @@ function renderBar(){
   else if(st==='rejected'){b.innerHTML=`재학생 인증이 반려됐어요${S.me.reject_reason?' · '+esc(S.me.reject_reason):''} <button type="button" data-verify-start>다시 인증하기 ›</button>`;b.hidden=false;}
   else b.hidden=true;
 }
+/* 알림을 눌러 들어왔을 때 해당 화면 열기 (?go=me / post-12 / place-123) */
+function goTo(go){
+  if(!go||!S.entered)return;
+  if(go==='me'){setTab('me');return;}
+  const m=go.match(/^(post|place)-(.+)$/);if(!m)return;
+  if(m[1]==='post'){setTab('talk');openPost(+m[2]);}
+  else openPlaceById(decodeURIComponent(m[2]),'rev');
+}
 async function enterApp(){
   S.entered=true;
   S.school=SCHOOLS.find(x=>x.id===S.me.school_id)||{id:S.me.school_id,n:S.me.school_name,short:S.me.school_short,campus:S.me.campus,cityDisp:''};
@@ -1924,6 +2074,8 @@ async function enterApp(){
   const [pl,bm]=await Promise.all([sb.from('ul_post_likes').select('post_id').eq('user_id',S.uid),sb.from('ul_post_bookmarks').select('post_id').eq('user_id',S.uid)]);
   S.likedPost=new Set((pl.data||[]).map(x=>x.post_id));S.bmPost=new Set((bm.data||[]).map(x=>x.post_id));
   loadCounts();loadNotis();loadTalk();loadRanking();
+  loadPushState().then(()=>{if(!$('#nscrim').hidden)renderNoti();});
+  const go=new URLSearchParams(location.search).get('go');if(go){history.replaceState(null,'',location.pathname);setTimeout(()=>goTo(go),400);}
   setInterval(()=>{if(!document.hidden)loadNotis();},40000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadNotis();});
   try{await loadKakao();S.ps=new kakao.maps.services.Places();S.coord=await schoolCoord();await loadPlaces();renderMeTabs();}
