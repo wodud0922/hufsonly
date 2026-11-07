@@ -521,6 +521,33 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .empty .spin{display:inline-block;vertical-align:middle;margin-bottom:6px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .hero .thumb{background-size:cover!important;background-position:center!important}
+
+/* ===== 기본 사진 (리뷰 사진이 없을 때) ===== */
+
+.thumb.ph,.cchip .sq.ph{background-color:#FBE9DA;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23E35C0B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 33h40a20 20 0 0 1-40 0z' fill='%23fff'/%3E%3Cpath d='M22 13l13 18M30 11l10 19' /%3E%3Cpath d='M44 14c2 2 2 4 0 6M49 16c2 2 2 4 0 6' opacity='.45'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;background-size:52%;text-shadow:none}
+.thumb.mini.ph{background-size:60%}
+.hero.one{grid-template-columns:1fr;grid-template-rows:1fr}
+.hero.one .thumb{grid-row:auto}
+.hero.one .thumb.ph{background-size:auto 62%}
+.cchip .sq.ph{background-size:80%}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(.thumb.ph,.cchip .sq.ph){background-color:#3A2414}}
+:root[data-theme="dark"] :is(.thumb.ph,.cchip .sq.ph){background-color:#3A2414}
+
+/* ===== 지도 핀 · 내 위치 ===== */
+.mapwrap{position:relative}
+.kpin.none{background:#fff;color:var(--accent);border:1.5px solid var(--accent);padding:3px 5px 2px;border-radius:999px;line-height:0}
+.kpin.none::after{border-top-color:var(--accent);bottom:-6px}
+.kpin.none svg{display:block}
+.me-dot{z-index:5}
+.locbtn{position:absolute;right:10px;bottom:12px;z-index:3;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#555;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:pointer}
+.locbtn.on{color:#2F7BFF}
+.hero .thumb.ph{background-size:auto 96px!important;background-position:center!important}
+
+/* 첫 리뷰 안내 · 1호 뱃지 */
+.rcount.first{color:var(--accent);font-weight:700}
+.no1{display:inline-block;vertical-align:1px;margin-left:5px;font-size:11px;font-weight:900;line-height:1;color:var(--accent);background:var(--soft);border:1px solid var(--accent);border-radius:999px;padding:2px 7px 1px;letter-spacing:-.02em}
+.empty small{display:block;margin-top:6px;font-size:12px;color:var(--sub)}
+.empty small .no1{margin-left:0}
 </style>
 </head>
 <body>
@@ -547,7 +574,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
           <div class="fmeta"><span class="sort" role="group" aria-label="정렬"><button type="button" data-sort="score" aria-pressed="true">랭킹순</button><button type="button" data-sort="reviews" aria-pressed="false">리뷰 많은 순</button><button type="button" data-sort="dist" aria-pressed="false">가까운 순</button></span>
             <button class="maptoggle" type="button" id="mapBtn" aria-pressed="false"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>지도</button></div>
         </div>
-        <div class="kmap" id="map" hidden></div>
+        <div class="mapwrap" id="mapWrap" hidden><div class="kmap" id="map"></div><button class="locbtn" id="locBtn" type="button" aria-label="내 위치로 이동"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button></div>
       </div>
       <div class="panel"><div class="gut" id="placeList"></div></div>
     </section>
@@ -771,8 +798,36 @@ function loadKakao(){return new Promise((res,rej)=>{
   document.head.appendChild(s);});}
 const kOK=()=>kakao.maps.services.Status.OK;
 function kKey(q,opt){return new Promise(res=>S.ps.keywordSearch(q,(d,st)=>res(st===kOK()?d:[]),opt||{}));}
-function kCat(code,loc,page){return new Promise(res=>S.ps.categorySearch(code,(d,st,pg)=>res({data:st===kOK()?d:[],more:!!(pg&&pg.hasNextPage)}),
-  {location:loc,radius:1200,sort:kakao.maps.services.SortBy.DISTANCE,page}));}
+function kCat(code,rect,page){return new Promise(res=>S.ps.categorySearch(code,(d,st,pg)=>res({data:st===kOK()?d:[],more:!!(pg&&pg.hasNextPage),total:(pg&&pg.totalCount)||0}),
+  {rect,page}));}
+const NEAR_M=1500;   // 학교에서 이 거리 안의 가게를 모두 불러와요
+// 카카오는 한 번 검색에 최대 45곳까지만 줘서, 지역을 칸으로 나눠 칸마다 검색해요. 가게가 많은 칸은 더 잘게 나눠요.
+async function gridSearch(code,c){
+  const dy=1/111000,dx=1/(111000*Math.cos(c.y*Math.PI/180)),out=[];
+  async function cell(x1,y1,x2,y2,depth){
+    const rect=`${x1},${y1},${x2},${y2}`;
+    const first=await kCat(code,rect,1);
+    if(first.total>45&&depth<2){const mx=(x1+x2)/2,my=(y1+y2)/2;
+      await Promise.all([cell(x1,y1,mx,my,depth+1),cell(mx,y1,x2,my,depth+1),cell(x1,my,mx,y2,depth+1),cell(mx,my,x2,y2,depth+1)]);return;}
+    out.push(...first.data);
+    for(let page=2,more=first.more;more&&page<=3;page++){const r=await kCat(code,rect,page);out.push(...r.data);more=r.more;}
+  }
+  const R=NEAR_M,step=R*2/3,jobs=[];
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++){
+    const x1=c.x+(-R+i*step)*dx,y1=c.y+(-R+j*step)*dy;jobs.push(()=>cell(x1,y1,x1+step*dx,y1+step*dy,0));}
+  for(let k=0;k<jobs.length;k+=3)await Promise.all(jobs.slice(k,k+3).map(f=>f()));
+  return out;
+}
+async function nearbyKakao(){
+  const key='ul_near_v2_'+S.school.id,c=store.get(key);
+  if(c){try{const v=JSON.parse(c);if(Date.now()-v.t<6*3600e3&&v.d.length)return v.d;}catch(e){}}
+  const all=[...await gridSearch('FD6',S.coord),...await gridSearch('CE7',S.coord)];
+  const seen=new Set(),d=[];
+  all.forEach(x=>{if(seen.has(x.id))return;seen.add(x.id);if(distM(S.coord.y,S.coord.x,+x.y,+x.x)<=NEAR_M)
+    d.push({id:x.id,place_name:x.place_name,category_name:x.category_name,phone:x.phone,address_name:x.address_name,road_address_name:x.road_address_name,x:x.x,y:x.y,place_url:x.place_url});});
+  store.set(key,JSON.stringify({t:Date.now(),d}));
+  return d;
+}
 async function schoolCoord(){
   const sc=S.school,key='ul_coord_v1_'+sc.id,c=store.get(key);
   if(c){try{return JSON.parse(c);}catch(e){}}
@@ -797,8 +852,7 @@ function addPlace(p,inList){if(!S.placeMap[p.id])S.placeMap[p.id]=p;else p=S.pla
 
 async function loadPlaces(){
   S.placesState='loading';renderList();
-  const loc=new kakao.maps.LatLng(S.coord.y,S.coord.x);
-  for(const code of ['FD6','CE7']){for(let page=1;page<=3;page++){const r=await kCat(code,loc,page);r.data.forEach(d=>addPlace(fromKakao(d),true));if(!r.more)break;}}
+  (await nearbyKakao()).forEach(d=>addPlace(fromKakao(d),true));
   const {data:sv}=await sb.from('ul_saved_places').select('place_id, ul_places(*)').order('created_at',{ascending:false});
   S.saved=new Set((sv||[]).map(x=>x.place_id));
   (sv||[]).forEach(x=>{if(x.ul_places){const p=addPlace(fromRow(x.ul_places),false);p._inDb=true;}});
@@ -850,7 +904,7 @@ const photosOf=p=>p.reviews.flatMap(r=>r.photos||[]);
 function priceOf(p){const c=[0,0,0,0,0];let n=0;p.reviews.forEach(r=>{if(r.price_level!=null){c[r.price_level]++;n++;}});if(!n)return '';return '1인 '+PRICES[c.indexOf(Math.max(...c))];}
 function tagsOf(p){const c={};p.reviews.forEach(r=>(r.tags||[]).forEach(t=>c[t]=(c[t]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);}
 function thumb(p,label=true,i=0,cls=''){const ph=photosOf(p)[i];if(ph)return `<span class="thumb ${cls}" style="background:url('${esc(ph)}') center/cover"></span>`;
-  const c=colorOf(p.cat);return `<span class="thumb ${cls}" style="background:linear-gradient(${135+i*40}deg,${c[0]},${c[1]})">${label?esc(p.cat):''}</span>`;}
+  return `<span class="thumb ph ${cls}" aria-hidden="true"></span>`;}
 const miniThumb=p=>thumb(p,true,0,'mini');
 
 /* =====================================================================
@@ -889,25 +943,60 @@ function renderList(){
           <span class="top">${rank?`<span class="rank num${rank>3?' low':''}">${rank}위</span>`:''}<span class="nm">${esc(p.name)}</span></span>
           <span class="area">${esc(p.cat)} · 도보 ${walk(p.dist)}분${S.saved.has(p.id)?' · ★ 저장함':''}</span>
           ${has(p)?`<span class="rating">${starsHTML(s.w)}<span class="val num">${s.w.toFixed(2)}</span><span class="rcount num">리뷰 ${p.reviews.length}${pc?` · 사진 ${pc}`:''}</span></span>`
-            :`<span class="rating"><span class="rcount">아직 리뷰가 없어요 · 첫 리뷰를 남겨보세요</span></span>`}
+            :`<span class="rating"><span class="rcount first">${firstCall()}</span></span>`}
           ${price?`<span class="budget">${price}</span>`:''}
           ${b?`<span class="snip">“${esc(b.body)}”</span>`:''}
         </span></button>`}).join('')+(ps.length>S.listShow?`<button class="morebtn" type="button" data-listmore>가게 더 보기 ▼ <small class="num">(${S.listShow}/${ps.length})</small></button>`:'')+more
     : `<div class="empty">조건에 맞는 가게가 없어요. 검색어나 조건을 바꿔보세요.</div>${more}`;
 }
+const PIN_ICON=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4"/></svg>`;
 function renderMap(){
-  const el=$('#map');el.hidden=!S.mapOn;
-  if(!S.mapOn||!window.kakao||!S.coord)return;
+  const el=$('#map');$('#mapWrap').hidden=!S.mapOn;
+  if(!S.mapOn){stopWatch();return;}
+  if(!window.kakao||!S.coord)return;
   const center=new kakao.maps.LatLng(S.coord.y,S.coord.x);
-  if(!S.kmap){S.kmap=new kakao.maps.Map(el,{center,level:4});
-    const me=document.createElement('span');me.className='me-dot';new kakao.maps.CustomOverlay({position:center,content:me,zIndex:1}).setMap(S.kmap);}
+  if(!S.kmap){S.kmap=new kakao.maps.Map(el,{center,level:4});kakao.maps.event.addListener(S.kmap,'dragstart',()=>{S.follow=false;});
+    kakao.maps.event.addListener(S.kmap,'idle',()=>{clearTimeout(S.pinT);S.pinT=setTimeout(renderPins,120);});}
   else S.kmap.relayout();
+  startWatch();
+  renderPins();
+}
+// 리뷰 있는 가게는 모두, 아직 리뷰 없는 가게는 지금 보이는 화면 안에서 가까운 곳만 (너무 빽빽하지 않게)
+function renderPins(){
+  if(!S.kmap)return;
   S.overlays.forEach(o=>o.setMap(null));
-  S.overlays=filtered().filter(p=>p.x&&p.y).slice(0,80).map(p=>{
+  const has=p=>p.reviews.length>0,all=filtered().filter(p=>p.x&&p.y);
+  const bd=S.kmap.getBounds(),ct=S.kmap.getCenter(),lv=S.kmap.getLevel();
+  const cap=lv<=2?150:lv===3?70:lv===4?40:15;
+  const empty=all.filter(p=>!has(p)&&bd.contain(new kakao.maps.LatLng(p.y,p.x)))
+    .sort((a,b)=>distM(ct.getLat(),ct.getLng(),a.y,a.x)-distM(ct.getLat(),ct.getLng(),b.y,b.x)).slice(0,cap);
+  S.overlays=[...all.filter(has),...empty].map(p=>{
     const d=document.createElement('button');d.type='button';d.className='kpin'+(p.reviews.length?'':' none');
-    d.innerHTML=p.reviews.length?`<b class="num">${scoreOf(p).w.toFixed(2)}</b>`:'<b>·</b>';d.title=p.name;d.setAttribute('aria-label',p.name);
+    d.innerHTML=p.reviews.length?`<b class="num">${scoreOf(p).w.toFixed(2)}</b>`:PIN_ICON;d.title=p.name;d.setAttribute('aria-label',p.name);
     d.onclick=()=>openSheet(p.id);
     const o=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(p.y,p.x),content:d,yAnchor:1.1,zIndex:p.reviews.length?3:2});o.setMap(S.kmap);return o;});
+}
+/* 내 위치: 지도를 켜 둔 동안 계속 따라가요 */
+function startWatch(){
+  if(S.watchId!=null||!navigator.geolocation)return;
+  S.watchId=navigator.geolocation.watchPosition(pos=>{
+    const {latitude:la,longitude:lo,accuracy:ac}=pos.coords;S.myPos={y:la,x:lo,ac};
+    if(!S.kmap)return;const ll=new kakao.maps.LatLng(la,lo);
+    if(!S.meOv){const me=document.createElement('span');me.className='me-dot';S.meOv=new kakao.maps.CustomOverlay({position:ll,content:me,zIndex:5});S.meOv.setMap(S.kmap);
+      S.meCircle=new kakao.maps.Circle({center:ll,radius:Math.min(ac,500),strokeWeight:1,strokeColor:'#2F7BFF',strokeOpacity:.35,fillColor:'#2F7BFF',fillOpacity:.1});S.meCircle.setMap(S.kmap);}
+    else{S.meOv.setPosition(ll);S.meCircle.setPosition(ll);S.meCircle.setRadius(Math.min(ac,500));}
+    if(S.follow)S.kmap.panTo(ll);
+    $('#locBtn').classList.add('on');
+  },err=>{S.watchId=null;$('#locBtn').classList.remove('on');
+    if(S.follow){S.follow=false;toast(err.code===1?'위치 권한을 허용하면 지도에 내 위치가 보여요':'내 위치를 확인하지 못했어요');}
+  },{enableHighAccuracy:true,maximumAge:3000,timeout:20000});
+}
+function stopWatch(){if(S.watchId!=null){navigator.geolocation.clearWatch(S.watchId);S.watchId=null;}S.follow=false;}
+function locateMe(){
+  if(!navigator.geolocation){toast('이 기기에서는 위치를 확인할 수 없어요');return;}
+  S.follow=true;if(S.watchId==null)startWatch();
+  if(S.myPos&&S.kmap){S.kmap.setLevel(3);S.kmap.panTo(new kakao.maps.LatLng(S.myPos.y,S.myPos.x));}
+  else toast('내 위치를 찾는 중이에요…');
 }
 function renderAll(){renderWhere();renderFilters();renderList();renderMap();}
 
@@ -923,8 +1012,11 @@ function closeSheet(){openId=null;$('#scrim').hidden=true;}
 function keepScroll(fn){const sh=$('#sheet'),st=sh.scrollTop;fn();sh.scrollTop=st;}
 function picsHTML(rv){if(!rv.photos||!rv.photos.length)return '';
   return `<div class="pics">${rv.photos.map((u,j)=>`<button class="pic" type="button" data-pic="${esc(u)}" style="background-image:url('${esc(u)}')" aria-label="사진 ${j+1} 크게 보기"></button>`).join('')}</div>`;}
-function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{};
-  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(me?'나':nameOf(rv.user_id))}</b>${me?'<span class="mytag">내 리뷰</span>':''}${lvBadge(u.helpful)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
+const firstCall=()=>`✍️ 우리 학교 첫 리뷰어가 되어 보세요!`;
+// 가게에 가장 먼저 올라온 리뷰 (1호 뱃지)
+const firstOf=p=>p.reviews.reduce((a,r)=>!a||new Date(r.created_at)<new Date(a.created_at)?r:a,null);
+function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{},no1=firstOf(p)===rv;
+  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(me?'나':nameOf(rv.user_id))}</b>${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${me?'<span class="mytag">내 리뷰</span>':''}${lvBadge(u.helpful)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
     <div class="meta">${starsHTML(+rv.rating)}<span class="val num">${(+rv.rating).toFixed(1)}</span>${rv.round>1?`<span class="kind">${rv.round}번째 리뷰</span>`:''}${!isLatest(p,rv)?'<span class="kind old">이전 리뷰 · 점수 미반영</span>':''}${rv.kind==='visit'?`<span class="visit num">방문 인증 ${rv.visit_count}회</span>`:`<span class="kind">${rv.kind==='delivery'?'배달':'포장'}</span>`}</div>
     ${rv.menu||rv.price_level!=null?`<div class="menu">${rv.menu?`<span>먹은 메뉴 · </span>${esc(rv.menu)}`:''}${rv.menu&&rv.price_level!=null?' · ':''}${rv.price_level!=null?`<span>1인 </span>${PRICES[rv.price_level]}`:''}</div>`:''}
     <p>${esc(rv.body)}</p>
@@ -967,15 +1059,15 @@ function renderSheet(){
       <div class="t"><div><span class="area">${esc(p.cat)} · 도보 ${walk(p.dist)}분</span><h3>${esc(p.name)}</h3></div><button class="x" type="button" id="closeX" aria-label="닫기">×</button></div>
       ${p.reviews.length?`<div class="rating">${starsHTML(s.w)}<span class="val num">${s.w.toFixed(2)}</span><span class="rcount num">${chatSVG}리뷰 ${p.reviews.length}${pc?` · 사진 ${pc}`:''}</span></div>
       <div class="split"><span>매장·포장 <b class="num">${sv.n?sv.w.toFixed(2):'-'}</b> <small class="num">(${sv.n})</small></span><span>배달 <b class="num">${sd.n?sd.w.toFixed(2):'-'}</b> <small class="num">(${sd.n})</small></span></div>`
-      :`<div class="rating"><span class="rcount">아직 리뷰가 없어요</span></div>`}
+      :`<div class="rating"><span class="rcount first">${firstCall()}</span></div>`}
       ${price?`<div class="budget" style="margin-top:2px">${price}</div>`:''}</div>
       <div class="dtabs gut" role="group"><button type="button" data-dt="top" aria-pressed="${dtab==='top'}">가게 정보</button><button type="button" data-dt="rev" aria-pressed="${dtab==='rev'}">리뷰 (${p.reviews.length})</button></div></div>
     <div class="dbody">
     ${dtab==='top'?`
-      <div class="panel"><div class="hero">${thumb(p,true,0)}${thumb(p,false,1)}${thumb(p,false,2)}</div>
+      <div class="panel">${photosOf(p).length>=3?`<div class="hero">${thumb(p,true,0)}${thumb(p,false,1)}${thumb(p,false,2)}</div>`:`<div class="hero one">${thumb(p,true,0)}</div>`}
         ${s.n>=2?`<div class="gut"><div class="compare">단순 평균 <b class="num">${s.avg.toFixed(2)}</b> → 신뢰도 반영 <b class="num">${s.w.toFixed(2)}</b><br>"도움돼요"를 많이 받은 리뷰어의 평가가 더 크게 반영돼요.</div></div>`:''}</div>
       <div class="panel gut" id="repRev"><div class="sh"><h2>${expanded?`리뷰 ${p.reviews.length}건`:'대표 리뷰'}</h2><small>신뢰도 높은 순</small></div>
-        ${revs.length?revs.slice(0,expanded?10:1).map(rv=>reviewHTML(p,rv)).join(''):'<div class="empty">아직 리뷰가 없어요. 첫 리뷰를 남겨 주세요.</div>'}
+        ${revs.length?revs.slice(0,expanded?10:1).map(rv=>reviewHTML(p,rv)).join(''):`<div class="empty">${firstCall()}<br><small>가게의 첫 리뷰에는 <span class="no1">1호</span> 뱃지가 붙어요</small></div>`}
         ${p.reviews.length>1?`<div class="cta" style="padding-top:0"><button class="btn line" type="button" data-exp>${expanded?'리뷰 접기 ▲':p.reviews.length>10?'리뷰 더 보기 ▼':`리뷰 ${p.reviews.length}건 모두 보기 ▼`}</button></div>`:''}</div>
       <div class="panel gut"><div class="sh"><h2>가게 정보</h2></div>
         <table class="facts"><tr><th>장르</th><td>${esc(p.catFull||p.cat)}</td></tr>
@@ -988,7 +1080,7 @@ function renderSheet(){
     :`<div class="panel gut">${writing?writeHTML(p):''}
         <div class="sh"><h2>리뷰 ${p.reviews.length}건</h2><span class="rsort" role="group" aria-label="리뷰 정렬"><button type="button" data-rs="trust" aria-pressed="${revSort==='trust'}">신뢰도순</button><button type="button" data-rs="new" aria-pressed="${revSort==='new'}">최신순</button><button type="button" data-rs="photo" aria-pressed="${revSort==='photo'}">사진 리뷰</button></span></div>
         <p class="allcert">✓ 유니로그 리뷰는 모두 재학생 인증을 마친 학생이 썼어요</p>
-        ${revs.length?revs.slice(0,revShow).map(rv=>reviewHTML(p,rv)).join(''):`<div class="empty">${revSort==='photo'?'사진이 있는 리뷰가 없어요.':'아직 리뷰가 없어요. 첫 리뷰를 남겨 주세요.'}</div>`}
+        ${revs.length?revs.slice(0,revShow).map(rv=>reviewHTML(p,rv)).join(''):`<div class="empty">${revSort==='photo'?'사진이 있는 리뷰가 없어요.':`${firstCall()}<br><small>가게의 첫 리뷰에는 <span class="no1">1호</span> 뱃지가 붙어요</small>`}</div>`}
         ${revs.length>revShow?`<button class="morebtn" type="button" data-revmore>리뷰 ${Math.min(10,revs.length-revShow)}개 더 보기 ▼ <small class="num">(${revShow}/${revs.length})</small></button>`:''}</div>`}
     </div>
     <div class="actbar gut"><button class="btn line save" type="button" data-save aria-pressed="${S.saved.has(p.id)}">${S.saved.has(p.id)?'★ 저장됨':'☆ 저장'}</button>
@@ -1119,8 +1211,8 @@ function renderTalk(){
 /* 글 화면 */
 let PO=null,postMode='view',editPost=null,delPost=false,cEdit=-1,cDel=-1,replyTo=-1,replyMention=null,openRep=new Set(),showAllC=false,pdraft={},cpick={open:false,place:'',text:''},likedCm=new Set(),pbusy=false;
 const savedHere=()=>[...S.saved].map(id=>find(id)).filter(Boolean);
-function cchip(id,sel){const p=find(id);if(!p)return '';const c=colorOf(p.cat),s=scoreOf(p);
-  return `<button class="cchip ${sel===true?'on':''}" type="button" ${sel===undefined?`data-goplace="${p.id}"`:`data-cpick="${p.id}" aria-pressed="${!!sel}"`}><span class="sq" style="background:linear-gradient(135deg,${c[0]},${c[1]})"></span><b>${esc(p.name)}</b>${s.n?`<span class="sc num">★ ${s.w.toFixed(2)}</span>`:''}${sel===undefined?'<span class="go">›</span>':''}</button>`;}
+function cchip(id,sel){const p=find(id);if(!p)return '';const s=scoreOf(p),ph=photosOf(p)[0];
+  return `<button class="cchip ${sel===true?'on':''}" type="button" ${sel===undefined?`data-goplace="${p.id}"`:`data-cpick="${p.id}" aria-pressed="${!!sel}"`}><span class="sq${ph?'':' ph'}"${ph?` style="background:url('${esc(ph)}') center/cover"`:''}></span><b>${esc(p.name)}</b>${s.n?`<span class="sc num">★ ${s.w.toFixed(2)}</span>`:''}${sel===undefined?'<span class="go">›</span>':''}</button>`;}
 async function openPost(id){
   postMode='view';editPost=null;delPost=false;cEdit=-1;cDel=-1;replyTo=-1;replyMention=null;openRep=new Set();showAllC=false;cpick={open:false,place:'',text:''};
   $('#psheet').innerHTML='<div class="empty" style="padding:60px 0"><span class="spin"></span></div>';$('#pscrim').hidden=false;
@@ -1323,7 +1415,7 @@ async function renderMeBody(){
   const el=$('#meBody'),k=S.meTab;if(!k){el.innerHTML='';return;}
   if(k!=='saved'&&!S.meCache[k]){el.innerHTML='<div class="empty"><span class="spin"></span></div>';
     let res;
-    if(k==='reviews')res=await sb.from('ul_reviews').select('id,place_id,rating,body,likes,created_at,ul_places(name,category)').eq('user_id',S.uid).order('created_at',{ascending:false}).limit(60);
+    if(k==='reviews')res=await sb.from('ul_reviews').select('id,place_id,rating,body,likes,photos,created_at,ul_places(name,category)').eq('user_id',S.uid).order('created_at',{ascending:false}).limit(60);
     if(k==='posts')res=await sb.from('ul_posts').select('id,cat,title,created_at,comment_count,likes').eq('user_id',S.uid).order('created_at',{ascending:false}).limit(60);
     if(k==='cmts')res=await sb.from('ul_comments').select('id,post_id,parent_id,body,likes,best,created_at,ul_posts(title)').eq('user_id',S.uid).order('created_at',{ascending:false}).limit(60);
     if(k==='bm')res=await sb.from('ul_post_bookmarks').select('post_id,created_at,ul_posts(id,cat,title,created_at,comment_count,user_id)').order('created_at',{ascending:false}).limit(60);
@@ -1332,7 +1424,7 @@ async function renderMeBody(){
   }
   const more=S.meCache['more_'+k],cut=a=>more?a:a.slice(0,3),mb=n=>n>3?`<button class="morebtn" type="button" data-memore="${k}">${more?'접기 ▲':`${n}개 모두 보기 ▼`}</button>`:'';
   let L,html='';
-  if(k==='reviews'){L=S.meCache.reviews;html=L.length?cut(L).map(r=>{const c=colorOf(genreOf(r.ul_places?.category));return `<button class="row2" type="button" data-openplace="${r.place_id}" style="grid-template-columns:56px 1fr auto"><span class="thumb mini" style="background:linear-gradient(135deg,${c[0]},${c[1]})">${esc(genreOf(r.ul_places?.category))}</span><span class="who"><b style="color:var(--link)">${esc(r.ul_places?.name||'가게')}</b><span class="d">${esc(r.body)}</span></span><span class="v num" style="color:var(--accent)">${(+r.rating).toFixed(1)}<small>도움돼요 ${r.likes}</small></span></button>`;}).join('')+mb(L.length):'<div class="empty">아직 쓴 리뷰가 없어요.</div>';}
+  if(k==='reviews'){L=S.meCache.reviews;html=L.length?cut(L).map(r=>{const ph=(r.photos||[])[0];return `<button class="row2" type="button" data-openplace="${r.place_id}" style="grid-template-columns:56px 1fr auto">${ph?`<span class="thumb mini" style="background:url('${esc(ph)}') center/cover"></span>`:'<span class="thumb mini ph" aria-hidden="true"></span>'}<span class="who"><b style="color:var(--link)">${esc(r.ul_places?.name||'가게')}</b><span class="d">${esc(r.body)}</span></span><span class="v num" style="color:var(--accent)">${(+r.rating).toFixed(1)}<small>도움돼요 ${r.likes}</small></span></button>`;}).join('')+mb(L.length):'<div class="empty">아직 쓴 리뷰가 없어요.</div>';}
   if(k==='posts'){L=S.meCache.posts;html=L.length?cut(L).map(po=>`<button class="post" type="button" data-post="${po.id}"><span class="ptop"><span class="pcat">${po.cat}</span><b class="ptitle" style="font-size:14.5px">${esc(po.title)}</b></span><span class="pmeta num">${rel(po.created_at)} · 댓글 ${po.comment_count} · 공감 ${po.likes}</span></button>`).join('')+mb(L.length):'<div class="empty">아직 로그톡에 쓴 글이 없어요.</div>';}
   if(k==='cmts'){L=S.meCache.cmts;html=L.length?cut(L).map(c=>`<button class="post" type="button" data-post="${c.post_id}"><span class="pbody" style="color:var(--ink);-webkit-line-clamp:2">${esc(c.body)}</span><span class="pmeta">${c.parent_id?'<span>↳ 답글</span>':''}${c.best?'<span class="bestTag" style="padding:0 5px">✓ 채택</span>':''}<span>「${esc(c.ul_posts?.title||'삭제된 글')}」</span><span class="num">· ${rel(c.created_at)} · 도움돼요 ${c.likes}</span></span></button>`).join('')+mb(L.length):'<div class="empty">아직 로그톡에 단 댓글이 없어요.</div>';}
   if(k==='saved'){L=savedHere();html=L.length?cut(L).map(p=>`<button class="row2" type="button" data-openplace="${p.id}" style="grid-template-columns:56px 1fr auto">${miniThumb(p)}<span class="who"><b>${esc(p.name)}</b><span class="d">${esc(p.cat)} · 도보 ${walk(p.dist)}분</span></span><span class="v num" style="color:var(--accent)">${p.reviews.length?scoreOf(p).w.toFixed(2):'-'}<small>리뷰 ${p.reviews.length}</small></span></button>`).join('')+mb(L.length):'<div class="empty">가게 화면 아래 ☆ 저장을 누르면 여기에 모여요.</div>';}
@@ -1577,9 +1669,10 @@ async function enterApp(){
 /* ---------- 화면 공통 이벤트 ---------- */
 function setTab(t){S.tab=t;['near','talk','people','me'].forEach(x=>$('#v-'+x).hidden=x!==t);
   document.querySelectorAll('nav.tabs button').forEach(b=>{if(b.dataset.tab===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
-  window.scrollTo(0,0);if(t==='near'&&S.mapOn)setTimeout(renderMap,30);if(t==='people'&&!S.rank.loaded)loadRanking();}
+  window.scrollTo(0,0);if(t!=='near')stopWatch();if(t==='near'&&S.mapOn)setTimeout(renderMap,30);if(t==='people'&&!S.rank.loaded)loadRanking();}
 document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 document.querySelectorAll('.sort button').forEach(b=>b.onclick=()=>{S.sort=b.dataset.sort;document.querySelectorAll('.sort button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderList();});
+$('#locBtn').onclick=locateMe;
 $('#mapBtn').onclick=e=>{S.mapOn=!S.mapOn;e.currentTarget.setAttribute('aria-pressed',S.mapOn);if(S.mapOn&&!window.kakao){toast('지도를 아직 불러오지 못했어요');}renderMap();};
 $('#q').addEventListener('input',e=>{S.q=e.target.value;S.searchHit=null;S.listShow=10;if(S.tab!=='near')setTab('near');renderList();renderMap();});
 $('#searchForm').addEventListener('submit',e=>{e.preventDefault();const q=S.q.trim();$('#q').blur();if(q&&!filtered().length)searchMore(q);});
