@@ -833,7 +833,7 @@ async function gridSearch(code,c){
   async function cell(x1,y1,x2,y2,depth){
     const rect=`${x1},${y1},${x2},${y2}`;
     const first=await kCat(code,rect,1);
-    if(first.total>45&&depth<2){const mx=(x1+x2)/2,my=(y1+y2)/2;
+    if(first.total>45&&depth<3){const mx=(x1+x2)/2,my=(y1+y2)/2;
       await Promise.all([cell(x1,y1,mx,my,depth+1),cell(mx,y1,x2,my,depth+1),cell(x1,my,mx,y2,depth+1),cell(mx,my,x2,y2,depth+1)]);return;}
     out.push(...first.data);
     for(let page=2,more=first.more;more&&page<=3;page++){const r=await kCat(code,rect,page);out.push(...r.data);more=r.more;}
@@ -845,7 +845,7 @@ async function gridSearch(code,c){
   return out;
 }
 async function nearbyKakao(){
-  const key='ul_near_v2_'+S.school.id,c=store.get(key);
+  const key='ul_near_v3_'+S.school.id,c=store.get(key);
   if(c){try{const v=JSON.parse(c);if(Date.now()-v.t<6*3600e3&&v.d.length)return v.d;}catch(e){}}
   const all=[...await gridSearch('FD6',S.coord),...await gridSearch('CE7',S.coord)];
   const seen=new Set(),d=[];
@@ -879,12 +879,23 @@ function addPlace(p,inList){if(!S.placeMap[p.id])S.placeMap[p.id]=p;else p=S.pla
 async function loadPlaces(){
   S.placesState='loading';renderList();
   (await nearbyKakao()).forEach(d=>addPlace(fromKakao(d),true));
+  // 카카오 검색에서 빠졌더라도, 학교 근처에서 누가 리뷰·저장·방문 인증한 가게는 항상 목록에 넣어요
+  await addKnownNearby();
   const {data:sv}=await sb.from('ul_saved_places').select('place_id, ul_places(*)').order('created_at',{ascending:false});
   S.saved=new Set((sv||[]).map(x=>x.place_id));
   (sv||[]).forEach(x=>{if(x.ul_places){const p=addPlace(fromRow(x.ul_places),false);p._inDb=true;}});
   await loadReviewsFor(Object.keys(S.placeMap));
   await loadMyVisits();
   S.placesState='ok';renderAll();
+}
+async function addKnownNearby(){
+  const c=S.coord,R=3000,dy=R/111000,dx=R/(111000*Math.cos(c.y*Math.PI/180));
+  for(let from=0;from<6000;from+=1000){
+    const {data,error}=await sb.from('ul_places').select('*').gte('x',c.x-dx).lte('x',c.x+dx).gte('y',c.y-dy).lte('y',c.y+dy).range(from,from+999);
+    if(error||!data)break;
+    data.forEach(r=>{if(r.x&&r.y&&distM(c.y,c.x,r.y,r.x)<=R){const p=addPlace(fromRow(r),true);p._inDb=true;}});
+    if(data.length<1000)break;
+  }
 }
 async function loadReviewsFor(ids){
   ids=[...new Set(ids)];if(!ids.length)return;
