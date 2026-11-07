@@ -572,6 +572,20 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .vnudge small{font-size:12px;color:var(--sub)}
 .vnudge .wbtn{flex:none}
 .pending-bar button{border:0;background:none;color:inherit;font:inherit;text-decoration:underline;cursor:pointer;padding:0 0 0 4px}
+
+/* ===== 이름 옆 뱃지 정렬 통일 (내 리뷰 · 1호 · 등급 · 재학생 인증) ===== */
+.mytag,.no1,.lv,.cert,.cert.vb,.optag,.bestTag{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:18px;
+  padding:0 6px;font-size:10.5px;font-weight:700;line-height:1;letter-spacing:-.01em;border-radius:4px;border:1px solid transparent;
+  vertical-align:middle;white-space:nowrap;margin-left:4px;flex:none}
+.mytag{border-color:var(--line);color:var(--sub);background:var(--panel)}
+.no1{border-color:var(--accent);color:var(--accent);background:var(--soft)}
+.optag{border-color:var(--accent)}
+.rv .who>div{display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-width:0}
+.rv .who>div>b{margin-right:0}
+.rv .who>div>.mytag,.rv .who>div>.no1,.rv .who>div>.lv,.rv .who>div>.cert{margin-left:0}
+.rv .who>div>span.d{flex-basis:100%;margin-top:1px}
+.cline .mytag,.cline .no1,.cline .lv,.cline .cert,.cline .optag,.cline .bestTag,
+.pline .lv,.pline .cert{margin-left:0}
 </style>
 </head>
 <body>
