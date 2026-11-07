@@ -724,9 +724,77 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .pguide b{color:var(--ink);font-size:13px}
 .pguide ol{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
 @media (prefers-reduced-motion: reduce){.tg,.tg i{transition:none}}
+
+/* ===== 개척자 배지 ===== */
+.fd{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;vertical-align:middle;margin-left:3px;flex:none;
+  filter:drop-shadow(0 1px 1.5px rgba(181,101,26,.45))}
+.fd svg{display:block}
+.rv .who>div>.fd,.cline .fd,.pline .fd{margin-left:0}
+.prof .hd b+.fd{margin-left:4px;vertical-align:-4px}
+.fdwrap{padding-top:10px;padding-bottom:2px}
+.fdban{position:relative;display:flex;gap:12px;align-items:center;padding:12px 34px 12px 12px;border-radius:14px;
+  background:linear-gradient(135deg,#FFF8E1 0%,#FFEFD2 60%,#FFE6CC 100%);border:1px solid #F3D08A;
+  box-shadow:0 4px 14px rgba(224,134,26,.14);animation:fdIn .45s cubic-bezier(.2,.9,.3,1.2) both}
+.fdban-ic{flex:none;filter:drop-shadow(0 3px 5px rgba(181,101,26,.35))}
+.fdban-ic svg{display:block}
+.fdban-tx{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fdban-tx>b{font-size:14.5px;color:#8A4B0F;letter-spacing:-.02em}
+.fdban-tx>span{font-size:12px;line-height:1.5;color:#6B5640}
+.fdban-tx>span b{color:#B5651A}
+.fdseats{display:flex!important;align-items:center;gap:5px;margin-top:2px}
+.fdseats i{width:18px;height:18px;display:inline-grid;place-items:center;font-style:normal;line-height:0}
+.fdseats svg{display:block}
+.fdseats em{font-style:normal;font-size:11.5px;color:#8A4B0F;margin-left:4px;font-weight:700}
+.fdseats em b{font-size:13px;color:#D9481C}
+.fdban .x{position:absolute;top:6px;right:6px;width:26px;height:26px;border:0;background:transparent;color:#B08A5E;font-size:18px;line-height:1;cursor:pointer;border-radius:50%}
+@keyframes fdIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+.fdcard{display:flex;gap:12px;align-items:center;margin-top:12px;padding:12px;border-radius:12px;background:linear-gradient(135deg,#FFF8E1,#FFEBD0);border:1px solid #F3D08A}
+.fdcard svg{flex:none;filter:drop-shadow(0 2px 4px rgba(181,101,26,.35))}
+.fdcard span{display:flex;flex-direction:column;gap:3px}
+.fdcard b{font-size:14px;color:#8A4B0F}
+.fdcard small{font-size:12px;color:#6B5640;line-height:1.45}
+.nic.t-founder{background:#FFF3D6}
+.fdpop{position:fixed;inset:0;z-index:200;background:rgba(20,14,8,.45);display:grid;place-items:center;padding:24px;animation:fdFade .2s ease both}
+.fdpop-in{width:min(320px,100%);background:var(--panel,#fff);border-radius:18px;padding:26px 20px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;
+  box-shadow:0 18px 40px rgba(0,0,0,.25);animation:fdIn .5s cubic-bezier(.2,.9,.3,1.3) both}
+.fdpop-ic{filter:drop-shadow(0 6px 10px rgba(181,101,26,.4));animation:fdPop 1.2s ease .2s both}
+.fdpop-ic svg{display:block}
+.fdpop-in b{font-size:18px;color:#8A4B0F}
+.fdpop-in p{margin:0 0 6px;font-size:13px;line-height:1.55;color:var(--sub)}
+.fdpop-in p b{font-size:13px;color:#B5651A}
+.fdpop-in .btn{width:100%}
+@keyframes fdFade{from{opacity:0}to{opacity:1}}
+@keyframes fdPop{0%{transform:scale(.4) rotate(-12deg);opacity:0}55%{transform:scale(1.12) rotate(4deg);opacity:1}100%{transform:none}}
+
+/* ===== 리뷰어 랭킹: 오른쪽 도움돼요 숫자 여백 ===== */
+#peopleList .row2{grid-template-columns:26px 40px 1fr 64px;padding-right:4px}
+#peopleList .row2 .v{text-align:center;justify-self:center;width:100%;padding:4px 0;line-height:1.15;font-size:16px}
+#peopleList .row2 .v small{margin-top:2px;font-size:10.5px}
+#peopleList .row2.is-me{border-radius:10px;padding-left:4px}
+
+/* ===== 먹은 메뉴 여러 개 ===== */
+.mbox{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.mchip{display:inline-flex;align-items:center;gap:2px;height:30px;padding:0 4px 0 11px;border-radius:999px;background:var(--soft);color:var(--accent);font-size:13px;font-weight:700;max-width:100%}
+.mchip button{width:22px;height:22px;border:0;background:transparent;color:var(--accent);font-size:15px;line-height:1;cursor:pointer;border-radius:50%;opacity:.75}
+.madd{display:flex;flex:1 1 140px;gap:6px;min-width:0}
+.madd input{flex:1;min-width:0;border:0!important;outline:0;background:transparent;padding:6px 4px!important;font-size:14px;box-shadow:none!important}
+.mbtn{flex:none;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--accent);background:var(--panel);color:var(--accent);font-size:12.5px;font-weight:700;cursor:pointer}
+.msep{margin:0 5px;color:var(--line2,#C9C1B6);font-weight:400}
+
+/* 소개 화면 폰 테두리: 아래쪽까지 같은 색으로 */
+.intro-shot{box-sizing:content-box;background:#2A2420}
+.psub{display:flex;flex-direction:column;gap:2px;margin-bottom:2px}
+.psub b{font-size:14px}
+.psub small{font-size:11.5px;color:var(--sub)}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false"><defs>
+<linearGradient id="fdG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF1A8"/><stop offset=".45" stop-color="#FFC93C"/><stop offset="1" stop-color="#E0861A"/></linearGradient>
+<linearGradient id="fdI" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8A3D"/><stop offset="1" stop-color="#D9481C"/></linearGradient>
+<clipPath id="fdC"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z"/></clipPath>
+<symbol id="fdS" viewBox="0 0 24 24"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z" fill="url(#fdG)" stroke="#B5651A" stroke-width="1.1" stroke-linejoin="round"/><path d="M12 3.4 L18.9 5.9 V11.2 C18.9 15.6 16 18.9 12 20.5 C8 18.9 5.1 15.6 5.1 11.2 V5.9 Z" fill="url(#fdI)"/><path d="M12.00 6.10 L13.32 9.58 L17.04 9.76 L14.14 12.10 L15.12 15.69 L12.00 13.65 L8.88 15.69 L9.86 12.10 L6.96 9.76 L10.68 9.58Z" fill="#FFF6D6" stroke="#FFD25A" stroke-width=".5" stroke-linejoin="round"/><g clip-path="url(#fdC)"><rect x="-14" y="-4" width="5" height="34" fill="#fff" opacity=".6" transform="rotate(24 12 12)"><animate attributeName="x" values="-14;-14;32" keyTimes="0;.72;1" dur="3.6s" repeatCount="indefinite"/></rect></g></symbol>
+</defs></svg>
 <div class="boot" id="boot"><div class="boot-in"><span class="boot-logo"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" style="fill:var(--accent)"/><path d="M6.5 15.5h19a9.5 9.5 0 0 1-19 0z" fill="#fff"/><path d="M10.5 4.5l7.5 10M15 3.5l6 11" stroke="#fff" stroke-width="2.3" stroke-linecap="round" fill="none"/></svg></span><b>유니로그</b><span class="spin"></span></div></div>
 
 <div class="app" id="app" hidden>
@@ -744,6 +812,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 
   <main>
     <section class="view" id="v-near">
+      <div class="gut fdwrap" id="fdBanner" hidden></div>
       <div class="panel">
         <div class="fbar gut">
           <div class="genre" id="genre" role="group" aria-label="장르와 조건"></div>
@@ -947,6 +1016,11 @@ const U={};   // 회원 정보 캐시 (id → 공개 정보)
 const approved=()=>!!S.me&&S.me.status!=='banned';
 const verifiedMe=()=>!!S.me&&S.me.status==='approved';
 const certB=u=>u&&u.verified?'<span class="cert vb">재학생 인증</span>':'';
+/* 개척자 배지: 그 학교에서 리뷰를 가장 먼저 쓴 3명 */
+const FD=(s)=>`<svg width="${s}" height="${s}" aria-hidden="true"><use href="#fdS"/></svg>`;
+const fdTitle=u=>`${u.school_short||''} 개척자 · 우리 학교에서 ${u.founder}번째로 리뷰를 쓴 사람`;
+NICON.founder=FD(24);
+const fdB=u=>u&&u.founder?`<span class="fd" role="img" aria-label="${esc(fdTitle(u))}" title="${esc(fdTitle(u))}">${FD(20)}</span>`:'';
 function needApproved(what='이용'){if(approved())return true;toast('이용이 정지된 계정이에요');return false;}
 const userD=u=>u?`${u.school_short} ${u.year}`:'';
 const nameOf=id=>U[id]?.nick||'알 수 없음';
@@ -955,7 +1029,7 @@ const av=(id,cls='')=>U[id]&&U[id].photo_url?`<span class="av ${cls}" style="bac
 async function ensureUsers(ids){
   const need=[...new Set(ids)].filter(id=>id&&!U[id]);
   for(let i=0;i<need.length;i+=120){
-    const {data}=await sb.from('ul_profiles').select('id,nick,photo_url,school_short,year,helpful,verified').in('id',need.slice(i,i+120));
+    const {data}=await sb.from('ul_profiles').select('id,nick,photo_url,school_short,year,helpful,verified,founder').in('id',need.slice(i,i+120));
     (data||[]).forEach(r=>U[r.id]=r);
   }
 }
@@ -1218,9 +1292,9 @@ const firstCall=()=>`우리 학교 첫 리뷰어가 되어 보세요`;
 // 가게에 가장 먼저 올라온 리뷰 (1호 뱃지)
 const firstOf=p=>p.reviews.reduce((a,r)=>!a||new Date(r.created_at)<new Date(a.created_at)?r:a,null);
 function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{},no1=firstOf(p)===rv;
-  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(me?'나':nameOf(rv.user_id))}</b>${me?'<span class="mytag">내 리뷰</span>':''}${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${lvBadge(u.helpful)}${certB(u)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
+  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(me?'나':nameOf(rv.user_id))}</b>${fdB(u)}${me?'<span class="mytag">내 리뷰</span>':''}${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${lvBadge(u.helpful)}${certB(u)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
     <div class="meta">${starsHTML(+rv.rating)}<span class="val num">${(+rv.rating).toFixed(1)}</span>${rv.round>1?`<span class="kind">${rv.round}번째 리뷰</span>`:''}${!isLatest(p,rv)?'<span class="kind old">이전 리뷰 · 점수 미반영</span>':''}${rv.kind==='visit'?`<span class="visit num">방문 인증 ${rv.visit_count}회</span>`:`<span class="kind">${rv.kind==='delivery'?'배달':'포장'}</span>`}</div>
-    ${rv.menu||rv.price_level!=null?`<div class="menu">${rv.menu?`<span>먹은 메뉴 · </span>${esc(rv.menu)}`:''}${rv.menu&&rv.price_level!=null?' · ':''}${rv.price_level!=null?`<span>1인 </span>${PRICES[rv.price_level]}`:''}</div>`:''}
+    ${rv.menu||rv.price_level!=null?`<div class="menu">${rv.menu?`<span>먹은 메뉴 · </span>${menuShow(rv.menu)}`:''}${rv.menu&&rv.price_level!=null?' · ':''}${rv.price_level!=null?`<span>1인 </span>${PRICES[rv.price_level]}`:''}</div>`:''}
     <p>${esc(rv.body)}</p>
     ${(rv.tags||[]).length?`<div class="tagline">${rv.tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
     ${picsHTML(rv)}
@@ -1240,7 +1314,7 @@ function writeHTML(p){
     <div class="vbox" id="vbox">${vBoxHTML(p)}</div>
     <label>평가</label>
     <div class="star-pick" role="group" aria-label="별점">${[1,2,3,4,5].map(i=>`<button type="button" data-star="${i}" class="${i<=draft.rating?'on':''}" aria-label="${i}점"><i></i></button>`).join('')}</div>
-    <label for="menuIn">먹은 메뉴 <small class="opt-l">(선택)</small></label><input id="menuIn" maxlength="40" placeholder="예) 순대국 특" autocomplete="off" value="${esc(draft.menu)}">
+    <label for="menuIn">먹은 메뉴 <small class="opt-l">(선택 · 여러 개면 하나씩 추가)</small></label><div class="mbox" id="mbox">${menuBoxHTML()}</div>
     <label>1인 가격 <small class="opt-l">(선택)</small></label>
     <div class="chips-s">${PRICES.map((t,i)=>`<button type="button" data-price="${i}" aria-pressed="${draft.price===i}">${t}</button>`).join('')}</div>
     <label>이런 곳이에요 <small class="opt-l">(여러 개 선택)</small></label>
@@ -1316,9 +1390,29 @@ function bindSheet(p){
   on('[data-delyes]',x=>deleteReview(p,+x.dataset.delyes));
   on('[data-like]',x=>toggleRevLike(p,+x.dataset.like));
   on('[data-report]',x=>{const [t,id]=x.dataset.report.split(':');openReport(t,+id);});
-  const mi=$('#menuIn');if(mi)mi.oninput=e=>draft.menu=e.target.value;
+  bindMenuBox();
   const ri=$('#revIn');if(ri)ri.oninput=e=>draft.text=e.target.value;
   const pin=$('#picIn');if(pin)pin.onchange=e=>{[...e.target.files].slice(0,5-draft.pics.length).forEach(f=>draft.pics.push({url:URL.createObjectURL(f),file:f}));keepScroll(renderSheet);};
+}
+/* 먹은 메뉴: 하나씩 추가하면 " / " 로 나눠서 저장 (합쳐서 40자까지) */
+const MENU_MAX=40;
+const menuList=()=>(draft.menu||'').split(/\s*\/\s*/).map(x=>x.trim()).filter(Boolean);
+const menuShow=m=>String(m).split(/\s*\/\s*/).filter(Boolean).map(esc).join('<span class="msep">/</span>');
+function menuBoxHTML(){const L=menuList();
+  return `${L.map((m,i)=>`<span class="mchip">${esc(m)}<button type="button" data-mdel="${i}" aria-label="${esc(m)} 지우기">×</button></span>`).join('')}<span class="madd"><input id="menuIn" maxlength="20" placeholder="${L.length?'메뉴 더 추가':'예) 순대국 특'}" autocomplete="off" enterkeyhint="done"><button type="button" class="mbtn" data-madd>추가</button></span>`;}
+function menuSet(L){const j=L.join(' / ');if(j.length>MENU_MAX){toast('먹은 메뉴는 합쳐서 40자까지 쓸 수 있어요');return false;}draft.menu=j;return true;}
+function menuAdd(txt,keepFocus){const parts=String(txt||'').split(/[\/,，、]+/).map(x=>x.trim()).filter(Boolean);if(!parts.length)return true;
+  const L=menuList();parts.forEach(x=>{if(!L.includes(x))L.push(x);});const ok=menuSet(L);
+  if(ok){const box=$('#mbox');if(box){box.innerHTML=menuBoxHTML();bindMenuBox();if(keepFocus){const i=$('#menuIn');i&&i.focus();}}}
+  return ok;}
+function menuFlush(){const i=$('#menuIn');if(!i||!i.value.trim())return true;const ok=menuAdd(i.value,false);return ok;}
+function bindMenuBox(){const box=$('#mbox');if(!box)return;const i=box.querySelector('#menuIn');
+  box.querySelectorAll('[data-mdel]').forEach(b=>b.onclick=()=>{const L=menuList();L.splice(+b.dataset.mdel,1);menuSet(L);box.innerHTML=menuBoxHTML();bindMenuBox();});
+  const add=()=>menuAdd(i.value,true);
+  box.querySelector('[data-madd]').onclick=add;
+  i.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();add();}};
+  i.oninput=()=>{if(/[\/,，、]/.test(i.value))add();};
+  i.onblur=()=>{if(i.value.trim())setTimeout(()=>{const j=$('#menuIn');if(j&&j===i&&document.activeElement!==j&&j.value.trim())menuAdd(j.value,false);},150);};
 }
 function startWrite(p){if(!needApproved('리뷰를'))return;editing=null;draft={kind:'visit',rating:0,menu:'',price:null,tags:[],pics:[],text:''};dtab='rev';writing=true;renderSheet();const f=$('#sheet .write');if(f)f.scrollIntoView({block:'start'});}
 function startEdit(p,rv){if(!rv)return;editing=rv;writing=true;dtab='rev';delAsk=null;
@@ -1330,6 +1424,7 @@ async function submitReview(p){
   const v=S.visits[p.id];
   if(draft.kind==='visit'&&!(v&&v.recent)&&!(editing&&editing.kind==='visit')){toast('매장 리뷰는 방문 인증을 먼저 해주세요');return;}
   if(!draft.rating){toast('별점을 먼저 골라주세요');return;}
+  if(!menuFlush())return;
   if(draft.text.trim().length<10){toast('리뷰를 10자 이상 적어주세요');return;}
   busy=true;keepScroll(renderSheet);
   try{
@@ -1340,6 +1435,7 @@ async function submitReview(p){
     if(error)throw error;
     const was=!!editing;writing=false;editing=null;revSort='new';
     await refreshPlace(p);loadCounts();toast(was?'리뷰를 수정했어요':'리뷰를 올렸어요 · "도움돼요"를 받으면 내 신뢰도가 올라가요');
+    if(!was&&!S.me.founder)checkFounder();
   }catch(e){toast('저장하지 못했어요: '+errText(e));}
   finally{busy=false;if(openId===p.id)keepScroll(renderSheet);}
 }
@@ -1406,7 +1502,7 @@ function renderTalk(){
       <span class="ptop"><span class="pcat">${po.cat}</span></span>
       <b class="ptitle">${esc(po.title)}</b>
       <span class="pbody">${esc(po.body)}</span>
-      <span class="pmeta"><span>${esc(nameOf(po.user_id))}</span>${lvBadge(U[po.user_id]?.helpful)}${certB(U[po.user_id])}<span class="num">· ${rel(po.created_at)} · 댓글 ${po.comment_count} · 공감 ${po.likes}</span>${S.bmPost.has(po.id)?'<span class="bmk" aria-label="북마크함">★</span>':''}</span></button>`).join('')
+      <span class="pmeta"><span>${esc(nameOf(po.user_id))}</span>${fdB(U[po.user_id])}${lvBadge(U[po.user_id]?.helpful)}${certB(U[po.user_id])}<span class="num">· ${rel(po.created_at)} · 댓글 ${po.comment_count} · 공감 ${po.likes}</span>${S.bmPost.has(po.id)?'<span class="bmk" aria-label="북마크함">★</span>':''}</span></button>`).join('')
     :`<div class="empty">아직 글이 없어요. 첫 질문을 남겨보세요.</div>`)
     +(pages>1?`<nav class="pager" aria-label="페이지"><button type="button" data-tpage="${T.page-1}" ${T.page===1?'disabled':''} aria-label="이전 페이지">‹</button>${nums}<button type="button" data-tpage="${T.page+1}" ${T.page===pages?'disabled':''} aria-label="다음 페이지">›</button></nav>`:'');
 }
@@ -1454,7 +1550,7 @@ function renderPost(){
     const cs=[...po.comments].sort((a,b)=>b.best-a.best),word=po.cat==='질문'?'답변':'댓글';
     const cname=id=>esc(id===S.uid?(U[id]?.nick||'나'):nameOf(id)),optag=id=>id===po.user_id?'<span class="optag">글쓴이</span>':'';
     sh.innerHTML=`<div class="dhead"><div class="gut" style="padding-bottom:12px"><div class="t"><div><span class="area">${esc(label)} 로그톡</span><h3><span class="pcat">${po.cat}</span> ${esc(po.title)}</h3></div><button class="x" type="button" data-pclose aria-label="닫기">×</button></div>
-        <div class="pline">${av(po.user_id,'sm')}<b>${cname(po.user_id)}</b>${lvBadge(U[po.user_id]?.helpful)}${certB(U[po.user_id])}<span>· ${esc(userD(U[po.user_id]))} · ${rel(po.created_at)}${po.edited?' · 수정됨':''}</span>${mine?'<span class="mine-act" style="margin-left:auto"><button type="button" data-pedit-post>수정</button><button type="button" data-pdel>삭제</button></span>':''}</div>
+        <div class="pline">${av(po.user_id,'sm')}<b>${cname(po.user_id)}</b>${fdB(U[po.user_id])}${lvBadge(U[po.user_id]?.helpful)}${certB(U[po.user_id])}<span>· ${esc(userD(U[po.user_id]))} · ${rel(po.created_at)}${po.edited?' · 수정됨':''}</span>${mine?'<span class="mine-act" style="margin-left:auto"><button type="button" data-pedit-post>수정</button><button type="button" data-pdel>삭제</button></span>':''}</div>
         ${mine&&delPost?`<div class="delask" style="margin-top:10px"><span>이 글을 삭제할까요? ${word} ${po.comment_count}개도 함께 사라져요.</span><span class="btns"><button type="button" data-pdelno>취소</button><button type="button" class="danger" data-pdelyes>삭제</button></span></div>`:''}</div></div>
       <div class="dbody">
         <div class="postmain gut"><p class="ptext">${esc(po.body)}</p>
@@ -1462,11 +1558,11 @@ function renderPost(){
           <div class="pact"><span class="cacts"><button class="mini num" type="button" data-plike aria-pressed="${S.likedPost.has(po.id)}">${thumbSVG} 공감 ${po.likes}</button><button class="mini bm" type="button" data-pbm aria-pressed="${S.bmPost.has(po.id)}">${S.bmPost.has(po.id)?'★ 북마크됨':'☆ 북마크'}</button></span>${mine?'':`<button class="report" type="button" data-report="post:${po.id}">신고</button>`}</div></div>
         <div class="panel gut"><div class="sh"><h2>${word} ${po.comment_count}</h2>${canAdopt&&po.comments.length?'<small>도움 된 답변을 채택해 주세요</small>':''}</div>
           ${cs.length?(showAllC?cs:cs.slice(0,5)).map(c=>{const j=c.id,me=c.user_id===S.uid,reps=c.replies||[];return `<div class="cm2">${av(c.user_id,'sm')}<div class="cb">
-            <div class="cline"><b>${cname(c.user_id)}</b>${optag(c.user_id)}${lvBadge(U[c.user_id]?.helpful)}${certB(U[c.user_id])}${c.best?'<span class="bestTag">✓ 채택</span>':''}<span class="t">${rel(c.created_at)}</span></div>
+            <div class="cline"><b>${cname(c.user_id)}</b>${fdB(U[c.user_id])}${optag(c.user_id)}${lvBadge(U[c.user_id]?.helpful)}${certB(U[c.user_id])}${c.best?'<span class="bestTag">✓ 채택</span>':''}<span class="t">${rel(c.created_at)}</span></div>
             ${me&&cEdit===j?`<div class="cedit"><textarea id="cEditIn" rows="3" maxlength="1000">${esc(c.body)}</textarea><span class="btns"><button type="button" class="mini" data-cedno>취소</button><button type="button" class="mini on" data-cedyes="${j}">저장</button></span></div>`:`<p>${esc(c.body)}${c.edited?' <small class="edited">(수정됨)</small>':''}</p>`}${c.place_id&&find(c.place_id)?cchip(c.place_id):''}
             <div class="cacts"><button class="mini num" type="button" data-clike="${j}" aria-pressed="${likedCm.has(j)}" ${me?'disabled':''}>${thumbSVG} 도움돼요 ${c.likes}</button><button class="mini" type="button" data-reply="${j}" aria-pressed="${replyTo===j}">답글${reps.length?' '+reps.length:''}</button>${canAdopt&&!me?`<button class="mini adopt" type="button" data-adopt="${j}">채택하기</button>`:''}${me&&cEdit!==j?`<span class="mine-act" style="margin-left:auto"><button type="button" data-cedit="${j}">수정</button><button type="button" data-cdel="${j}">삭제</button></span>`:me?'':`<button class="report" type="button" style="margin-left:auto" data-report="comment:${j}">신고</button>`}</div>
             ${me&&cDel===j?`<div class="delask"><span>이 ${word}을 삭제할까요?${reps.length?` 답글 ${reps.length}개도 함께 사라져요.`:''}</span><span class="btns"><button type="button" data-cdelno>취소</button><button type="button" class="danger" data-cdelyes="${j}">삭제</button></span></div>`:''}
-            ${(openRep.has(j)?reps:reps.slice(0,2)).map(r=>{const rme=r.user_id===S.uid;return `<div class="rp"><span class="arrow" aria-hidden="true">↳</span>${av(r.user_id,'xs')}<div class="cb"><div class="cline"><b>${cname(r.user_id)}</b>${optag(r.user_id)}${lvBadge(U[r.user_id]?.helpful)}${certB(U[r.user_id])}<span class="t">${rel(r.created_at)}</span></div>
+            ${(openRep.has(j)?reps:reps.slice(0,2)).map(r=>{const rme=r.user_id===S.uid;return `<div class="rp"><span class="arrow" aria-hidden="true">↳</span>${av(r.user_id,'xs')}<div class="cb"><div class="cline"><b>${cname(r.user_id)}</b>${fdB(U[r.user_id])}${optag(r.user_id)}${lvBadge(U[r.user_id]?.helpful)}${certB(U[r.user_id])}<span class="t">${rel(r.created_at)}</span></div>
               <p>${r.mention?`<span class="mention">@${esc(nameOf(r.mention))}</span> `:''}${esc(r.body)}</p>
               <div class="cacts"><button class="mini num" type="button" data-clike="${r.id}" aria-pressed="${likedCm.has(r.id)}" ${rme?'disabled':''}>${thumbSVG} ${r.likes}</button><button class="mini" type="button" data-rreply="${j}:${r.id}">답글</button>${rme?`<span class="mine-act" style="margin-left:auto"><button type="button" data-rdel="${r.id}">삭제</button></span>`:`<button class="report" type="button" style="margin-left:auto" data-report="comment:${r.id}">신고</button>`}</div></div></div>`;}).join('')}
             ${reps.length>2?`<button class="morelink" type="button" data-rmore="${j}">${openRep.has(j)?'답글 접기 ▲':`답글 ${reps.length-2}개 더 보기 ▼`}</button>`:''}</div></div>`;}).join('')
@@ -1583,7 +1679,7 @@ function renderPeople(){
   if(!S.rank.loaded){$('#peopleList').innerHTML='<div class="empty"><span class="spin"></span></div>';return;}
   const all=S.rank.list,show=all.slice(0,S.rank.show),meIdx=all.findIndex(r=>r.user_id===S.uid);
   const row=(r,rank)=>`<div class="row2 ${r.user_id===S.uid?'is-me':''}"><span class="n ${rank&&rank<=3?'top':''} num">${rank||'-'}</span>${av(r.user_id)}
-      <span class="who"><b>${esc(r.user_id===S.uid?'나 ('+r.nick+')':r.nick)}</b>${lvBadge(r.helpful)}${certB(r)}<span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
+      <span class="who"><b>${esc(r.user_id===S.uid?'나 ('+r.nick+')':r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.helpful)}${certB(r)}<span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
       <span class="v num">${r.score}<small>도움돼요</small></span></div>`;
   $('#peopleList').innerHTML=(all.length?show.map((r,i)=>row(r,i+1)).join(''):'<div class="empty">아직 랭킹에 오른 학생이 없어요. 첫 리뷰를 남겨 1위가 되어 보세요.</div>')
     +(meIdx>=S.rank.show?row(all[meIdx],meIdx+1):'')
@@ -1602,9 +1698,10 @@ async function loadCounts(){
 }
 function renderMe(){
   if(!S.me)return;const me=S.me,likes=me.helpful||0,li=lvOf(likes),next=LV[li+1],pct=next?((likes-LV[li].min)/(next.min-LV[li].min))*100:100,un=unread();
-  $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><b>${esc(me.nick||'')}</b>${lvBadge(likes)}<span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?'<span>· 재학생 인증 확인 중</span>':''}</span></div>
+  $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><b>${esc(me.nick||'')}</b>${fdB(me)}${lvBadge(likes)}<span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?'<span>· 재학생 인증 확인 중</span>':''}</span></div>
       <span class="hd-btns"><button class="bell" type="button" data-noti aria-label="알림 ${un}개">${BELL}${un?`<span class="nbadge num">${un>99?'99+':un}</span>`:''}</button><button class="wbtn" type="button" data-pedit>프로필 수정</button></span></div>
     <div class="gauge"><div class="lbl"><b>${next?`${next.name}까지 "도움돼요" ${next.min-likes}개`:'최고 등급이에요'}</b><span>내 평가 반영 ×${LV[li].w}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
+    ${me.founder?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>우리 학교에서 ${me.founder}번째로 리뷰를 쓴 사람에게만 주는 배지예요. 학교마다 딱 3명만 받을 수 있어요.</small></span></div>`:''}
     ${me.status==='none'||me.status==='rejected'?`<div class="vnudge"><span><b>${me.status==='rejected'?'재학생 인증이 반려됐어요':'재학생 인증을 해 보세요'}</b><small>${me.status==='rejected'?esc(me.reject_reason?'사유: '+me.reject_reason:'캡처를 다시 올려 주세요'):'인증하면 내 리뷰와 글에 재학생 인증 뱃지가 붙어요'}</small></span><button class="wbtn" type="button" data-verify-start>인증하기</button></div>`:''}
     <div class="kv"><div><b class="num">${S.counts.reviews??'-'}</b><span>리뷰</span></div><div><b class="num">${likes}</b><span>받은 도움돼요</span></div><div><b class="num">${S.counts.visits??'-'}</b><span>방문 인증</span></div></div>`;
   renderMeTabs();updateBadges();
@@ -1646,9 +1743,11 @@ function notiText(n){const m=n.meta||{};
     case 'reply':return `「${esc(m.title)}」의 내 댓글에 답글${n.count>1?` ${n.count}개가`:'이'} 달렸어요`;
     case 'adopt':return `「${esc(m.title)}」에 단 내 답변이 채택됐어요 · 도움돼요 +3`;
     case 'up':return `<b>${esc(m.level)}</b> 등급이 됐어요! 이제 내 평가가 가게 점수에 더 크게 반영돼요`;
+    case 'newpost':return n.count>1?`우리 학교 로그톡에 새 글 ${n.count}개가 올라왔어요 · 최근 「${esc(m.title||'')}」`:`우리 학교 로그톡에 새 글이 올라왔어요 · 「${esc(m.title||'')}」`;
+    case 'founder':return `축하해요! <b>${esc(m.school||'')} 개척자 배지</b>를 받았어요 · 우리 학교 ${m.rank}번째 리뷰어예요. 이제 내 이름 옆에 금빛 배지가 붙어요`;
     case 'verify':return m.status==='approved'?'재학생 인증이 승인됐어요! 이제 내 리뷰와 글에 재학생 인증 뱃지가 붙어요':`재학생 인증이 반려됐어요${m.reason?' · 사유: '+esc(m.reason):''}`;
     default:return '새 알림이 있어요';}}
-const nIcon=t=>({like:'like',cmt:'cmt',reply:'cmt',adopt:'adopt',up:'up'}[t]||'info');
+const nIcon=t=>({like:'like',cmt:'cmt',reply:'cmt',adopt:'adopt',up:'up',founder:'founder',newpost:'cmt'}[t]||'info');
 async function loadNotis(){
   const {data}=await sb.from('ul_notifications').select('*').order('updated_at',{ascending:false}).limit(80);
   const before=unread();S.notis=data||[];updateBadges();if(!$('#nscrim').hidden)renderNoti();
@@ -1676,6 +1775,7 @@ function renderNoti(){
     if(!n.read){n.read=true;sb.from('ul_notifications').update({read:true}).eq('id',n.id).then(()=>{});updateBadges();}
     if(n.review_id&&n.place_id){$('#nscrim').hidden=true;openPlaceById(n.place_id,'rev');}
     else if(n.post_id){$('#nscrim').hidden=true;openPost(n.post_id);}
+    else if(n.type==='founder'){$('#nscrim').hidden=true;refreshMe();setTab('me');}
     else renderNoti();});
 }
 
@@ -1714,17 +1814,18 @@ function renderPE(){
    폰 알림 (웹 푸시) — 켜고 끄기, 종류별 설정
    ===================================================================== */
 const PUSH_KEY='BEW_Xf2COsiDNxZeiAmPuZscxTObTffXAS6ePGv04zpTb1F9WJ1C9bbPcE2-Gb30lM_LkbeLmkWg0SgAYcvpRms';
-const PUSH_CATS=[['verify','재학생 인증 결과','승인·반려되면 알려드려요'],['talk','로그톡 댓글·답글','내 글에 댓글, 내 댓글에 답글, 답변 채택'],['likes','도움돼요·등급','내 리뷰·댓글에 도움돼요, 등급 올라감']];
+const PUSH_CATS=[['talk','내 글·댓글 소식','내 글에 댓글, 내 댓글에 답글, 답변 채택'],['newpost','로그톡 새 글','우리 학교 로그톡에 새 글이 올라오면'],['likes','도움돼요','내 리뷰·댓글에 도움돼요가 달리면'],['badge','배지·등급','개척자 배지를 받거나 등급이 오르면'],['verify','재학생 인증 결과','승인·반려되면']];
+const PREF0=()=>({verify:true,talk:true,likes:true,newpost:true,badge:true});
 const pushSupported=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
 const isIOS=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const isStandalone=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 function b64u(s){const p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...b].map(c=>c.charCodeAt(0)));}
 async function swReg(){if(!('serviceWorker' in navigator))return null;try{return await navigator.serviceWorker.register('/sw.js');}catch(e){return null;}}
 async function loadPushState(){
-  const P=S.push=S.push||{prefs:{verify:true,talk:true,likes:true}};
+  const P=S.push=S.push||{prefs:PREF0()};
   P.supported=pushSupported();P.perm=('Notification' in window)?Notification.permission:'unsupported';P.sub=null;
   try{if(P.supported){const reg=await swReg();if(reg){const sub=await reg.pushManager.getSubscription();P.sub=sub||null;}}}catch(e){}
-  try{const {data}=await sb.from('ul_push_prefs').select('verify,talk,likes').eq('user_id',S.uid).maybeSingle();if(data)P.prefs=data;}catch(e){}
+  try{const {data}=await sb.from('ul_push_prefs').select('verify,talk,likes,newpost,badge').eq('user_id',S.uid).maybeSingle();if(data)P.prefs=Object.assign(PREF0(),data);}catch(e){}
 }
 async function pushOn(){
   const P=S.push;if(!P||P.busy)return;
@@ -1754,12 +1855,12 @@ async function pushOff(silent){
 }
 async function setPushPref(k,v){
   const P=S.push;P.prefs[k]=v;renderNoti();
-  const row={user_id:S.uid,verify:P.prefs.verify,talk:P.prefs.talk,likes:P.prefs.likes,updated_at:new Date().toISOString()};
+  const row={user_id:S.uid,updated_at:new Date().toISOString()};PUSH_CATS.forEach(([c])=>row[c]=P.prefs[c]!==false);
   const {error}=await sb.from('ul_push_prefs').upsert(row,{onConflict:'user_id'});
   if(error){P.prefs[k]=!v;renderNoti();toast('저장하지 못했어요: '+errText(error));}
 }
 function renderPushSet(){
-  const P=S.push||{prefs:{verify:true,talk:true,likes:true}},on=!!P.sub;
+  const P=S.push||{prefs:PREF0()},on=!!P.sub;
   const sw=(attr,checked,dis)=>`<button class="tg" type="button" role="switch" aria-checked="${checked}" ${attr} ${dis?'disabled':''}><i></i></button>`;
   let guide='';
   if(!P.supported&&isIOS()&&!isStandalone())guide=`<div class="pguide"><b>아이폰은 홈 화면에 추가해야 알림을 받을 수 있어요</b><ol><li>사파리 아래쪽 <b>공유</b> 버튼(네모에 화살표)을 눌러요</li><li><b>홈 화면에 추가</b>를 눌러요</li><li>홈 화면의 <b>유니로그</b> 아이콘으로 들어와서 여기서 알림을 켜요</li></ol></div>`;
@@ -1770,9 +1871,11 @@ function renderPushSet(){
     <div class="pset">
       <div class="prow main"><span><b>폰으로 알림 받기</b><small>${P.busy?'설정하는 중…':on?'이 기기에서 알림을 받고 있어요':'이 기기는 꺼져 있어요'}</small></span>${sw('data-pmain',on,P.busy||!P.supported)}</div>
       ${guide}
-      <div class="pcats${on?'':' off'}">${PUSH_CATS.map(([k,n,d])=>`<div class="prow"><span><b>${n}</b><small>${d}</small></span>${sw(`data-pcat="${k}"`,P.prefs[k]!==false,!on)}</div>`).join('')}</div>
     </div>
-    <p class="hint" style="margin:0;font-size:11.5px;color:var(--sub)">폰 알림을 꺼도 종 모양 알림 목록에서는 계속 볼 수 있어요. 알림은 기기마다 따로 켜요.</p></div>`;
+    <div class="pset"><div class="psub"><b>받을 알림 고르기</b><small>끈 알림은 알림 목록에도, 폰에도 아예 안 와요</small></div>
+      <div class="pcats">${PUSH_CATS.map(([k,n,d])=>`<div class="prow"><span><b>${n}</b><small>${d}</small></span>${sw(`data-pcat="${k}"`,P.prefs[k]!==false,false)}</div>`).join('')}</div>
+    </div>
+    <p class="hint" style="margin:0;font-size:11.5px;color:var(--sub)">폰 알림은 기기마다 따로 켜요. 폰 알림을 꺼도 위에서 켜 둔 알림은 종 모양 알림 목록에서 볼 수 있어요.</p></div>`;
   const sh=$('#nsheet');
   sh.querySelector('[data-nclose]').onclick=()=>$('#nscrim').hidden=true;
   sh.querySelector('[data-nback]').onclick=()=>{S.notiSet=false;renderNoti();};
@@ -1787,10 +1890,18 @@ const YEARS=['26학번','25학번','24학번','23학번','22학번','21학번','
 const AGREE=[['terms','필수','서비스 이용약관'],['privacy','필수','개인정보 수집·이용'],['age','필수','만 14세 이상이에요'],['loc','선택','위치 정보 이용','방문 인증할 때만 써요'],['mkt','선택','이벤트·혜택 알림']];
 let ob={mode:'join',skip:false,step:0,agree:{},school:null,sq:'',region:'전체',method:'id',file:null,fileUrl:'',nick:'',nickOk:false,nickMsg:'',field:'',dept:'',etc:false,year:'',busy:false,err:'',rejected:''},obPrevW=0,obLast=-1,nickT;
 const curSchool=()=>SCHOOLS.find(x=>x.id===ob.school);
+/* 학과 목록: 외대는 2026 모집요강 기준 직접 정리, 다른 학교는 한국대학교육협의회 「전국대학별학과정보표준데이터」(depts.json) */
+let DEPTS=window.__DEPTS||null,deptsBusy=false;
+function loadDepts(){if(DEPTS||deptsBusy)return;deptsBusy=true;
+  fetch('/depts.json',{cache:'force-cache'}).then(r=>r.ok?r.json():{}).then(j=>{DEPTS=j||{};}).catch(()=>{DEPTS={};})
+    .finally(()=>{deptsBusy=false;const o=$('#ob');if(o&&!o.hidden&&ob.step===4&&!$('#obDeptEtc')&&!(document.activeElement&&document.activeElement.id==='obNick'))obRender();});}
+function deptList(sc){if(!sc)return null;
+  if(sc.id==='hufs-s'||sc.id==='hufs-g')return Object.entries(sc.id==='hufs-g'?HUFS_GLOBAL:HUFS_SEOUL);
+  if(!DEPTS)return undefined;const L=DEPTS[sc.id];return L&&L.length?L:null;}
 function deptField(){
-  const sc=curSchool(),etcIn=ob.etc?`<div class="fld"><label for="obDeptEtc">학과 이름</label><input id="obDeptEtc" maxlength="30" value="${esc(ob.dept)}" placeholder="예) 문화콘텐츠학과" autocomplete="off"></div>`:'';
-  if(sc&&sc.short==='외대'){const G=sc.id==='hufs-g'?HUFS_GLOBAL:HUFS_SEOUL;
-    return `<div class="fld"><label for="obDept">학과</label><select id="obDept"><option value="">학과 선택</option>${Object.entries(G).map(([g,l])=>`<optgroup label="${g}">${l.map(d=>opt(d,ob.etc?'':ob.dept)).join('')}</optgroup>`).join('')}<option value="__etc" ${ob.etc?'selected':''}>목록에 없어요</option></select></div>${etcIn}`;}
+  const sc=curSchool(),L=deptList(sc),etcIn=ob.etc?`<div class="fld"><label for="obDeptEtc">학과 이름</label><input id="obDeptEtc" maxlength="30" value="${esc(ob.dept)}" placeholder="학과(학부) 이름을 그대로 적어 주세요" autocomplete="off"></div>`:'';
+  if(L===undefined){loadDepts();return `<div class="fld"><label for="obDept">학과</label><select id="obDept" disabled><option>학과 목록 불러오는 중…</option></select></div>`;}
+  if(L)return `<div class="fld"><label for="obDept">학과</label><select id="obDept"><option value="">학과 선택</option>${L.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(d=>opt(esc(d),ob.etc?'':esc(ob.dept))).join('')}</optgroup>`).join('')}<optgroup label="찾는 학과가 없으면"><option value="__etc" ${ob.etc?'selected':''}>목록에 없어요 (직접 입력)</option></optgroup></select></div>${etcIn}`;
   return `<div class="fld"><label for="obDeptEtc">학과</label><input id="obDeptEtc" maxlength="30" value="${esc(ob.dept)}" placeholder="학과(학부) 이름을 그대로 적어 주세요" autocomplete="off"><span class="msg">예) 경영학과, 컴퓨터공학부, 자유전공학부</span></div>`;
 }
 const schoolList=()=>{const q=ob.sq.trim();
@@ -1919,6 +2030,7 @@ function obRender(){
   stopIntro();
   el.innerHTML=`<div class="wrap gut${moved?' step-in':''}">${obHTML()}</div>`;if(moved)el.scrollTop=0;obSync();
   if(ob.step===0){initIntro();kakaoPrep();}
+  if(ob.step>=1&&ob.step<=4)loadDepts();
   const vm=ob.mode==='verify',bar=el.querySelector('.ob-prog i'),to=typeof ob.step==='number'?(vm?(ob.step-2)/2*100:ob.step/4*100):0;
   if(bar){bar.style.transition='none';bar.style.width=obPrevW+'%';void bar.offsetWidth;bar.style.transition='width .45s cubic-bezier(.4,0,.2,1)';bar.style.width=to+'%';}
   obPrevW=ob.step>=1&&ob.step<=4?to:0;
@@ -1967,7 +2079,7 @@ function bindOb(){
     if(t.dataset.ag){if(t.dataset.ag==='all')AGREE.forEach(([k])=>ob.agree[k]=t.checked);else ob.agree[t.dataset.ag]=t.checked;obRender();return;}
     if(t.id==='obFile'){ob.file=t.files&&t.files[0]||null;obRender();return;}
     if(t.id==='obField'){ob.field=t.value;ob.dept='';ob.etc=t.value==='__etc';obRender();return;}
-    if(t.id==='obDept'){const etc=t.value==='__etc';if(etc!==!!ob.etc&&(etc||(curSchool()||{}).short==='외대')){ob.etc=etc;ob.dept='';obRender();return;}ob.dept=t.value;}
+    if(t.id==='obDept'){const etc=t.value==='__etc';if(etc!==!!ob.etc){ob.etc=etc;ob.dept=etc?'':t.value;obRender();if(etc){const i=$('#obDeptEtc');i&&i.focus();}return;}ob.dept=t.value;}
     if(t.id==='obYear')ob.year=t.value;
     obSync();});
   el.addEventListener('input',e=>{const t=e.target;
@@ -2073,7 +2185,7 @@ async function enterApp(){
   sb.from('ul_private').select('*').eq('id',S.uid).maybeSingle().then(({data})=>{S.priv=data;});
   const [pl,bm]=await Promise.all([sb.from('ul_post_likes').select('post_id').eq('user_id',S.uid),sb.from('ul_post_bookmarks').select('post_id').eq('user_id',S.uid)]);
   S.likedPost=new Set((pl.data||[]).map(x=>x.post_id));S.bmPost=new Set((bm.data||[]).map(x=>x.post_id));
-  loadCounts();loadNotis();loadTalk();loadRanking();
+  loadCounts();loadNotis();loadTalk();loadRanking();loadFounders();
   loadPushState().then(()=>{if(!$('#nscrim').hidden)renderNoti();});
   const go=new URLSearchParams(location.search).get('go');if(go){history.replaceState(null,'',location.pathname);setTimeout(()=>goTo(go),400);}
   setInterval(()=>{if(!document.hidden)loadNotis();},40000);
@@ -2086,6 +2198,41 @@ async function enterApp(){
 }
 
 /* ---------- 화면 공통 이벤트 ---------- */
+/* =====================================================================
+   개척자 배지 (학교마다 리뷰를 가장 먼저 쓴 3명)
+   ===================================================================== */
+async function loadFounders(){
+  if(!S.school||!sb)return;const sid=S.school.id;
+  const {data}=await sb.from('ul_profiles').select('id,nick,photo_url,school_short,year,helpful,verified,founder').eq('school_id',sid).not('founder','is',null);
+  if(!S.school||S.school.id!==sid)return;
+  S.founders=data||[];S.founders.forEach(u=>{U[u.id]=Object.assign(U[u.id]||{},u);});
+  renderFdBanner();if(S.rank&&S.rank.loaded)renderPeople();
+}
+const fdKey=()=>'ul_fdx_'+(S.school?S.school.id:'');
+function renderFdBanner(){
+  const el=$('#fdBanner');if(!el)return;
+  const taken=(S.founders||[]).length,left=3-taken;let off=false;
+  try{off=localStorage.getItem(fdKey())==='1';}catch(e){}
+  if(!S.founders||left<=0||!S.me||S.me.founder||S.school.id!==S.me.school_id||off){el.hidden=true;el.innerHTML='';return;}
+  const seats=[1,2,3].map(i=>i<=taken?`<i class="on" title="${i}번째 자리 주인 있음">${FD(18)}</i>`:'<i class="seat0" title="빈 자리"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z" fill="#fff" fill-opacity=".75" stroke="#E0A55A" stroke-width="1.6" stroke-dasharray="2.6 2" stroke-linejoin="round"/></svg></i>').join('');
+  el.innerHTML=`<div class="fdban" role="status">
+    <span class="fdban-ic">${FD(52)}</span>
+    <div class="fdban-tx"><b>우리 학교 개척자 배지, 딱 3명만</b>
+      <span>${esc(S.school.short)}에서 리뷰를 <b>가장 먼저 쓰는 3명</b>에게 왼쪽의 <b>금빛 방패 배지</b>를 드려요. 리뷰·로그톡·랭킹 어디서든 내 이름 옆에 계속 붙어 있어요.</span>
+      <span class="fdseats">${seats}<em>남은 자리 <b class="num">${left}</b>/3</em></span></div>
+    <button class="x" type="button" data-fdx aria-label="닫기">×</button></div>`;
+  el.hidden=false;
+  el.querySelector('[data-fdx]').onclick=()=>{try{localStorage.setItem(fdKey(),'1');}catch(e){}el.hidden=true;};
+}
+async function checkFounder(){
+  const {data}=await sb.from('ul_profiles').select('founder').eq('id',S.uid).maybeSingle();
+  if(!data||!data.founder)return;
+  S.me.founder=data.founder;U[S.uid]=Object.assign(U[S.uid]||{},{founder:data.founder,school_short:S.me.school_short});
+  loadFounders();renderMe();loadNotis();
+  const d=document.createElement('div');d.className='fdpop';d.setAttribute('role','dialog');d.setAttribute('aria-label','개척자 배지를 받았어요');
+  d.innerHTML=`<div class="fdpop-in"><span class="fdpop-ic">${FD(84)}</span><b>개척자 배지를 받았어요!</b><p>${esc(S.me.school_short)}에서 <b>${data.founder}번째</b>로 리뷰를 쓴 사람이에요.<br>이제 내 이름 옆에 이 배지가 계속 붙어요.</p><button class="btn" type="button">좋아요</button></div>`;
+  document.body.appendChild(d);const close=()=>d.remove();d.querySelector('button').onclick=close;d.onclick=e=>{if(e.target===d)close();};
+}
 function setTab(t){S.tab=t;['near','talk','people','me'].forEach(x=>$('#v-'+x).hidden=x!==t);
   document.querySelectorAll('nav.tabs button').forEach(b=>{if(b.dataset.tab===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   window.scrollTo(0,0);if(t!=='near')stopWatch();if(t==='near'&&S.mapOn)setTimeout(renderMap,30);if(t==='people'&&!S.rank.loaded)loadRanking();}
@@ -2156,7 +2303,8 @@ async function switchSchool(id){
   S.school=sc;S.places=[];S.placeMap={};S.searchHit=null;S.listShow=10;S.q='';const qi=$('#q');if(qi)qi.value='';
   S.talk={cat:'전체',page:1,total:0,list:[]};S.rank={period:S.rank.period,show:10,list:[],loaded:false};
   if(S.overlays)S.overlays.forEach(o=>o.setMap(null));S.overlays=[];
-  renderWhere();renderTalk();renderPeople();loadTalk();loadRanking();
+  S.founders=null;renderFdBanner();
+  renderWhere();renderTalk();renderPeople();loadTalk();loadRanking();loadFounders();
   setTab('near');
   toast(own?'내 학교로 돌아왔어요':`${sc.short}${sc.campus?' '+sc.campus:''} 둘러보는 중이에요`);
   if(!window.kakao||!S.ps){renderList();return;}
