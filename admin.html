@@ -70,6 +70,27 @@ dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
 .pill.gray{color:var(--muted);background:var(--bg)}
 .who2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .search{margin:-6px 0 14px;max-width:360px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:4px 0 10px}
+.st{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.st span{font-size:12.5px;color:var(--muted);font-weight:500}
+.st b{font-size:26px;line-height:1.15;font-weight:700}
+.st small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st.live b{color:var(--ok)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:4px;vertical-align:1px;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.num{font-variant-numeric:tabular-nums}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:16px}
+.ch-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px}
+.ch-head .lg{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.ch-head .lg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-left:6px}
+i.v,.bar .v{background:var(--accent)} i.m,.bar .m{background:var(--ok)} i.r,.bar .r{background:#8a7cf0}
+.bars{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:4px;height:120px;align-items:end;margin-top:10px}
+.bar{display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;min-width:0}
+.bar .cols{display:flex;align-items:flex-end;gap:1px;height:92px;width:100%;justify-content:center}
+.bar .cols i{display:block;width:30%;max-width:8px;border-radius:2px 2px 0 0;min-height:1px}
+.bar small{font-size:10px;color:var(--muted)}
+.bar.today small{color:var(--ink);font-weight:700}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .empty,.gate{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:40px 20px;text-align:center;color:var(--muted);grid-column:1/-1}
 .gate{max-width:420px;margin:12vh auto 0;display:flex;flex-direction:column;gap:14px;align-items:center}
 .gate h1{margin:0;color:var(--ink);font-size:20px}
@@ -96,6 +117,17 @@ dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
   </section>
 
   <main id="main" hidden>
+    <section class="stats" aria-label="통계">
+      <div class="st live"><span>지금 접속 중</span><b id="s-live" class="num">-</b><small><i class="dot"></i>실시간</small></div>
+      <div class="st"><span>오늘 방문자</span><b id="s-today" class="num">-</b><small id="s-today2">&nbsp;</small></div>
+      <div class="st"><span>누적 방문자</span><b id="s-total" class="num">-</b><small id="s-total2">&nbsp;</small></div>
+      <div class="st"><span>가입자</span><b id="s-mem" class="num">-</b><small id="s-mem2">&nbsp;</small></div>
+    </section>
+    <section class="chart" aria-label="최근 14일">
+      <div class="ch-head"><b>최근 14일</b><span class="lg"><i class="v"></i>방문자 <i class="m"></i>가입자 <i class="r"></i>리뷰</span></div>
+      <div class="bars" id="bars"></div>
+      <p class="note" id="statNote" style="margin-top:10px">통계를 불러오는 중…</p>
+    </section>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-s="pending" aria-selected="true">인증 대기 <b id="c-pending">0</b></button>
       <button class="tab" role="tab" data-s="approved" aria-selected="false">승인됨 <b id="c-approved">0</b></button>
@@ -146,7 +178,32 @@ async function boot(){
   if(error)return gate("설정이 필요해요","1_unilog_schema.sql을 Supabase에서 실행했는지 확인해 주세요. ("+error.message+")",false);
   if(!data)return gate("관리자가 아니에요","이 계정은 관리자 권한이 없어요. 운영자 계정으로 다시 로그인해 주세요.",false);
   $("#gate").hidden=true;$("#main").hidden=false;$("#reload").hidden=false;
-  load();
+  load();watchLive();setInterval(()=>{if(!document.hidden)loadStats();},60000);
+}
+
+/* ===== 통계 ===== */
+function watchLive(){
+  try{
+    const ch=sb.channel("ul-online",{config:{presence:{key:"admin-"+Math.random().toString(36).slice(2)}}});
+    const upd=()=>{const st=ch.presenceState();$("#s-live").textContent=Object.keys(st).filter(k=>!k.startsWith("admin-")).length;};
+    ch.on("presence",{event:"sync"},upd).subscribe(s=>{if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")$("#s-live").textContent="?";});
+  }catch(e){$("#s-live").textContent="?";}
+}
+const nf=n=>Number(n||0).toLocaleString("ko-KR");
+async function loadStats(){
+  const {data:s,error}=await sb.rpc("ul_admin_stats");
+  if(error){$("#statNote").textContent=/ul_admin_stats|function/.test(error.message)?"4_admin_stats.sql을 Supabase에서 실행하면 통계가 보여요.":"통계를 불러오지 못했어요: "+error.message;return;}
+  $("#s-today").textContent=nf(s.visitors_today);
+  $("#s-today2").textContent="오늘 새 가입 +"+nf(s.members_today);
+  $("#s-total").textContent=nf(s.visitors_total);
+  $("#s-total2").textContent="방문 횟수 "+nf(s.visits_total)+"회";
+  $("#s-mem").textContent=nf(s.members);
+  $("#s-mem2").textContent="인증 "+nf(s.verified)+" · 미인증 "+nf(s.unverified)+(s.pending?" · 대기 "+nf(s.pending):"");
+  const D=s.days||[],max=Math.max(1,...D.map(d=>Math.max(d.v,d.m,d.r)));
+  const today=D.length?D[D.length-1].d:"";
+  $("#bars").innerHTML=D.map((d,i)=>{const h=n=>Math.round(n/max*92);const dd=+d.d.slice(8),md=(i===0||dd===1)?(+d.d.slice(5,7))+"/"+dd:String(dd);
+    return `<div class="bar${d.d===today?" today":""}" title="${d.d} · 방문자 ${d.v} · 가입 ${d.m} · 리뷰 ${d.r}"><div class="cols"><i class="v" style="height:${h(d.v)}px"></i><i class="m" style="height:${h(d.m)}px"></i><i class="r" style="height:${h(d.r)}px"></i></div><small>${md}</small></div>`;}).join("");
+  $("#statNote").textContent=`리뷰 ${nf(s.reviews)}개 (오늘 +${nf(s.reviews_today)}) · 로그톡 글 ${nf(s.posts)}개 · 방문자는 기기 기준이라 한 사람이 폰과 PC로 들어오면 2명으로 세요.`;
 }
 
 async function load(){
@@ -159,6 +216,7 @@ async function load(){
   urls={};
   const paths=Object.values(priv).filter(x=>x.verify_path).map(x=>x.verify_path);
   if(paths.length){const {data:s}=await sb.storage.from("verify").createSignedUrls(paths,3600);(s||[]).forEach(x=>{if(x.signedUrl)urls[x.path]=x.signedUrl;});}
+  loadStats();
   await loadTargets();
   ["pending","approved","rejected","none","banned"].forEach(k=>$("#c-"+k).textContent=rows.filter(r=>r.status===k).length);
   $("#c-reports").textContent=new Set(reports.filter(r=>r.status==="open").map(r=>r.target_type+r.target_id)).size;
