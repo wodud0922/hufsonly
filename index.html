@@ -726,11 +726,10 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 @media (prefers-reduced-motion: reduce){.tg,.tg i{transition:none}}
 
 /* ===== 개척자 배지 ===== */
-.fd{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;vertical-align:middle;margin-left:3px;flex:none;
+.fd{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;vertical-align:middle;margin-left:0;flex:none;
   filter:drop-shadow(0 1px 1.5px rgba(181,101,26,.45))}
 .fd svg{display:block}
 .rv .who>div>.fd,.cline .fd,.pline .fd{margin-left:0}
-.prof .hd b+.fd{margin-left:4px;vertical-align:-4px}
 .fdwrap{padding-top:10px;padding-bottom:2px}
 .fdban{position:relative;display:flex;gap:12px;align-items:center;padding:12px 34px 12px 12px;border-radius:14px;
   background:linear-gradient(135deg,#FFF8E1 0%,#FFEFD2 60%,#FFE6CC 100%);border:1px solid #F3D08A;
@@ -741,11 +740,6 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .fdban-tx>b{font-size:14.5px;color:#8A4B0F;letter-spacing:-.02em}
 .fdban-tx>span{font-size:12px;line-height:1.5;color:#6B5640}
 .fdban-tx>span b{color:#B5651A}
-.fdseats{display:flex!important;align-items:center;gap:5px;margin-top:2px}
-.fdseats i{width:18px;height:18px;display:inline-grid;place-items:center;font-style:normal;line-height:0}
-.fdseats svg{display:block}
-.fdseats em{font-style:normal;font-size:11.5px;color:#8A4B0F;margin-left:4px;font-weight:700}
-.fdseats em b{font-size:13px;color:#D9481C}
 .fdban .x{position:absolute;top:6px;right:6px;width:26px;height:26px;border:0;background:transparent;color:#B08A5E;font-size:18px;line-height:1;cursor:pointer;border-radius:50%}
 @keyframes fdIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
 .fdcard{display:flex;gap:12px;align-items:center;margin-top:12px;padding:12px;border-radius:12px;background:linear-gradient(135deg,#FFF8E1,#FFEBD0);border:1px solid #F3D08A}
@@ -786,6 +780,30 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .psub{display:flex;flex-direction:column;gap:2px;margin-bottom:2px}
 .psub b{font-size:14px}
 .psub small{font-size:11.5px;color:var(--sub)}
+
+/* 이름 + 배지·칭호 한 줄 정렬 (마이페이지·랭킹) */
+.nm{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0}
+.nm>b{margin-right:0!important;line-height:1.25}
+.nm>.lv,.nm>.cert,.nm>.fd{margin-left:0}
+.prof .hd .nm{margin-bottom:3px}
+.row2 .who .nm{margin-bottom:2px}
+.fdcard{position:relative;padding-right:34px}
+.fdcard .x{position:absolute;top:6px;right:6px;width:26px;height:26px;border:0;background:transparent;color:#B08A5E;font-size:18px;line-height:1;cursor:pointer;border-radius:50%}
+.fdme{font-size:12px!important;color:#8A4B0F!important;font-weight:700}
+.fdme b{color:#D9481C!important}
+.fdseats{display:flex!important;flex-wrap:wrap;gap:5px;margin-top:2px}
+.seat{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px 0 6px;border-radius:999px;font-size:11.5px;line-height:1;white-space:nowrap}
+.seat svg{display:block;flex:none}
+.seat em{font-style:normal;font-weight:900;font-size:11px}
+.seat b{font-weight:700;max-width:7em;overflow:hidden;text-overflow:ellipsis}
+.seat.on{background:#fff;border:1px solid #F3D08A;color:#8A4B0F}
+.seat.on em{color:#D9481C}
+.seat.me{background:#FFF1C9;border-color:#E9A23B}
+.seat.off{background:rgba(255,255,255,.55);border:1px dashed #E0A55A;color:#B08A5E}
+.fdleft{font-size:11.5px!important;color:#8A4B0F!important;font-weight:700}
+.fdleft b{font-size:13px;color:#D9481C}
+.fdban.full{background:linear-gradient(135deg,#FFF8E6 0%,#FDF1DF 100%)}
+.fdban.full .fdleft b{color:#8A4B0F}
 </style>
 </head>
 <body>
@@ -1679,7 +1697,7 @@ function renderPeople(){
   if(!S.rank.loaded){$('#peopleList').innerHTML='<div class="empty"><span class="spin"></span></div>';return;}
   const all=S.rank.list,show=all.slice(0,S.rank.show),meIdx=all.findIndex(r=>r.user_id===S.uid);
   const row=(r,rank)=>`<div class="row2 ${r.user_id===S.uid?'is-me':''}"><span class="n ${rank&&rank<=3?'top':''} num">${rank||'-'}</span>${av(r.user_id)}
-      <span class="who"><b>${esc(r.user_id===S.uid?'나 ('+r.nick+')':r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.helpful)}${certB(r)}<span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
+      <span class="who"><span class="nm"><b>${esc(r.user_id===S.uid?'나 ('+r.nick+')':r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.helpful)}${certB(r)}</span><span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
       <span class="v num">${r.score}<small>도움돼요</small></span></div>`;
   $('#peopleList').innerHTML=(all.length?show.map((r,i)=>row(r,i+1)).join(''):'<div class="empty">아직 랭킹에 오른 학생이 없어요. 첫 리뷰를 남겨 1위가 되어 보세요.</div>')
     +(meIdx>=S.rank.show?row(all[meIdx],meIdx+1):'')
@@ -1698,12 +1716,13 @@ async function loadCounts(){
 }
 function renderMe(){
   if(!S.me)return;const me=S.me,likes=me.helpful||0,li=lvOf(likes),next=LV[li+1],pct=next?((likes-LV[li].min)/(next.min-LV[li].min))*100:100,un=unread();
-  $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><b>${esc(me.nick||'')}</b>${fdB(me)}${lvBadge(likes)}<span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?'<span>· 재학생 인증 확인 중</span>':''}</span></div>
+  $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><div class="nm"><b>${esc(me.nick||'')}</b>${fdB(me)}${lvBadge(likes)}</div><span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?'<span>· 재학생 인증 확인 중</span>':''}</span></div>
       <span class="hd-btns"><button class="bell" type="button" data-noti aria-label="알림 ${un}개">${BELL}${un?`<span class="nbadge num">${un>99?'99+':un}</span>`:''}</button><button class="wbtn" type="button" data-pedit>프로필 수정</button></span></div>
     <div class="gauge"><div class="lbl"><b>${next?`${next.name}까지 "도움돼요" ${next.min-likes}개`:'최고 등급이에요'}</b><span>내 평가 반영 ×${LV[li].w}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
-    ${me.founder?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>우리 학교에서 ${me.founder}번째로 리뷰를 쓴 사람에게만 주는 배지예요. 학교마다 딱 3명만 받을 수 있어요.</small></span></div>`:''}
+    ${me.founder&&!S.fdCardHide?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>우리 학교에서 ${me.founder}번째로 리뷰를 쓴 사람에게만 주는 배지예요. 학교마다 딱 3명만 받을 수 있어요.</small></span><button class="x" type="button" data-fdcx aria-label="닫기">×</button></div>`:''}
     ${me.status==='none'||me.status==='rejected'?`<div class="vnudge"><span><b>${me.status==='rejected'?'재학생 인증이 반려됐어요':'재학생 인증을 해 보세요'}</b><small>${me.status==='rejected'?esc(me.reject_reason?'사유: '+me.reject_reason:'캡처를 다시 올려 주세요'):'인증하면 내 리뷰와 글에 재학생 인증 뱃지가 붙어요'}</small></span><button class="wbtn" type="button" data-verify-start>인증하기</button></div>`:''}
     <div class="kv"><div><b class="num">${S.counts.reviews??'-'}</b><span>리뷰</span></div><div><b class="num">${likes}</b><span>받은 도움돼요</span></div><div><b class="num">${S.counts.visits??'-'}</b><span>방문 인증</span></div></div>`;
+  const fx=$('#profile [data-fdcx]');if(fx)fx.onclick=()=>{S.fdCardHide=true;renderMe();};
   renderMeTabs();updateBadges();
 }
 function renderMeTabs(){
@@ -2189,6 +2208,8 @@ async function enterApp(){
   loadPushState().then(()=>{if(!$('#nscrim').hidden)renderNoti();});
   const go=new URLSearchParams(location.search).get('go');if(go){history.replaceState(null,'',location.pathname);setTimeout(()=>goTo(go),400);}
   setInterval(()=>{if(!document.hidden)loadNotis();},40000);
+  setInterval(()=>{if(!document.hidden&&S.tab==='near'&&!(S.fdHide&&S.school&&S.fdHide[S.school.id]))loadFounders();},30000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadFounders();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadNotis();});
   try{await loadKakao();S.ps=new kakao.maps.services.Places();S.coord=await schoolCoord();await loadPlaces();renderMeTabs();}
   catch(e){S.placesState='error';
@@ -2208,21 +2229,27 @@ async function loadFounders(){
   S.founders=data||[];S.founders.forEach(u=>{U[u.id]=Object.assign(U[u.id]||{},u);});
   renderFdBanner();if(S.rank&&S.rank.loaded)renderPeople();
 }
-const fdKey=()=>'ul_fdx_'+(S.school?S.school.id:'');
 function renderFdBanner(){
   const el=$('#fdBanner');if(!el)return;
-  const taken=(S.founders||[]).length,left=3-taken;let off=false;
-  try{off=localStorage.getItem(fdKey())==='1';}catch(e){}
-  if(!S.founders||left<=0||!S.me||S.me.founder||S.school.id!==S.me.school_id||off){el.hidden=true;el.innerHTML='';return;}
-  const seats=[1,2,3].map(i=>i<=taken?`<i class="on" title="${i}번째 자리 주인 있음">${FD(18)}</i>`:'<i class="seat0" title="빈 자리"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z" fill="#fff" fill-opacity=".75" stroke="#E0A55A" stroke-width="1.6" stroke-dasharray="2.6 2" stroke-linejoin="round"/></svg></i>').join('');
-  el.innerHTML=`<div class="fdban" role="status">
+  if(!S.founders||!S.school||(S.fdHide&&S.fdHide[S.school.id])){el.hidden=true;el.innerHTML='';return;}
+  const F=[...S.founders].sort((x,y)=>x.founder-y.founder),left=3-F.length,short=esc(S.school.short),mine=F.find(u=>u.id===S.uid);
+  const SEAT0='<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z" fill="#fff" fill-opacity=".75" stroke="#E0A55A" stroke-width="1.8" stroke-dasharray="2.6 2" stroke-linejoin="round"/></svg>';
+  const seats=[1,2,3].map(i=>{const u=F.find(x=>x.founder===i);
+    return u?`<span class="seat on${u.id===S.uid?' me':''}">${FD(16)}<em class="num">${i}</em><b>${esc(u.id===S.uid?'나':u.nick||'')}</b></span>`
+            :`<span class="seat off">${SEAT0}<em class="num">${i}</em><b>빈 자리</b></span>`;}).join('');
+  const head=left>0?`우리 학교 개척자 배지, 딱 3명만`:`${short} 개척자 3명이 모두 정해졌어요`;
+  const body=left>0
+    ?`${short}에서 리뷰를 <b>가장 먼저 쓰는 3명</b>에게 왼쪽의 <b>금빛 방패 배지</b>를 드려요. 리뷰·로그톡·랭킹 어디서든 이름 옆에 계속 붙어 있어요.`
+    :`리뷰를 가장 먼저 쓴 세 사람이 <b>금빛 방패 배지</b>를 받았어요. 이 배지는 더 이상 받을 수 없어요.`;
+  el.innerHTML=`<div class="fdban${left>0?'':' full'}" role="status">
     <span class="fdban-ic">${FD(52)}</span>
-    <div class="fdban-tx"><b>우리 학교 개척자 배지, 딱 3명만</b>
-      <span>${esc(S.school.short)}에서 리뷰를 <b>가장 먼저 쓰는 3명</b>에게 왼쪽의 <b>금빛 방패 배지</b>를 드려요. 리뷰·로그톡·랭킹 어디서든 내 이름 옆에 계속 붙어 있어요.</span>
-      <span class="fdseats">${seats}<em>남은 자리 <b class="num">${left}</b>/3</em></span></div>
+    <div class="fdban-tx"><b>${head}</b><span>${body}</span>
+      ${mine?`<span class="fdme">나는 ${short} <b>${mine.founder}번째</b> 개척자예요</span>`:''}
+      <span class="fdseats">${seats}</span>
+      <span class="fdleft">${left>0?`남은 자리 <b class="num">${left}</b>/3`:'<b>마감</b> · 3/3'}</span></div>
     <button class="x" type="button" data-fdx aria-label="닫기">×</button></div>`;
   el.hidden=false;
-  el.querySelector('[data-fdx]').onclick=()=>{try{localStorage.setItem(fdKey(),'1');}catch(e){}el.hidden=true;};
+  el.querySelector('[data-fdx]').onclick=()=>{(S.fdHide=S.fdHide||{})[S.school.id]=true;el.hidden=true;};
 }
 async function checkFounder(){
   const {data}=await sb.from('ul_profiles').select('founder').eq('id',S.uid).maybeSingle();
