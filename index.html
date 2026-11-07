@@ -1692,16 +1692,17 @@ async function loadRanking(){
 function renderPeople(){
   $('#tiers').innerHTML=`<tr><th>등급</th>${LV.map((l,i)=>`<td><span class="lv l${i}">${l.name}</span></td>`).join('')}</tr><tr><th>도움돼요</th>${LV.map(l=>`<td class="num">${l.min}개+</td>`).join('')}</tr><tr><th>점수 반영</th>${LV.map(l=>`<td class="num"><b>×${l.w}</b></td>`).join('')}</tr>`;
   $('#peopleTitle').textContent=`${S.school?S.school.short+(S.school.campus?' '+S.school.campus:''):''} 리뷰어 랭킹`;
-  $('#periodCap').textContent=PERIOD_CAP[S.rank.period]+' · 등급은 전체 기준이에요';
+  $('#periodCap').textContent=PERIOD_CAP[S.rank.period]+' · 재학생 인증한 학생만 랭킹에 올라요';
   document.querySelectorAll('[data-period]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.period===S.rank.period));
   if(!S.rank.loaded){$('#peopleList').innerHTML='<div class="empty"><span class="spin"></span></div>';return;}
   const all=S.rank.list,show=all.slice(0,S.rank.show),meIdx=all.findIndex(r=>r.user_id===S.uid);
   const row=(r,rank)=>`<div class="row2 ${r.user_id===S.uid?'is-me':''}"><span class="n ${rank&&rank<=3?'top':''} num">${rank||'-'}</span>${av(r.user_id)}
-      <span class="who"><span class="nm"><b>${esc(r.user_id===S.uid?'나 ('+r.nick+')':r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.helpful)}${certB(r)}</span><span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
+      <span class="who"><span class="nm"><b>${esc(r.user_id===S.uid?'나 ('+r.nick+')':r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.helpful)}</span><span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
       <span class="v num">${r.score}<small>도움돼요</small></span></div>`;
   $('#peopleList').innerHTML=(all.length?show.map((r,i)=>row(r,i+1)).join(''):'<div class="empty">아직 랭킹에 오른 학생이 없어요. 첫 리뷰를 남겨 1위가 되어 보세요.</div>')
     +(meIdx>=S.rank.show?row(all[meIdx],meIdx+1):'')
-    +(all.length>S.rank.show?`<button class="morebtn" type="button" data-rankmore>${S.rank.show+1}~${Math.min(all.length,S.rank.show+10)}위 더 보기 ▼</button>`:(S.rank.show>10?'<button class="morebtn" type="button" data-rankless>접기 ▲</button>':''));
+    +(all.length>S.rank.show?`<button class="morebtn" type="button" data-rankmore>${S.rank.show+1}~${Math.min(all.length,S.rank.show+10)}위 더 보기 ▼</button>`:(S.rank.show>10?'<button class="morebtn" type="button" data-rankless>접기 ▲</button>':''))
+    +(S.me&&S.me.status!=='approved'&&S.school&&S.school.id===S.me.school_id?`<div class="vnudge" style="margin-top:12px"><span><b>${S.me.status==='pending'?'재학생 인증을 확인하고 있어요':'재학생 인증을 하면 랭킹에 올라요'}</b><small>${S.me.status==='pending'?'승인되면 받은 도움돼요 그대로 바로 랭킹에 올라가요':'리뷰·댓글은 인증 없이도 쓸 수 있어요. 랭킹은 인증한 학생끼리만 겨뤄요'}</small></span>${S.me.status==='pending'?'':'<button class="wbtn" type="button" data-verify-start>인증하기</button>'}</div>`:'');
 }
 
 /* =====================================================================
