@@ -66,6 +66,7 @@ dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
 .pill.pending{color:var(--warn);background:color-mix(in srgb,var(--warn) 15%,transparent)}
 .pill.approved{color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}
 .pill.rejected,.pill.banned{color:var(--bad);background:color-mix(in srgb,var(--bad) 15%,transparent)}
+.pill.none{color:var(--muted);background:var(--bg)}
 .pill.gray{color:var(--muted);background:var(--bg)}
 .who2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .search{margin:-6px 0 14px;max-width:360px}
@@ -99,6 +100,7 @@ dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
       <button class="tab" role="tab" data-s="pending" aria-selected="true">인증 대기 <b id="c-pending">0</b></button>
       <button class="tab" role="tab" data-s="approved" aria-selected="false">승인됨 <b id="c-approved">0</b></button>
       <button class="tab" role="tab" data-s="rejected" aria-selected="false">반려됨 <b id="c-rejected">0</b></button>
+      <button class="tab" role="tab" data-s="none" aria-selected="false">미인증 <b id="c-none">0</b></button>
       <button class="tab" role="tab" data-s="banned" aria-selected="false">정지됨 <b id="c-banned">0</b></button>
       <span class="sep" aria-hidden="true"></span>
       <button class="tab" role="tab" data-s="reports" aria-selected="false">신고 <b id="c-reports">0</b></button>
@@ -158,7 +160,7 @@ async function load(){
   const paths=Object.values(priv).filter(x=>x.verify_path).map(x=>x.verify_path);
   if(paths.length){const {data:s}=await sb.storage.from("verify").createSignedUrls(paths,3600);(s||[]).forEach(x=>{if(x.signedUrl)urls[x.path]=x.signedUrl;});}
   await loadTargets();
-  ["pending","approved","rejected","banned"].forEach(k=>$("#c-"+k).textContent=rows.filter(r=>r.status===k).length);
+  ["pending","approved","rejected","none","banned"].forEach(k=>$("#c-"+k).textContent=rows.filter(r=>r.status===k).length);
   $("#c-reports").textContent=new Set(reports.filter(r=>r.status==="open").map(r=>r.target_type+r.target_id)).size;
   render();
 }
@@ -203,7 +205,7 @@ function render(){
   let list=rows.filter(r=>r.status===tab);
   if(q)list=list.filter(r=>[r.nick,r.school_name,r.school_short,r.year].join(" ").toLowerCase().includes(q));
   if(tab==="pending")list.sort((a,b)=>new Date(a.updated_at)-new Date(b.updated_at)); // 오래 기다린 사람 먼저
-  if(!list.length){$("#list").innerHTML=`<div class="empty">${q?"찾는 회원이 없어요.":{pending:"인증을 기다리는 사람이 없어요.",approved:"아직 승인한 사람이 없어요.",rejected:"반려한 사람이 없어요.",banned:"정지된 사람이 없어요."}[tab]}</div>`;return;}
+  if(!list.length){$("#list").innerHTML=`<div class="empty">${q?"찾는 회원이 없어요.":{pending:"인증을 기다리는 사람이 없어요.",approved:"아직 승인한 사람이 없어요.",rejected:"반려한 사람이 없어요.",none:"인증 없이 가입한 사람이 없어요.",banned:"정지된 사람이 없어요."}[tab]}</div>`;return;}
   $("#list").innerHTML=list.map(r=>{
     const p=priv[r.id]||{};
     const u=p.verify_path&&urls[p.verify_path];
@@ -218,15 +220,15 @@ function render(){
         <div class="acts" style="margin-top:8px"><button class="btn line" data-cancel="1">취소</button><button class="btn bad" data-rejectgo="${r.id}">반려 보내기</button></div>
       </div>
       <div class="acts mainacts"><button class="btn bad" data-reject="1">반려</button><button class="btn ok" data-approve="${r.id}">승인하기</button></div>`;
-    }else if(r.status==="approved"){
-      acts=`<div class="acts"><button class="btn line" data-undo="${r.id}">승인 취소 (대기로)</button><button class="btn bad" data-ban="${r.id}">이용 정지</button></div>`;
+    }else if(r.status==="approved"||r.status==="none"){
+      acts=`<div class="acts">${r.status==="approved"?`<button class="btn line" data-unverify="${r.id}">인증 취소</button>`:""}<button class="btn bad" data-ban="${r.id}">이용 정지</button></div>`;
     }else if(r.status==="banned"){
-      acts=`<p class="note">정지 사유: ${esc(r.reject_reason||"-")}<br>기간: ${r.banned_until?fmt(r.banned_until)+"까지"+(new Date(r.banned_until)<new Date()?" (기간 끝남 · 다음 접속 때 자동 해제)":""):"영구"}</p><div class="acts"><button class="btn line" data-unban="${r.id}">정지 해제 (승인으로)</button></div>`;
+      acts=`<p class="note">정지 사유: ${esc(r.reject_reason||"-")}<br>기간: ${r.banned_until?fmt(r.banned_until)+"까지"+(new Date(r.banned_until)<new Date()?" (기간 끝남 · 다음 접속 때 자동 해제)":""):"영구"}</p><div class="acts"><button class="btn line" data-unban="${r.id}">정지 해제</button></div>`;
     }else{
       acts=`<p class="note">반려 사유: ${esc(r.reject_reason||"-")}<br>다시 인증을 올리면 인증 대기로 돌아와요.</p>`;
     }
     return `<article class="card">${shot}<div class="info">
-      <div class="head"><div><b>${esc(r.nick||"(닉네임 없음)")}</b> <span class="pill ${r.status}">${{pending:"대기",approved:"승인",rejected:"반려",banned:"정지"}[r.status]}</span></div><span class="when">${ago(r.updated_at)}</span></div>
+      <div class="head"><div><b>${esc(r.nick||"(닉네임 없음)")}</b> <span class="pill ${r.status}">${{pending:"대기",approved:"승인",rejected:"반려",none:"미인증",banned:"정지"}[r.status]}</span></div><span class="when">${ago(r.updated_at)}</span></div>
       <dl><dt>학교</dt><dd>${esc(r.school_name)}${r.campus?" · "+esc(r.campus):""}</dd>
       <dt>학번</dt><dd>${esc(r.year)}</dd>
       <dt>학과</dt><dd>${esc(p.dept||"-")}${p.dept_field?` <span style="color:var(--muted)">(${esc(p.dept_field)})</span>`:""}</dd>
@@ -247,7 +249,7 @@ async function setStatus(id,status,reason,btn,until){
     await sb.storage.from("verify").remove([p.verify_path]);
     await sb.from("ul_private").update({verify_path:null}).eq("id",id);
   }
-  toast({approved:"승인했어요",rejected:"반려했어요. 캡처는 삭제했어요",pending:"대기로 돌렸어요",banned:"이용을 정지했어요"}[status]);
+  toast({approved:"승인했어요",rejected:"반려했어요. 캡처는 삭제했어요",pending:"대기로 돌렸어요",none:"미인증 상태로 바꿨어요",banned:"이용을 정지했어요"}[status]);
   load();return true;
 }
 
@@ -317,8 +319,8 @@ document.addEventListener("click",async e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.view){$("#viewerImg").src=b.dataset.view;$("#viewer").hidden=false;return;}
   if(b.dataset.approve)return setStatus(b.dataset.approve,"approved",null,b);
-  if(b.dataset.undo)return setStatus(b.dataset.undo,"pending",null,b);
-  if(b.dataset.unban)return setStatus(b.dataset.unban,"approved",null,b);
+  if(b.dataset.unverify)return setStatus(b.dataset.unverify,"none",null,b);
+  if(b.dataset.unban){const r=prof(b.dataset.unban);return setStatus(b.dataset.unban,r&&r.verified?"approved":"none",null,b);}
   if(b.dataset.ban)return banPicker(b,b.dataset.ban,null);
   if(b.dataset.hide)return toggleHide(b.dataset.hide,b);
   if(b.dataset.rdone){b.disabled=true;if(await closeReports(b.dataset.rdone,"문제없음")){toast("처리 완료로 바꿨어요");load();}else b.disabled=false;return;}

@@ -561,6 +561,17 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .no1{display:inline-block;vertical-align:1px;margin-left:5px;font-size:11px;font-weight:900;line-height:1;color:var(--accent);background:var(--soft);border:1px solid var(--accent);border-radius:999px;padding:2px 7px 1px;letter-spacing:-.02em}
 .empty small{display:block;margin-top:6px;font-size:12px;color:var(--sub)}
 .empty small .no1{margin-left:0}
+
+/* 인증 없이 시작 · 나중에 인증 */
+.ob-acts{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:center}
+.skipbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:13px;font:700 15px var(--f-body);cursor:pointer}
+.cert.vb{font-size:10px;padding:0 6px;line-height:17px;vertical-align:1px}
+.vnudge{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--cert-soft);border-radius:10px;padding:10px 12px;margin-top:12px}
+.vnudge span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.vnudge b{font-size:13.5px;color:var(--cert)}
+.vnudge small{font-size:12px;color:var(--sub)}
+.vnudge .wbtn{flex:none}
+.pending-bar button{border:0;background:none;color:inherit;font:inherit;text-decoration:underline;cursor:pointer;padding:0 0 0 4px}
 </style>
 </head>
 <body>
@@ -595,7 +606,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
     <section class="view" id="v-talk" hidden>
       <div class="panel gut">
         <div class="sh"><h2 id="talkTitle">로그톡</h2><button class="wbtn" type="button" data-pwrite>✎ 글쓰기</button></div>
-        <p class="talk-desc">재학생 인증을 마친 학생만 쓸 수 있어요. 맛집이 궁금하면 물어보고, 아는 곳이 있으면 알려주세요. 답변에 가게를 태그하면 바로 가게로 이동할 수 있어요.</p>
+        <p class="talk-desc">우리 학교 학생들끼리 맛집을 묻고 답하는 곳이에요. 맛집이 궁금하면 물어보고, 아는 곳이 있으면 알려주세요. 답변에 가게를 태그하면 바로 가게로 이동할 수 있어요.</p>
         <div class="genre" id="talkCats" role="group" aria-label="말머리" style="padding-bottom:12px"></div>
       </div>
       <div class="panel"><div class="gut" id="talkList"></div></div>
@@ -769,8 +780,10 @@ const S={uid:null,me:null,priv:null,school:null,coord:null,ps:null,kmap:null,ove
   meTab:null,meCache:{},counts:{},notis:[],notiAll:false};
 const U={};   // 회원 정보 캐시 (id → 공개 정보)
 
-const approved=()=>S.me&&S.me.status==='approved';
-function needApproved(what='이용'){if(approved())return true;toast(S.me&&S.me.status==='pending'?`재학생 인증이 끝나면 ${what}할 수 있어요`:'재학생 인증이 필요해요');return false;}
+const approved=()=>!!S.me&&S.me.status!=='banned';
+const verifiedMe=()=>!!S.me&&S.me.status==='approved';
+const certB=u=>u&&u.verified?'<span class="cert vb">재학생 인증</span>':'';
+function needApproved(what='이용'){if(approved())return true;toast('이용이 정지된 계정이에요');return false;}
 const userD=u=>u?`${u.school_short} ${u.year}`:'';
 const nameOf=id=>U[id]?.nick||'알 수 없음';
 const initialOf=id=>{const n=(U[id]?.nick||'?').replace(/[0-9]/g,'');return n.slice(0,1)||'?';};
@@ -778,7 +791,7 @@ const av=(id,cls='')=>U[id]&&U[id].photo_url?`<span class="av ${cls}" style="bac
 async function ensureUsers(ids){
   const need=[...new Set(ids)].filter(id=>id&&!U[id]);
   for(let i=0;i<need.length;i+=120){
-    const {data}=await sb.from('ul_profiles').select('id,nick,photo_url,school_short,year,helpful').in('id',need.slice(i,i+120));
+    const {data}=await sb.from('ul_profiles').select('id,nick,photo_url,school_short,year,helpful,verified').in('id',need.slice(i,i+120));
     (data||[]).forEach(r=>U[r.id]=r);
   }
 }
@@ -1029,7 +1042,7 @@ const firstCall=()=>`우리 학교 첫 리뷰어가 되어 보세요`;
 // 가게에 가장 먼저 올라온 리뷰 (1호 뱃지)
 const firstOf=p=>p.reviews.reduce((a,r)=>!a||new Date(r.created_at)<new Date(a.created_at)?r:a,null);
 function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{},no1=firstOf(p)===rv;
-  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(me?'나':nameOf(rv.user_id))}</b>${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${me?'<span class="mytag">내 리뷰</span>':''}${lvBadge(u.helpful)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
+  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(me?'나':nameOf(rv.user_id))}</b>${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${me?'<span class="mytag">내 리뷰</span>':''}${lvBadge(u.helpful)}${certB(u)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
     <div class="meta">${starsHTML(+rv.rating)}<span class="val num">${(+rv.rating).toFixed(1)}</span>${rv.round>1?`<span class="kind">${rv.round}번째 리뷰</span>`:''}${!isLatest(p,rv)?'<span class="kind old">이전 리뷰 · 점수 미반영</span>':''}${rv.kind==='visit'?`<span class="visit num">방문 인증 ${rv.visit_count}회</span>`:`<span class="kind">${rv.kind==='delivery'?'배달':'포장'}</span>`}</div>
     ${rv.menu||rv.price_level!=null?`<div class="menu">${rv.menu?`<span>먹은 메뉴 · </span>${esc(rv.menu)}`:''}${rv.menu&&rv.price_level!=null?' · ':''}${rv.price_level!=null?`<span>1인 </span>${PRICES[rv.price_level]}`:''}</div>`:''}
     <p>${esc(rv.body)}</p>
@@ -1092,7 +1105,7 @@ function renderSheet(){
         <div class="regular">${crownSVG(14)}<span>${reg?`단골왕 <b>${esc(reg.user_id===S.uid?'나':reg.nick)}</b> · 최근 30일 방문 인증 <span class="num">${reg.visits}</span>회`:'아직 단골왕이 없어요 · 방문 인증을 가장 많이 한 사람이 단골왕이 돼요'}</span></div></div>`
     :`<div class="panel gut">${writing?writeHTML(p):''}
         <div class="sh"><h2>리뷰 ${p.reviews.length}건</h2><span class="rsort" role="group" aria-label="리뷰 정렬"><button type="button" data-rs="trust" aria-pressed="${revSort==='trust'}">신뢰도순</button><button type="button" data-rs="new" aria-pressed="${revSort==='new'}">최신순</button><button type="button" data-rs="photo" aria-pressed="${revSort==='photo'}">사진 리뷰</button></span></div>
-        <p class="allcert">✓ 유니로그 리뷰는 모두 재학생 인증을 마친 학생이 썼어요</p>
+        <p class="allcert"><span class="cert vb" style="margin:0">재학생 인증</span> 뱃지는 재학생 인증을 마친 학생에게만 붙어요</p>
         ${revs.length?revs.slice(0,revShow).map(rv=>reviewHTML(p,rv)).join(''):`<div class="empty">${revSort==='photo'?'사진이 있는 리뷰가 없어요.':`${firstCall()}<br><small>가게의 첫 리뷰에는 <span class="no1">1호</span> 뱃지가 붙어요</small>`}</div>`}
         ${revs.length>revShow?`<button class="morebtn" type="button" data-revmore>리뷰 ${Math.min(10,revs.length-revShow)}개 더 보기 ▼ <small class="num">(${revShow}/${revs.length})</small></button>`:''}</div>`}
     </div>
@@ -1217,7 +1230,7 @@ function renderTalk(){
       <span class="ptop"><span class="pcat">${po.cat}</span></span>
       <b class="ptitle">${esc(po.title)}</b>
       <span class="pbody">${esc(po.body)}</span>
-      <span class="pmeta"><span>${esc(nameOf(po.user_id))}</span>${lvBadge(U[po.user_id]?.helpful)}<span class="num">· ${rel(po.created_at)} · 댓글 ${po.comment_count} · 공감 ${po.likes}</span>${S.bmPost.has(po.id)?'<span class="bmk" aria-label="북마크함">★</span>':''}</span></button>`).join('')
+      <span class="pmeta"><span>${esc(nameOf(po.user_id))}</span>${lvBadge(U[po.user_id]?.helpful)}${certB(U[po.user_id])}<span class="num">· ${rel(po.created_at)} · 댓글 ${po.comment_count} · 공감 ${po.likes}</span>${S.bmPost.has(po.id)?'<span class="bmk" aria-label="북마크함">★</span>':''}</span></button>`).join('')
     :`<div class="empty">아직 글이 없어요. 첫 질문을 남겨보세요.</div>`)
     +(pages>1?`<nav class="pager" aria-label="페이지"><button type="button" data-tpage="${T.page-1}" ${T.page===1?'disabled':''} aria-label="이전 페이지">‹</button>${nums}<button type="button" data-tpage="${T.page+1}" ${T.page===pages?'disabled':''} aria-label="다음 페이지">›</button></nav>`:'');
 }
@@ -1265,7 +1278,7 @@ function renderPost(){
     const cs=[...po.comments].sort((a,b)=>b.best-a.best),word=po.cat==='질문'?'답변':'댓글';
     const cname=id=>esc(id===S.uid?(U[id]?.nick||'나'):nameOf(id)),optag=id=>id===po.user_id?'<span class="optag">글쓴이</span>':'';
     sh.innerHTML=`<div class="dhead"><div class="gut" style="padding-bottom:12px"><div class="t"><div><span class="area">${esc(label)} 로그톡</span><h3><span class="pcat">${po.cat}</span> ${esc(po.title)}</h3></div><button class="x" type="button" data-pclose aria-label="닫기">×</button></div>
-        <div class="pline">${av(po.user_id,'sm')}<b>${cname(po.user_id)}</b>${lvBadge(U[po.user_id]?.helpful)}<span>· ${esc(userD(U[po.user_id]))} · ${rel(po.created_at)}${po.edited?' · 수정됨':''}</span>${mine?'<span class="mine-act" style="margin-left:auto"><button type="button" data-pedit-post>수정</button><button type="button" data-pdel>삭제</button></span>':''}</div>
+        <div class="pline">${av(po.user_id,'sm')}<b>${cname(po.user_id)}</b>${lvBadge(U[po.user_id]?.helpful)}${certB(U[po.user_id])}<span>· ${esc(userD(U[po.user_id]))} · ${rel(po.created_at)}${po.edited?' · 수정됨':''}</span>${mine?'<span class="mine-act" style="margin-left:auto"><button type="button" data-pedit-post>수정</button><button type="button" data-pdel>삭제</button></span>':''}</div>
         ${mine&&delPost?`<div class="delask" style="margin-top:10px"><span>이 글을 삭제할까요? ${word} ${po.comment_count}개도 함께 사라져요.</span><span class="btns"><button type="button" data-pdelno>취소</button><button type="button" class="danger" data-pdelyes>삭제</button></span></div>`:''}</div></div>
       <div class="dbody">
         <div class="postmain gut"><p class="ptext">${esc(po.body)}</p>
@@ -1273,11 +1286,11 @@ function renderPost(){
           <div class="pact"><span class="cacts"><button class="mini num" type="button" data-plike aria-pressed="${S.likedPost.has(po.id)}">${thumbSVG} 공감 ${po.likes}</button><button class="mini bm" type="button" data-pbm aria-pressed="${S.bmPost.has(po.id)}">${S.bmPost.has(po.id)?'★ 북마크됨':'☆ 북마크'}</button></span>${mine?'':`<button class="report" type="button" data-report="post:${po.id}">신고</button>`}</div></div>
         <div class="panel gut"><div class="sh"><h2>${word} ${po.comment_count}</h2>${canAdopt&&po.comments.length?'<small>도움 된 답변을 채택해 주세요</small>':''}</div>
           ${cs.length?(showAllC?cs:cs.slice(0,5)).map(c=>{const j=c.id,me=c.user_id===S.uid,reps=c.replies||[];return `<div class="cm2">${av(c.user_id,'sm')}<div class="cb">
-            <div class="cline"><b>${cname(c.user_id)}</b>${optag(c.user_id)}${lvBadge(U[c.user_id]?.helpful)}${c.best?'<span class="bestTag">✓ 채택</span>':''}<span class="t">${rel(c.created_at)}</span></div>
+            <div class="cline"><b>${cname(c.user_id)}</b>${optag(c.user_id)}${lvBadge(U[c.user_id]?.helpful)}${certB(U[c.user_id])}${c.best?'<span class="bestTag">✓ 채택</span>':''}<span class="t">${rel(c.created_at)}</span></div>
             ${me&&cEdit===j?`<div class="cedit"><textarea id="cEditIn" rows="3" maxlength="1000">${esc(c.body)}</textarea><span class="btns"><button type="button" class="mini" data-cedno>취소</button><button type="button" class="mini on" data-cedyes="${j}">저장</button></span></div>`:`<p>${esc(c.body)}${c.edited?' <small class="edited">(수정됨)</small>':''}</p>`}${c.place_id&&find(c.place_id)?cchip(c.place_id):''}
             <div class="cacts"><button class="mini num" type="button" data-clike="${j}" aria-pressed="${likedCm.has(j)}" ${me?'disabled':''}>${thumbSVG} 도움돼요 ${c.likes}</button><button class="mini" type="button" data-reply="${j}" aria-pressed="${replyTo===j}">답글${reps.length?' '+reps.length:''}</button>${canAdopt&&!me?`<button class="mini adopt" type="button" data-adopt="${j}">채택하기</button>`:''}${me&&cEdit!==j?`<span class="mine-act" style="margin-left:auto"><button type="button" data-cedit="${j}">수정</button><button type="button" data-cdel="${j}">삭제</button></span>`:me?'':`<button class="report" type="button" style="margin-left:auto" data-report="comment:${j}">신고</button>`}</div>
             ${me&&cDel===j?`<div class="delask"><span>이 ${word}을 삭제할까요?${reps.length?` 답글 ${reps.length}개도 함께 사라져요.`:''}</span><span class="btns"><button type="button" data-cdelno>취소</button><button type="button" class="danger" data-cdelyes="${j}">삭제</button></span></div>`:''}
-            ${(openRep.has(j)?reps:reps.slice(0,2)).map(r=>{const rme=r.user_id===S.uid;return `<div class="rp"><span class="arrow" aria-hidden="true">↳</span>${av(r.user_id,'xs')}<div class="cb"><div class="cline"><b>${cname(r.user_id)}</b>${optag(r.user_id)}${lvBadge(U[r.user_id]?.helpful)}<span class="t">${rel(r.created_at)}</span></div>
+            ${(openRep.has(j)?reps:reps.slice(0,2)).map(r=>{const rme=r.user_id===S.uid;return `<div class="rp"><span class="arrow" aria-hidden="true">↳</span>${av(r.user_id,'xs')}<div class="cb"><div class="cline"><b>${cname(r.user_id)}</b>${optag(r.user_id)}${lvBadge(U[r.user_id]?.helpful)}${certB(U[r.user_id])}<span class="t">${rel(r.created_at)}</span></div>
               <p>${r.mention?`<span class="mention">@${esc(nameOf(r.mention))}</span> `:''}${esc(r.body)}</p>
               <div class="cacts"><button class="mini num" type="button" data-clike="${r.id}" aria-pressed="${likedCm.has(r.id)}" ${rme?'disabled':''}>${thumbSVG} ${r.likes}</button><button class="mini" type="button" data-rreply="${j}:${r.id}">답글</button>${rme?`<span class="mine-act" style="margin-left:auto"><button type="button" data-rdel="${r.id}">삭제</button></span>`:`<button class="report" type="button" style="margin-left:auto" data-report="comment:${r.id}">신고</button>`}</div></div></div>`;}).join('')}
             ${reps.length>2?`<button class="morelink" type="button" data-rmore="${j}">${openRep.has(j)?'답글 접기 ▲':`답글 ${reps.length-2}개 더 보기 ▼`}</button>`:''}</div></div>`;}).join('')
@@ -1383,7 +1396,7 @@ const PERIOD_CAP={all:'가입 후 지금까지 받은 "도움돼요" 기준',mon
 async function loadRanking(){
   const {data,error}=await sb.rpc('ul_ranking',{p_school:S.me.school_id,p_period:S.rank.period,p_limit:200});
   if(error){$('#peopleList').innerHTML=`<div class="empty">불러오지 못했어요: ${esc(errText(error))}</div>`;return;}
-  S.rank.list=data||[];S.rank.loaded=true;(data||[]).forEach(r=>{U[r.user_id]=Object.assign(U[r.user_id]||{},{id:r.user_id,nick:r.nick,photo_url:r.photo_url,school_short:r.school_short,year:r.year,helpful:r.helpful});});
+  S.rank.list=data||[];S.rank.loaded=true;(data||[]).forEach(r=>{U[r.user_id]=Object.assign(U[r.user_id]||{},{id:r.user_id,nick:r.nick,photo_url:r.photo_url,school_short:r.school_short,year:r.year,helpful:r.helpful,verified:!!r.verified});});
   renderPeople();
 }
 function renderPeople(){
@@ -1394,7 +1407,7 @@ function renderPeople(){
   if(!S.rank.loaded){$('#peopleList').innerHTML='<div class="empty"><span class="spin"></span></div>';return;}
   const all=S.rank.list,show=all.slice(0,S.rank.show),meIdx=all.findIndex(r=>r.user_id===S.uid);
   const row=(r,rank)=>`<div class="row2 ${r.user_id===S.uid?'is-me':''}"><span class="n ${rank&&rank<=3?'top':''} num">${rank||'-'}</span>${av(r.user_id)}
-      <span class="who"><b>${esc(r.user_id===S.uid?'나 ('+r.nick+')':r.nick)}</b>${lvBadge(r.helpful)}<span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
+      <span class="who"><b>${esc(r.user_id===S.uid?'나 ('+r.nick+')':r.nick)}</b>${lvBadge(r.helpful)}${certB(r)}<span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
       <span class="v num">${r.score}<small>도움돼요</small></span></div>`;
   $('#peopleList').innerHTML=(all.length?show.map((r,i)=>row(r,i+1)).join(''):'<div class="empty">아직 랭킹에 오른 학생이 없어요. 첫 리뷰를 남겨 1위가 되어 보세요.</div>')
     +(meIdx>=S.rank.show?row(all[meIdx],meIdx+1):'')
@@ -1413,9 +1426,10 @@ async function loadCounts(){
 }
 function renderMe(){
   if(!S.me)return;const me=S.me,likes=me.helpful||0,li=lvOf(likes),next=LV[li+1],pct=next?((likes-LV[li].min)/(next.min-LV[li].min))*100:100,un=unread();
-  $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><b>${esc(me.nick||'')}</b>${lvBadge(likes)}<span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':'<span>· 재학생 인증 확인 중</span>'}</span></div>
+  $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><b>${esc(me.nick||'')}</b>${lvBadge(likes)}<span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?'<span>· 재학생 인증 확인 중</span>':''}</span></div>
       <span class="hd-btns"><button class="bell" type="button" data-noti aria-label="알림 ${un}개">${BELL}${un?`<span class="nbadge num">${un>99?'99+':un}</span>`:''}</button><button class="wbtn" type="button" data-pedit>프로필 수정</button></span></div>
     <div class="gauge"><div class="lbl"><b>${next?`${next.name}까지 "도움돼요" ${next.min-likes}개`:'최고 등급이에요'}</b><span>내 평가 반영 ×${LV[li].w}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
+    ${me.status==='none'||me.status==='rejected'?`<div class="vnudge"><span><b>${me.status==='rejected'?'재학생 인증이 반려됐어요':'재학생 인증을 해 보세요'}</b><small>${me.status==='rejected'?esc(me.reject_reason?'사유: '+me.reject_reason:'캡처를 다시 올려 주세요'):'인증하면 내 리뷰와 글에 재학생 인증 뱃지가 붙어요'}</small></span><button class="wbtn" type="button" data-verify-start>인증하기</button></div>`:''}
     <div class="kv"><div><b class="num">${S.counts.reviews??'-'}</b><span>리뷰</span></div><div><b class="num">${likes}</b><span>받은 도움돼요</span></div><div><b class="num">${S.counts.visits??'-'}</b><span>방문 인증</span></div></div>`;
   renderMeTabs();updateBadges();
 }
@@ -1456,7 +1470,7 @@ function notiText(n){const m=n.meta||{};
     case 'reply':return `「${esc(m.title)}」의 내 댓글에 답글${n.count>1?` ${n.count}개가`:'이'} 달렸어요`;
     case 'adopt':return `「${esc(m.title)}」에 단 내 답변이 채택됐어요 · 도움돼요 +3`;
     case 'up':return `<b>${esc(m.level)}</b> 등급이 됐어요! 이제 내 평가가 가게 점수에 더 크게 반영돼요`;
-    case 'verify':return m.status==='approved'?'재학생 인증이 승인됐어요! 이제 리뷰와 글을 쓸 수 있어요':`재학생 인증이 반려됐어요${m.reason?' · 사유: '+esc(m.reason):''}`;
+    case 'verify':return m.status==='approved'?'재학생 인증이 승인됐어요! 이제 내 리뷰와 글에 재학생 인증 뱃지가 붙어요':`재학생 인증이 반려됐어요${m.reason?' · 사유: '+esc(m.reason):''}`;
     default:return '새 알림이 있어요';}}
 const nIcon=t=>({like:'like',cmt:'cmt',reply:'cmt',adopt:'adopt',up:'up'}[t]||'info');
 async function loadNotis(){
@@ -1522,7 +1536,7 @@ function renderPE(){
    ===================================================================== */
 const YEARS=['26학번','25학번','24학번','23학번','22학번','21학번','20학번','19학번 이전'];
 const AGREE=[['terms','필수','서비스 이용약관'],['privacy','필수','개인정보 수집·이용'],['age','필수','만 14세 이상이에요'],['loc','선택','위치 정보 이용','방문 인증할 때만 써요'],['mkt','선택','이벤트·혜택 알림']];
-let ob={step:0,agree:{},school:null,sq:'',region:'전체',method:'id',file:null,fileUrl:'',nick:'',nickOk:false,nickMsg:'',field:'',dept:'',etc:false,year:'',busy:false,err:'',rejected:''},obPrevW=0,obLast=-1,nickT;
+let ob={mode:'join',skip:false,step:0,agree:{},school:null,sq:'',region:'전체',method:'id',file:null,fileUrl:'',nick:'',nickOk:false,nickMsg:'',field:'',dept:'',etc:false,year:'',busy:false,err:'',rejected:''},obPrevW=0,obLast=-1,nickT;
 const curSchool=()=>SCHOOLS.find(x=>x.id===ob.school);
 function deptField(){
   const sc=curSchool(),etcIn=ob.etc?`<div class="fld"><label for="obDeptEtc">학과 이름</label><input id="obDeptEtc" maxlength="30" value="${esc(ob.dept)}" placeholder="예) 문화콘텐츠학과" autocomplete="off"></div>`:'';
@@ -1540,20 +1554,24 @@ function obOk(){
   if(ob.step===1)return !!(ob.agree.terms&&ob.agree.privacy&&ob.agree.age);
   if(ob.step===2)return !!ob.school;
   if(ob.step===3)return !!ob.file;
-  if(ob.step===4)return ob.nickOk&&!!ob.dept.trim()&&!!ob.year&&!ob.busy;
+  if(ob.step===4)return ob.nickOk&&(ob.skip||!!ob.dept.trim())&&!!ob.year&&!ob.busy;
   return true;
 }
 function obHTML(){
   const s=ob.step;
   if(s===0)return `<div class="ob-hero"><span class="mk">${LOGO}</span><h1>유니로그</h1><p>재학생이 직접 쓴<br>학교 앞 맛집 리뷰</p></div>
-    <ul class="ob-points"><li><span><b>재학생 인증</b>을 마친 학생만 리뷰를 써요</span></li><li><span><b>방문 인증</b>한 가게만 매장 리뷰를 쓸 수 있어요</span></li><li><span><b>도움돼요</b>를 많이 받은 리뷰어의 평가가 점수에 더 반영돼요</span></li></ul>
+    <ul class="ob-points"><li><span><b>재학생 인증</b>을 하면 리뷰에 인증 뱃지가 붙어요</span></li><li><span><b>방문 인증</b>한 가게만 매장 리뷰를 쓸 수 있어요</span></li><li><span><b>도움돼요</b>를 많이 받은 리뷰어의 평가가 점수에 더 반영돼요</span></li></ul>
     <div class="grow"></div><button class="kakao" type="button" data-act="kakao">${kakaoSVG}카카오로 시작하기</button>
     <p class="fine">서울·경기·인천·광역시·제주 지역 대학에서 쓸 수 있어요</p>`;
-  if(s===5)return `<div class="done-ic">✓</div><div class="center"><h2 class="ob-t">가입 신청이 끝났어요</h2><p style="color:var(--sub);margin:8px 0 0">${esc(ob.nick.trim())}님, 반가워요!</p></div>
-    <div class="steps-info"><div><b>1</b><span>운영자가 올려주신 캡처로 재학생인지 확인해요. 보통 하루 안에 끝나요.</span></div><div><b>2</b><span>확인이 끝나면 알림을 보내드리고, 캡처 사진은 바로 지워요.</span></div><div><b>3</b><span>그동안 맛집과 리뷰는 먼저 둘러볼 수 있어요.</span></div></div>
-    <div class="grow"></div><button class="btn" type="button" data-act="finish">유니로그 둘러보기</button>`;
+  if(s===5&&ob.skip)return `<div class="done-ic">✓</div><div class="center"><h2 class="ob-t">가입이 끝났어요</h2><p style="color:var(--sub);margin:8px 0 0">${esc(ob.nick.trim())}님, 반가워요!</p></div>
+    <div class="steps-info"><div><b>1</b><span>바로 학교 앞 맛집을 찾고 리뷰와 로그톡 글을 쓸 수 있어요.</span></div><div><b>2</b><span>재학생 인증은 마이페이지에서 언제든 할 수 있어요.</span></div><div><b>3</b><span>인증하면 내 리뷰와 글에 <span class="cert vb" style="margin:0">재학생 인증</span> 뱃지가 붙어요.</span></div></div>
+    <div class="grow"></div><button class="btn" type="button" data-act="finish">유니로그 시작하기</button>`;
+  if(s===5)return `<div class="done-ic">✓</div><div class="center"><h2 class="ob-t">${ob.mode==='verify'?'인증 신청이 끝났어요':'가입 신청이 끝났어요'}</h2><p style="color:var(--sub);margin:8px 0 0">${ob.mode==='verify'?'조금만 기다려 주세요!':esc(ob.nick.trim())+'님, 반가워요!'}</p></div>
+    <div class="steps-info"><div><b>1</b><span>운영자가 올려주신 캡처로 재학생인지 확인해요. 보통 하루 안에 끝나요.</span></div><div><b>2</b><span>확인이 끝나면 알림을 보내드리고, 캡처 사진은 바로 지워요.</span></div><div><b>3</b><span>그동안에도 리뷰와 글을 바로 쓸 수 있어요. 승인되면 <span class="cert vb" style="margin:0">재학생 인증</span> 뱃지가 붙어요.</span></div></div>
+    <div class="grow"></div><button class="btn" type="button" data-act="finish">${ob.mode==='verify'?'확인':'유니로그 시작하기'}</button>`;
   if(s==='banned')return `<div class="done-ic">!</div><div class="center"><h2 class="ob-t">${esc(ob.banTitle)}</h2><p style="color:var(--sub);margin:8px 0 0">${esc(ob.banSub)}</p></div><div class="grow"></div><button class="btn line" type="button" data-act="logout">로그아웃</button>`;
-  const nav=`<div class="ob-nav"><button class="back" type="button" data-act="back" aria-label="뒤로" ${s===1?'style="visibility:hidden"':''}>‹</button><div class="ob-prog"><i style="width:${obPrevW}%"></i></div><small class="num">${s}/4</small></div>`;
+  const vm=ob.mode==='verify';
+  const nav=`<div class="ob-nav"><button class="back" type="button" data-act="back" aria-label="${vm&&s===3?'닫기':'뒤로'}" ${s===1?'style="visibility:hidden"':''}>${vm&&s===3?'×':'‹'}</button><div class="ob-prog"><i style="width:${obPrevW}%"></i></div><small class="num">${vm?(s-2)+'/2':s+'/4'}</small></div>`;
   let body='',btn='다음';
   if(s===1){const all=AGREE.every(([k])=>ob.agree[k]);
     body=`<h2 class="ob-t">유니로그를 쓰려면<br>약관에 동의해 주세요</h2>
@@ -1564,15 +1582,21 @@ function obHTML(){
       <div class="genre" role="group" aria-label="지역" style="margin-top:-6px">${REGIONS.map(r=>`<button type="button" data-region="${r}" aria-pressed="${ob.region===r}">${r}</button>`).join('')}</div>
       <div class="opts school-box" id="schoolList">${schoolList()}</div>`;}
   if(s===3){
-    body=`<h2 class="ob-t">재학생 인증을 해주세요</h2>${ob.rejected?`<div class="cp-empty" style="margin:0;color:var(--accent)">인증이 반려됐어요${ob.rejected!=='-'?' · 사유: '+esc(ob.rejected):''}. 캡처를 다시 올려 주세요.</div>`:''}<p class="ob-d">캡처 한 장이면 돼요. 확인이 끝나면 바로 지워요.</p>
+    body=`<h2 class="ob-t">재학생 인증을 해주세요</h2>${ob.rejected?`<div class="cp-empty" style="margin:0;color:var(--accent)">인증이 반려됐어요${ob.rejected!=='-'?' · 사유: '+esc(ob.rejected):''}. 캡처를 다시 올려 주세요.</div>`:''}<p class="ob-d">인증하면 내 리뷰와 글에 <span class="cert vb" style="margin:0">재학생 인증</span> 뱃지가 붙어요. 캡처 한 장이면 되고, 확인이 끝나면 바로 지워요.</p>
       <div class="opts">${[['id','모바일 학생증 캡처','학번과 학과가 보이게 캡처해 주세요'],['eta','에브리타임 홈 화면 캡처','학교 이름이 보이게 캡처해 주세요']].map(([k,n,d])=>`<button class="opt" type="button" data-method="${k}" aria-pressed="${ob.method===k}"><span><b>${n}</b><span>${d}</span></span><span class="ck">✓</span></button>`).join('')}</div>
-      <label class="upload ${ob.file?'done':''}"><input type="file" id="obFile" accept="image/*">${ob.file?`<b>✓ ${esc(ob.file.name||'캡처 사진')}</b><span>다른 사진으로 바꾸려면 눌러주세요</span>`:`<b>캡처 사진 올리기</b><span>이름·생년월일은 가리고 올려도 돼요</span>`}</label>`;}
-  if(s===4){btn=ob.busy?'보내는 중…':'가입 신청';
-    body=`<h2 class="ob-t">리뷰에 보일 프로필을<br>만들어 주세요</h2>
-      <div class="fld"><label for="obNick">닉네임</label><input id="obNick" maxlength="10" value="${esc(ob.nick)}" placeholder="예) 회기동국밥러" autocomplete="off"><span class="msg ${ob.nickOk?'ok':ob.nickMsg&&ob.nick?'bad':''}" id="nickMsg">${esc(ob.nickMsg||'2~10자, 한글·영문·숫자로 지어주세요')}</span></div>
+      <label class="upload ${ob.file?'done':''}"><input type="file" id="obFile" accept="image/*">${ob.file?`<b>✓ ${esc(ob.file.name||'캡처 사진')}</b><span>다른 사진으로 바꾸려면 눌러주세요</span>`:`<b>캡처 사진 올리기</b><span>이름·생년월일은 가리고 올려도 돼요</span>`}</label>`;
+    if(!vm)return nav+body+`<div class="grow"></div><div class="ob-acts"><button class="btn" id="obNext" type="button" data-act="next" ${obOk()?'':'disabled'}>인증하고 시작하기</button><button class="skipbtn" type="button" data-act="skip">인증 없이 시작할게요</button><p class="fine" style="margin:0">인증은 나중에 마이페이지에서 언제든 할 수 있어요</p></div>`;}
+  if(s===4&&vm){btn=ob.busy?'보내는 중…':'인증 신청';
+    body=`<h2 class="ob-t">인증 정보를 확인해 주세요</h2><p class="ob-d">학과는 인증 확인에만 쓰고 다른 사람에게는 보이지 않아요.</p>
       ${deptField()}
       <div class="fld"><label for="obYear">학번</label><select id="obYear"><option value="">학번 선택</option>${YEARS.map(y=>`<option ${ob.year===y?'selected':''}>${y}</option>`).join('')}</select></div>
-      <p class="hint" style="margin:-8px 0 0;font-size:12.5px;color:var(--sub)">학과는 재학생 인증에만 쓰고 다른 사람에게는 보이지 않아요. 리뷰와 로그톡에는 "학교 + 학번"만 표시돼요.</p>
+      ${ob.err?`<div class="cp-empty" style="margin:0;color:var(--accent)">${esc(ob.err)}</div>`:''}`;}
+  else if(s===4){btn=ob.busy?'보내는 중…':ob.skip?'시작하기':'가입 신청';
+    body=`<h2 class="ob-t">리뷰에 보일 프로필을<br>만들어 주세요</h2>
+      <div class="fld"><label for="obNick">닉네임</label><input id="obNick" maxlength="10" value="${esc(ob.nick)}" placeholder="예) 회기동국밥러" autocomplete="off"><span class="msg ${ob.nickOk?'ok':ob.nickMsg&&ob.nick?'bad':''}" id="nickMsg">${esc(ob.nickMsg||'2~10자, 한글·영문·숫자로 지어주세요')}</span></div>
+      ${ob.skip?'':deptField()}
+      <div class="fld"><label for="obYear">학번</label><select id="obYear"><option value="">학번 선택</option>${YEARS.map(y=>`<option ${ob.year===y?'selected':''}>${y}</option>`).join('')}</select></div>
+      <p class="hint" style="margin:-8px 0 0;font-size:12.5px;color:var(--sub)">${ob.skip?'리뷰와 로그톡에는 "학교 + 학번"만 표시돼요.':'학과는 재학생 인증에만 쓰고 다른 사람에게는 보이지 않아요. 리뷰와 로그톡에는 "학교 + 학번"만 표시돼요.'}</p>
       <div class="preview"><small>리뷰에는 이렇게 보여요</small><div class="pw" id="obPreview"></div></div>
       ${ob.err?`<div class="cp-empty" style="margin:0;color:var(--accent)">${esc(ob.err)}</div>`:''}`;}
   return nav+body+`<div class="grow"></div><button class="btn" id="obNext" type="button" data-act="next" ${obOk()?'':'disabled'}>${btn}</button>`;
@@ -1585,16 +1609,30 @@ function obRender(){
   const el=$('#ob');el.hidden=false;$('#boot').hidden=true;
   const moved=obLast!==ob.step;obLast=ob.step;
   el.innerHTML=`<div class="wrap gut${moved?' step-in':''}">${obHTML()}</div>`;if(moved)el.scrollTop=0;obSync();
-  const bar=el.querySelector('.ob-prog i'),to=typeof ob.step==='number'?ob.step/4*100:0;
+  const vm=ob.mode==='verify',bar=el.querySelector('.ob-prog i'),to=typeof ob.step==='number'?(vm?(ob.step-2)/2*100:ob.step/4*100):0;
   if(bar){bar.style.transition='none';bar.style.width=obPrevW+'%';void bar.offsetWidth;bar.style.transition='width .45s cubic-bezier(.4,0,.2,1)';bar.style.width=to+'%';}
   obPrevW=ob.step>=1&&ob.step<=4?to:0;
+}
+function startVerify(){
+  if(!S.me||S.me.status==='approved'||S.me.status==='pending')return;
+  ob=Object.assign(ob,{mode:'verify',skip:false,step:3,school:S.me.school_id,nick:S.me.nick||'',nickOk:true,year:S.me.year||'',
+    field:'',dept:'',etc:false,file:null,method:'id',busy:false,err:'',rejected:S.me.status==='rejected'?(S.me.reject_reason||'-'):'',agree:{}});
+  obPrevW=0;obLast=-1;obRender();
 }
 async function obSubmit(){
   ob.busy=true;ob.err='';obRender();
   try{
-    const path=await uploadPhoto('verify',ob.file,1600),sc=curSchool();
-    const {error}=await sb.rpc('ul_submit_verification',{p_school_id:sc.id,p_school_name:sc.n,p_school_short:sc.short,p_campus:sc.campus,p_year:ob.year,
-      p_dept_field:ob.field==='__etc'?'':ob.field,p_dept:ob.dept.trim(),p_method:ob.method,p_path:path,p_nick:ob.nick.trim(),p_agree_loc:!!ob.agree.loc,p_agree_mkt:!!ob.agree.mkt});
+    const vm=ob.mode==='verify',sc=curSchool()||{id:S.me.school_id,n:S.me.school_name,short:S.me.school_short,campus:S.me.campus};
+    let error;
+    if(ob.skip){
+      ({error}=await sb.rpc('ul_join',{p_school_id:sc.id,p_school_name:sc.n,p_school_short:sc.short,p_campus:sc.campus,p_year:ob.year,
+        p_nick:ob.nick.trim(),p_agree_loc:!!ob.agree.loc,p_agree_mkt:!!ob.agree.mkt}));
+    }else{
+      const path=await uploadPhoto('verify',ob.file,1600);
+      ({error}=await sb.rpc('ul_submit_verification',{p_school_id:sc.id,p_school_name:sc.n,p_school_short:sc.short,p_campus:sc.campus,p_year:ob.year,
+        p_dept_field:ob.field==='__etc'?'':ob.field,p_dept:ob.dept.trim(),p_method:ob.method,p_path:path,p_nick:ob.nick.trim(),
+        p_agree_loc:vm?null:!!ob.agree.loc,p_agree_mkt:vm?null:!!ob.agree.mkt}));
+    }
     if(error)throw error;
     ob.busy=false;ob.step=5;obRender();
   }catch(e){ob.busy=false;ob.err='보내지 못했어요: '+errText(e);obRender();}
@@ -1606,9 +1644,10 @@ function bindOb(){
     if(a){const act=a.dataset.act;
       if(act==='kakao')return kakaoLogin();
       if(act==='logout')return sb.auth.signOut().then(()=>location.replace(location.origin+location.pathname));
-      if(act==='finish'){el.hidden=true;$('#boot').hidden=false;return route();}
-      if(act==='back'){ob.step=Math.max(1,ob.step-1);return obRender();}
-      if(act==='next'&&!a.disabled){if(ob.step===4)return obSubmit();ob.step++;return obRender();}
+      if(act==='finish'){el.hidden=true;if(ob.mode==='verify'||S.entered){ob.mode='join';return route();}$('#boot').hidden=false;return route();}
+      if(act==='back'){if(ob.mode==='verify'&&ob.step===3){el.hidden=true;ob.mode='join';return;}ob.step=Math.max(1,ob.step-1);return obRender();}
+      if(act==='skip'){ob.skip=true;ob.step=4;return obRender();}
+      if(act==='next'&&!a.disabled){if(ob.step===4)return obSubmit();if(ob.step===3)ob.skip=false;ob.step++;return obRender();}
       return;}
     const rg=e.target.closest('[data-region]');if(rg){ob.region=rg.dataset.region;el.querySelectorAll('[data-region]').forEach(b=>b.setAttribute('aria-pressed',b===rg));$('#schoolList').innerHTML=schoolList();$('#schoolList').scrollTop=0;return;}
     const sc=e.target.closest('[data-school]');if(sc){const st=$('#schoolList').scrollTop;ob.school=sc.dataset.school;ob.dept='';ob.field='';ob.etc=false;obRender();$('#schoolList').scrollTop=st;return;}
@@ -1651,20 +1690,23 @@ async function route(){
   if(!me){ob.step=1;obRender();return;}
   S.me=me;U[S.uid]=me;
   if(me.status==='banned'){
-    if(me.banned_until&&new Date(me.banned_until)<=new Date()){const {data:st}=await sb.rpc('ul_lift_my_ban');if(st==='approved')return route();}
+    if(me.banned_until&&new Date(me.banned_until)<=new Date()){const {data:st}=await sb.rpc('ul_lift_my_ban');if(st&&st!=='banned')return route();}
     ob.banTitle=me.banned_until?new Date(me.banned_until).toLocaleString('ko-KR',{month:'long',day:'numeric',hour:'numeric',minute:'2-digit'})+'까지 이용이 정지됐어요':'이용이 정지됐어요';
     ob.banSub=(me.reject_reason?'사유: '+me.reject_reason+'. ':'')+'문의가 있으면 운영자에게 연락해 주세요.';ob.step='banned';obRender();return;}
-  if(me.status==='rejected'){
-    const sc=SCHOOLS.find(x=>x.id===me.school_id);ob.school=sc?sc.id:null;ob.nick=me.nick||'';ob.nickOk=!!me.nick;ob.nickMsg=me.nick?'지금 쓰는 닉네임이에요':'';ob.year=me.year;
-    ob.agree={terms:true,privacy:true,age:true};ob.rejected=me.reject_reason||'-';ob.step=3;obRender();return;}
   $('#ob').hidden=true;
   if(!S.entered)return enterApp();
-  $('#pendingBar').hidden=me.status!=='pending';renderMe();
+  renderBar();renderMe();
+}
+function renderBar(){
+  const b=$('#pendingBar'),st=S.me&&S.me.status;
+  if(st==='pending'){b.innerHTML='재학생 인증을 확인하고 있어요. 그동안에도 리뷰와 글을 쓸 수 있어요.';b.hidden=false;}
+  else if(st==='rejected'){b.innerHTML=`재학생 인증이 반려됐어요${S.me.reject_reason?' · '+esc(S.me.reject_reason):''} <button type="button" data-verify-start>다시 인증하기 ›</button>`;b.hidden=false;}
+  else b.hidden=true;
 }
 async function enterApp(){
   S.entered=true;
   S.school=SCHOOLS.find(x=>x.id===S.me.school_id)||{id:S.me.school_id,n:S.me.school_name,short:S.me.school_short,campus:S.me.campus,cityDisp:''};
-  $('#boot').hidden=true;$('#app').hidden=false;$('#pendingBar').hidden=S.me.status!=='pending';
+  $('#boot').hidden=true;$('#app').hidden=false;renderBar();
   renderWhere();renderList();renderTalk();renderPeople();renderMe();
   sb.from('ul_private').select('*').eq('id',S.uid).maybeSingle().then(({data})=>{S.priv=data;});
   const [pl,bm]=await Promise.all([sb.from('ul_post_likes').select('post_id').eq('user_id',S.uid),sb.from('ul_post_bookmarks').select('post_id').eq('user_id',S.uid)]);
@@ -1686,6 +1728,7 @@ function setTab(t){S.tab=t;['near','talk','people','me'].forEach(x=>$('#v-'+x).h
 document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 document.querySelectorAll('.sort button').forEach(b=>b.onclick=()=>{S.sort=b.dataset.sort;document.querySelectorAll('.sort button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderList();});
 $('#locBtn').onclick=locateMe;
+document.addEventListener('click',e=>{if(e.target.closest('[data-verify-start]'))startVerify();});
 $('#mapBtn').onclick=e=>{S.mapOn=!S.mapOn;e.currentTarget.setAttribute('aria-pressed',S.mapOn);if(S.mapOn&&!window.kakao){toast('지도를 아직 불러오지 못했어요');}renderMap();};
 $('#q').addEventListener('input',e=>{S.q=e.target.value;S.searchHit=null;S.listShow=10;if(S.tab!=='near')setTab('near');renderList();renderMap();});
 $('#searchForm').addEventListener('submit',e=>{e.preventDefault();const q=S.q.trim();$('#q').blur();if(q&&!filtered().length)searchMore(q);});
