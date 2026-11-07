@@ -804,6 +804,8 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .fdleft b{font-size:13px;color:#D9481C}
 .fdban.full{background:linear-gradient(135deg,#FFF8E6 0%,#FDF1DF 100%)}
 .fdban.full .fdleft b{color:#8A4B0F}
+.fdneed{font-size:11.5px!important;color:#1D5FC8!important;font-weight:700}
+.fdneed button{border:0;background:none;padding:0 0 0 4px;color:#1D5FC8;font:inherit;font-weight:800;text-decoration:underline;cursor:pointer}
 </style>
 </head>
 <body>
@@ -1036,7 +1038,7 @@ const verifiedMe=()=>!!S.me&&S.me.status==='approved';
 const certB=u=>u&&u.verified?'<span class="cert vb">재학생 인증</span>':'';
 /* 개척자 배지: 그 학교에서 리뷰를 가장 먼저 쓴 3명 */
 const FD=(s)=>`<svg width="${s}" height="${s}" aria-hidden="true"><use href="#fdS"/></svg>`;
-const fdTitle=u=>`${u.school_short||''} 개척자 · 우리 학교에서 ${u.founder}번째로 리뷰를 쓴 사람`;
+const fdTitle=u=>`${u.school_short||''} 개척자 · 재학생 중 ${u.founder}번째로 리뷰를 쓴 사람`;
 NICON.founder=FD(24);
 const fdB=u=>u&&u.founder?`<span class="fd" role="img" aria-label="${esc(fdTitle(u))}" title="${esc(fdTitle(u))}">${FD(20)}</span>`:'';
 function needApproved(what='이용'){if(approved())return true;toast('이용이 정지된 계정이에요');return false;}
@@ -1720,7 +1722,7 @@ function renderMe(){
   $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><div class="nm"><b>${esc(me.nick||'')}</b>${fdB(me)}${lvBadge(likes)}</div><span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?'<span>· 재학생 인증 확인 중</span>':''}</span></div>
       <span class="hd-btns"><button class="bell" type="button" data-noti aria-label="알림 ${un}개">${BELL}${un?`<span class="nbadge num">${un>99?'99+':un}</span>`:''}</button><button class="wbtn" type="button" data-pedit>프로필 수정</button></span></div>
     <div class="gauge"><div class="lbl"><b>${next?`${next.name}까지 "도움돼요" ${next.min-likes}개`:'최고 등급이에요'}</b><span>내 평가 반영 ×${LV[li].w}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
-    ${me.founder&&!S.fdCardHide?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>우리 학교에서 ${me.founder}번째로 리뷰를 쓴 사람에게만 주는 배지예요. 학교마다 딱 3명만 받을 수 있어요.</small></span><button class="x" type="button" data-fdcx aria-label="닫기">×</button></div>`:''}
+    ${me.founder&&!S.fdCardHide?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>재학생 인증을 한 학생 중 ${me.founder}번째로 리뷰를 쓴 사람에게만 주는 배지예요. 학교마다 딱 3명만 받을 수 있어요.</small></span><button class="x" type="button" data-fdcx aria-label="닫기">×</button></div>`:''}
     ${me.status==='none'||me.status==='rejected'?`<div class="vnudge"><span><b>${me.status==='rejected'?'재학생 인증이 반려됐어요':'재학생 인증을 해 보세요'}</b><small>${me.status==='rejected'?esc(me.reject_reason?'사유: '+me.reject_reason:'캡처를 다시 올려 주세요'):'인증하면 내 리뷰와 글에 재학생 인증 뱃지가 붙어요'}</small></span><button class="wbtn" type="button" data-verify-start>인증하기</button></div>`:''}
     <div class="kv"><div><b class="num">${S.counts.reviews??'-'}</b><span>리뷰</span></div><div><b class="num">${likes}</b><span>받은 도움돼요</span></div><div><b class="num">${S.counts.visits??'-'}</b><span>방문 인증</span></div></div>`;
   const fx=$('#profile [data-fdcx]');if(fx)fx.onclick=()=>{S.fdCardHide=true;renderMe();};
@@ -1764,7 +1766,7 @@ function notiText(n){const m=n.meta||{};
     case 'adopt':return `「${esc(m.title)}」에 단 내 답변이 채택됐어요 · 도움돼요 +3`;
     case 'up':return `<b>${esc(m.level)}</b> 등급이 됐어요! 이제 내 평가가 가게 점수에 더 크게 반영돼요`;
     case 'newpost':return n.count>1?`우리 학교 로그톡에 새 글 ${n.count}개가 올라왔어요 · 최근 「${esc(m.title||'')}」`:`우리 학교 로그톡에 새 글이 올라왔어요 · 「${esc(m.title||'')}」`;
-    case 'founder':return `축하해요! <b>${esc(m.school||'')} 개척자 배지</b>를 받았어요 · 우리 학교 ${m.rank}번째 리뷰어예요. 이제 내 이름 옆에 금빛 배지가 붙어요`;
+    case 'founder':return `축하해요! <b>${esc(m.school||'')} 개척자 배지</b>를 받았어요 · 우리 학교 ${m.rank}번째 개척자예요. 이제 내 이름 옆에 금빛 배지가 붙어요`;
     case 'verify':return m.status==='approved'?'재학생 인증이 승인됐어요! 이제 내 리뷰와 글에 재학생 인증 뱃지가 붙어요':`재학생 인증이 반려됐어요${m.reason?' · 사유: '+esc(m.reason):''}`;
     default:return '새 알림이 있어요';}}
 const nIcon=t=>({like:'like',cmt:'cmt',reply:'cmt',adopt:'adopt',up:'up',founder:'founder',newpost:'cmt'}[t]||'info');
@@ -2240,12 +2242,13 @@ function renderFdBanner(){
             :`<span class="seat off">${SEAT0}<em class="num">${i}</em><b>빈 자리</b></span>`;}).join('');
   const head=left>0?`우리 학교 개척자 배지, 딱 3명만`:`${short} 개척자 3명이 모두 정해졌어요`;
   const body=left>0
-    ?`${short}에서 리뷰를 <b>가장 먼저 쓰는 3명</b>에게 왼쪽의 <b>금빛 방패 배지</b>를 드려요. 리뷰·로그톡·랭킹 어디서든 이름 옆에 계속 붙어 있어요.`
-    :`리뷰를 가장 먼저 쓴 세 사람이 <b>금빛 방패 배지</b>를 받았어요. 이 배지는 더 이상 받을 수 없어요.`;
+    ?`${short} <b>재학생 인증을 한 학생</b> 중 리뷰를 <b>가장 먼저 쓰는 3명</b>에게 왼쪽의 <b>금빛 방패 배지</b>를 드려요. 내 이름 옆에 계속 붙어요.`
+    :`재학생 인증을 한 학생 중 리뷰를 가장 먼저 쓴 세 사람이 <b>금빛 방패 배지</b>를 받았어요. 이 배지는 더 이상 받을 수 없어요.`;
   el.innerHTML=`<div class="fdban${left>0?'':' full'}" role="status">
     <span class="fdban-ic">${FD(52)}</span>
     <div class="fdban-tx"><b>${head}</b><span>${body}</span>
       ${mine?`<span class="fdme">나는 ${short} <b>${mine.founder}번째</b> 개척자예요</span>`:''}
+      ${left>0&&S.me&&S.me.status!=='approved'&&S.school.id===S.me.school_id?`<span class="fdneed">${S.me.status==='pending'?'재학생 인증을 확인하고 있어요. 승인되면 받을 수 있어요':'재학생 인증을 해야 받을 수 있어요'}${S.me.status==='pending'?'':' <button type="button" data-verify-start>인증하기 ›</button>'}</span>`:''}
       <span class="fdseats">${seats}</span>
       <span class="fdleft">${left>0?`남은 자리 <b class="num">${left}</b>/3`:'<b>마감</b> · 3/3'}</span></div>
     <button class="x" type="button" data-fdx aria-label="닫기">×</button></div>`;
@@ -2258,7 +2261,7 @@ async function checkFounder(){
   S.me.founder=data.founder;U[S.uid]=Object.assign(U[S.uid]||{},{founder:data.founder,school_short:S.me.school_short});
   loadFounders();renderMe();loadNotis();
   const d=document.createElement('div');d.className='fdpop';d.setAttribute('role','dialog');d.setAttribute('aria-label','개척자 배지를 받았어요');
-  d.innerHTML=`<div class="fdpop-in"><span class="fdpop-ic">${FD(84)}</span><b>개척자 배지를 받았어요!</b><p>${esc(S.me.school_short)}에서 <b>${data.founder}번째</b>로 리뷰를 쓴 사람이에요.<br>이제 내 이름 옆에 이 배지가 계속 붙어요.</p><button class="btn" type="button">좋아요</button></div>`;
+  d.innerHTML=`<div class="fdpop-in"><span class="fdpop-ic">${FD(84)}</span><b>개척자 배지를 받았어요!</b><p>${esc(S.me.school_short)} 재학생 중 <b>${data.founder}번째</b>로 리뷰를 쓴 사람이에요.<br>이제 내 이름 옆에 이 배지가 계속 붙어요.</p><button class="btn" type="button">좋아요</button></div>`;
   document.body.appendChild(d);const close=()=>d.remove();d.querySelector('button').onclick=close;d.onclick=e=>{if(e.target===d)close();};
 }
 function setTab(t){S.tab=t;['near','talk','people','me'].forEach(x=>$('#v-'+x).hidden=x!==t);
