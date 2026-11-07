@@ -1053,7 +1053,7 @@ const firstCall=()=>`우리 학교 첫 리뷰어가 되어 보세요`;
 // 가게에 가장 먼저 올라온 리뷰 (1호 뱃지)
 const firstOf=p=>p.reviews.reduce((a,r)=>!a||new Date(r.created_at)<new Date(a.created_at)?r:a,null);
 function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{},no1=firstOf(p)===rv;
-  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(me?'나':nameOf(rv.user_id))}</b>${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${me?'<span class="mytag">내 리뷰</span>':''}${lvBadge(u.helpful)}${certB(u)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
+  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(me?'나':nameOf(rv.user_id))}</b>${me?'<span class="mytag">내 리뷰</span>':''}${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${lvBadge(u.helpful)}${certB(u)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
     <div class="meta">${starsHTML(+rv.rating)}<span class="val num">${(+rv.rating).toFixed(1)}</span>${rv.round>1?`<span class="kind">${rv.round}번째 리뷰</span>`:''}${!isLatest(p,rv)?'<span class="kind old">이전 리뷰 · 점수 미반영</span>':''}${rv.kind==='visit'?`<span class="visit num">방문 인증 ${rv.visit_count}회</span>`:`<span class="kind">${rv.kind==='delivery'?'배달':'포장'}</span>`}</div>
     ${rv.menu||rv.price_level!=null?`<div class="menu">${rv.menu?`<span>먹은 메뉴 · </span>${esc(rv.menu)}`:''}${rv.menu&&rv.price_level!=null?' · ':''}${rv.price_level!=null?`<span>1인 </span>${PRICES[rv.price_level]}`:''}</div>`:''}
     <p>${esc(rv.body)}</p>
