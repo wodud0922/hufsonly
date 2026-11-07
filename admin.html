@@ -91,6 +91,15 @@ i.v,.bar .v{background:var(--accent)} i.m,.bar .m{background:var(--ok)} i.r,.bar
 .bar small{font-size:10px;color:var(--muted)}
 .bar.today small{color:var(--ink);font-weight:700}
 @media (max-width:560px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sch-wrap{overflow-x:auto;margin-top:10px;-webkit-overflow-scrolling:touch}
+.sch{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+.sch th{text-align:right;font-weight:500;color:var(--muted);font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.sch td{text-align:right;padding:8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sch th:first-child,.sch td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+.sch td:first-child b{display:block;font-size:13.5px}
+.sch td:first-child small{color:var(--muted);font-size:11.5px}
+.sch .up{color:var(--ok);font-size:11.5px;margin-left:3px}
+.sch .muted{color:var(--muted);text-align:left}
 .empty,.gate{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:40px 20px;text-align:center;color:var(--muted);grid-column:1/-1}
 .gate{max-width:420px;margin:12vh auto 0;display:flex;flex-direction:column;gap:14px;align-items:center}
 .gate h1{margin:0;color:var(--ink);font-size:20px}
@@ -127,6 +136,12 @@ i.v,.bar .v{background:var(--accent)} i.m,.bar .m{background:var(--ok)} i.r,.bar
       <div class="ch-head"><b>최근 14일</b><span class="lg"><i class="v"></i>방문자 <i class="m"></i>가입자 <i class="r"></i>리뷰</span></div>
       <div class="bars" id="bars"></div>
       <p class="note" id="statNote" style="margin-top:10px">통계를 불러오는 중…</p>
+    </section>
+    <section class="chart" aria-label="학교별 현황">
+      <div class="ch-head"><b>학교별 현황</b><span class="lg">최근 7일 늘어난 수는 +로 표시</span></div>
+      <div class="sch-wrap"><table class="sch"><thead><tr><th>학교</th><th>가입자</th><th>인증</th><th>리뷰</th><th>로그톡</th><th>댓글</th><th>최근 활동</th></tr></thead><tbody id="schBody"><tr><td colspan="7" class="muted">불러오는 중…</td></tr></tbody></table></div>
+      <button class="btn line" type="button" id="schMore" hidden style="margin-top:10px;width:100%">전체 학교 보기</button>
+      <p class="note" style="margin-top:10px">학교별 리뷰·로그톡 내용은 유니로그 앱의 "다른 학교 보기"에서 직접 볼 수 있어요. 리뷰는 쓴 사람의 학교 기준으로 세요.</p>
     </section>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-s="pending" aria-selected="true">인증 대기 <b id="c-pending">0</b></button>
@@ -178,10 +193,26 @@ async function boot(){
   if(error)return gate("설정이 필요해요","1_unilog_schema.sql을 Supabase에서 실행했는지 확인해 주세요. ("+error.message+")",false);
   if(!data)return gate("관리자가 아니에요","이 계정은 관리자 권한이 없어요. 운영자 계정으로 다시 로그인해 주세요.",false);
   $("#gate").hidden=true;$("#main").hidden=false;$("#reload").hidden=false;
-  load();watchLive();setInterval(()=>{if(!document.hidden)loadStats();},60000);
+  load();watchLive();setInterval(()=>{if(!document.hidden){loadStats();loadSchools();}},60000);
 }
 
 /* ===== 통계 ===== */
+let schools=[],schAll=false;
+async function loadSchools(){
+  const {data,error}=await sb.rpc("ul_admin_schools");
+  if(error){$("#schBody").innerHTML=`<tr><td colspan="7" class="muted">${/ul_admin_schools|function/.test(error.message)?"5_admin_schools.sql을 Supabase에서 실행하면 학교별 현황이 보여요.":"불러오지 못했어요: "+esc(error.message)}</td></tr>`;return;}
+  schools=data||[];renderSchools();
+}
+function renderSchools(){
+  if(!schools.length){$("#schBody").innerHTML=`<tr><td colspan="7" class="muted">아직 가입한 학교가 없어요.</td></tr>`;$("#schMore").hidden=true;return;}
+  const up=n=>n?`<span class="up">+${nf(n)}</span>`:"";
+  const L=schAll?schools:schools.slice(0,10);
+  $("#schBody").innerHTML=L.map(s=>`<tr><td><b>${esc(s.school_short)}</b><small>${esc(s.campus||s.school_name)}</small></td>
+    <td>${nf(s.members)}${up(s.members_7d)}</td><td>${nf(s.verified)}</td><td>${nf(s.reviews)}${up(s.reviews_7d)}</td>
+    <td>${nf(s.posts)}${up(s.posts_7d)}</td><td>${nf(s.comments)}</td><td>${s.last_activity?ago(s.last_activity):"-"}</td></tr>`).join("");
+  $("#schMore").hidden=schools.length<=10;$("#schMore").textContent=schAll?"접기":`전체 학교 보기 (${schools.length}곳)`;
+}
+$("#schMore").onclick=()=>{schAll=!schAll;renderSchools();};
 function watchLive(){
   try{
     const ch=sb.channel("ul-online",{config:{presence:{key:"admin-"+Math.random().toString(36).slice(2)}}});
@@ -216,7 +247,7 @@ async function load(){
   urls={};
   const paths=Object.values(priv).filter(x=>x.verify_path).map(x=>x.verify_path);
   if(paths.length){const {data:s}=await sb.storage.from("verify").createSignedUrls(paths,3600);(s||[]).forEach(x=>{if(x.signedUrl)urls[x.path]=x.signedUrl;});}
-  loadStats();
+  loadStats();loadSchools();
   await loadTargets();
   ["pending","approved","rejected","none","banned"].forEach(k=>$("#c-"+k).textContent=rows.filter(r=>r.status===k).length);
   $("#c-reports").textContent=new Set(reports.filter(r=>r.status==="open").map(r=>r.target_type+r.target_id)).size;

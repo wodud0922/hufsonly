@@ -586,6 +586,13 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .rv .who>div>span.d{flex-basis:100%;margin-top:1px}
 .cline .mytag,.cline .no1,.cline .lv,.cline .cert,.cline .optag,.cline .bestTag,
 .pline .lv,.pline .cert{margin-left:0}
+
+/* 관리자: 다른 학교 둘러보기 */
+.wsw-wrap{margin-left:auto;display:flex;gap:6px;flex:none}
+.wsw{border:1px solid var(--line);background:var(--panel);color:var(--sub);font:700 12px var(--f-body);border-radius:6px;padding:4px 9px;cursor:pointer;white-space:nowrap}
+.wsw.home{color:var(--accent);border-color:var(--accent)}
+.where.other b{color:var(--accent)}
+#swsheet .school-box{max-height:52vh;overflow-y:auto}
 </style>
 </head>
 <body>
@@ -666,6 +673,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 <div class="scrim" id="nscrim" hidden><div class="sheet pe" id="nsheet" role="dialog" aria-modal="true" aria-label="알림"></div></div>
 <div class="scrim" id="pescrim" hidden><div class="sheet pe" id="pesheet" role="dialog" aria-modal="true" aria-label="프로필 수정"></div></div>
 <div class="scrim" id="rscrim" hidden><div class="sheet pe" id="rsheet" role="dialog" aria-modal="true" aria-label="신고"></div></div>
+<div class="scrim" id="swscrim" hidden><div class="sheet pe" id="swsheet" role="dialog" aria-modal="true" aria-label="학교 둘러보기"></div></div>
 <div class="lb" id="lb" hidden role="dialog" aria-label="사진 크게 보기"></div>
 <div class="ob" id="ob" role="dialog" aria-modal="true" aria-label="유니로그 시작" hidden></div>
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
@@ -963,7 +971,8 @@ const miniThumb=p=>thumb(p,true,0,'mini');
    ===================================================================== */
 function renderWhere(){
   const label=S.school?(S.school.campus?`${S.school.short} ${S.school.campus}`:S.school.short):'';
-  $('#where').innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span><b>${esc(label)}</b> 주변 맛집</span>`;
+  $('#where').innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span><b>${esc(label)}</b> 주변 맛집</span>${S.isAdmin?`<span class="wsw-wrap">${isOtherSchool()?'<button class="wsw home" type="button" data-school-home>내 학교로</button>':''}<button class="wsw" type="button" data-school-switch>${isOtherSchool()?'학교 바꾸기':'다른 학교 보기'} ▾</button></span>`:''}`;
+  $('#where').classList.toggle('other',isOtherSchool());
 }
 function filtered(){
   const q=S.q.trim();
@@ -1239,7 +1248,7 @@ function openLB(url){const el=$('#lb');el.innerHTML=`<div class="lbimg" style="b
 const TCATS=['전체','질문','추천','정보'],PER=10;
 async function loadTalk(){
   const T=S.talk;$('#talkList').innerHTML='<div class="empty"><span class="spin"></span></div>';
-  let q=sb.from('ul_posts').select('*',{count:'exact'}).eq('school_id',S.me.school_id).order('created_at',{ascending:false}).range((T.page-1)*PER,T.page*PER-1);
+  let q=sb.from('ul_posts').select('*',{count:'exact'}).eq('school_id',S.school.id).order('created_at',{ascending:false}).range((T.page-1)*PER,T.page*PER-1);
   if(T.cat!=='전체')q=q.eq('cat',T.cat);
   const {data,count,error}=await q;
   if(error){$('#talkList').innerHTML=`<div class="empty">글을 불러오지 못했어요: ${esc(errText(error))}</div>`;return;}
@@ -1282,7 +1291,7 @@ async function loadPost(id){
   return true;
 }
 function closePost(){$('#pscrim').hidden=true;PO=null;}
-function openWrite(){if(!needApproved('글을'))return;postMode='write';editPost=null;pdraft={cat:'질문',title:'',body:'',place:''};$('#pscrim').hidden=false;renderPost();}
+function openWrite(){if(!needApproved('글을'))return;if(isOtherSchool()){toast('다른 학교 로그톡은 둘러보기만 할 수 있어요');return;}postMode='write';editPost=null;pdraft={cat:'질문',title:'',body:'',place:''};$('#pscrim').hidden=false;renderPost();}
 function renderPost(){
   const sh=$('#psheet');
   const placeOpts=sel=>{const L=savedHere();if(sel&&!L.find(x=>x.id===sel)&&find(sel))L.unshift(find(sel));
@@ -1419,7 +1428,7 @@ function renderReport(){
    ===================================================================== */
 const PERIOD_CAP={all:'가입 후 지금까지 받은 "도움돼요" 기준',month:'이번 달 1일부터 받은 "도움돼요" 기준',week:'이번 주 월요일부터 받은 "도움돼요" 기준'};
 async function loadRanking(){
-  const {data,error}=await sb.rpc('ul_ranking',{p_school:S.me.school_id,p_period:S.rank.period,p_limit:200});
+  const {data,error}=await sb.rpc('ul_ranking',{p_school:S.school.id,p_period:S.rank.period,p_limit:200});
   if(error){$('#peopleList').innerHTML=`<div class="empty">불러오지 못했어요: ${esc(errText(error))}</div>`;return;}
   S.rank.list=data||[];S.rank.loaded=true;(data||[]).forEach(r=>{U[r.user_id]=Object.assign(U[r.user_id]||{},{id:r.user_id,nick:r.nick,photo_url:r.photo_url,school_short:r.school_short,year:r.year,helpful:r.helpful,verified:!!r.verified});});
   renderPeople();
@@ -1744,6 +1753,7 @@ async function enterApp(){
   S.entered=true;
   S.school=SCHOOLS.find(x=>x.id===S.me.school_id)||{id:S.me.school_id,n:S.me.school_name,short:S.me.school_short,campus:S.me.campus,cityDisp:''};
   $('#boot').hidden=true;$('#app').hidden=false;renderBar();
+  sb.from('admins').select('id').eq('id',S.uid).maybeSingle().then(({data})=>{S.isAdmin=!!data;if(S.isAdmin)renderWhere();},()=>{});
   renderWhere();renderList();renderTalk();renderPeople();renderMe();
   sb.from('ul_private').select('*').eq('id',S.uid).maybeSingle().then(({data})=>{S.priv=data;});
   const [pl,bm]=await Promise.all([sb.from('ul_post_likes').select('post_id').eq('user_id',S.uid),sb.from('ul_post_bookmarks').select('post_id').eq('user_id',S.uid)]);
@@ -1795,6 +1805,52 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('#lb').hidden){$('#lb').hidden=true;return;}
   for(const id of ['#rscrim','#pescrim','#nscrim','#pscrim','#scrim'])if(!$(id).hidden){id==='#scrim'?closeSheet():id==='#pscrim'?closePost():$(id).hidden=true;return;}});
 boot();
+
+/* =====================================================================
+   관리자: 다른 학교 둘러보기 (맛집 · 리뷰 · 로그톡 · 랭킹)
+   ===================================================================== */
+let swq='',swr='전체';
+function isOtherSchool(){return !!(S.school&&S.me&&S.school.id!==S.me.school_id);}
+function openSchoolSwitch(){if(!S.isAdmin)return;swq='';renderSwitch();$('#swscrim').hidden=false;}
+function swList(){
+  const q=swq.trim(),L=SCHOOLS.filter(x=>(swr==='전체'||x.r===swr)&&(!q||x.n.includes(q)||x.short.includes(q)||x.campus.includes(q)||x.cityDisp.includes(q)));
+  return L.length?L.map(x=>`<button class="opt" type="button" data-sw="${x.id}" aria-pressed="${S.school.id===x.id}"><span><b>${esc(x.n)}${x.id===S.me.school_id?' · 내 학교':''}</b><span>${x.campus?esc(x.campus)+' · ':''}${esc(x.cityDisp)}</span></span><span class="ck">✓</span></button>`).join('')
+    :'<div class="empty">찾는 학교가 없어요.</div>';
+}
+function renderSwitch(){
+  const sh=$('#swsheet');
+  sh.innerHTML=`<div class="gut pe-wrap" style="gap:10px">
+    <div class="nhead"><h3>학교 둘러보기</h3><span><button class="x" type="button" data-swclose aria-label="닫기">×</button></span></div>
+    <p class="hint" style="margin:0;font-size:12.5px;color:var(--sub)">관리자에게만 보이는 기능이에요. 고른 학교의 주변 맛집, 리뷰, 로그톡, 리뷰어 랭킹을 볼 수 있어요. 로그톡 글쓰기는 내 학교에서만 돼요.</p>
+    <div class="fld" style="margin:0"><input id="swq" type="search" placeholder="학교 이름이나 지역 검색" value="${esc(swq)}" autocomplete="off" aria-label="학교 검색"></div>
+    <div class="genre" role="group" aria-label="지역">${REGIONS.map(r=>`<button type="button" data-swr="${r}" aria-pressed="${swr===r}">${r}</button>`).join('')}</div>
+    <div class="opts school-box" id="swList">${swList()}</div></div>`;
+  sh.querySelector('[data-swclose]').onclick=()=>$('#swscrim').hidden=true;
+  sh.querySelector('#swq').oninput=e=>{swq=e.target.value;$('#swList').innerHTML=swList();};
+  sh.querySelectorAll('[data-swr]').forEach(b=>b.onclick=()=>{swr=b.dataset.swr;sh.querySelectorAll('[data-swr]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#swList').innerHTML=swList();});
+  $('#swList').onclick=e=>{const b=e.target.closest('[data-sw]');if(b)switchSchool(b.dataset.sw);};
+}
+async function switchSchool(id){
+  $('#swscrim').hidden=true;
+  if(!S.school||S.school.id===id)return;
+  const own=id===S.me.school_id;
+  const sc=own?(SCHOOLS.find(x=>x.id===id)||{id:S.me.school_id,n:S.me.school_name,short:S.me.school_short,campus:S.me.campus,cityDisp:''}):SCHOOLS.find(x=>x.id===id);
+  if(!sc)return;
+  S.school=sc;S.places=[];S.placeMap={};S.searchHit=null;S.listShow=10;S.q='';const qi=$('#q');if(qi)qi.value='';
+  S.talk={cat:'전체',page:1,total:0,list:[]};S.rank={period:S.rank.period,show:10,list:[],loaded:false};
+  if(S.overlays)S.overlays.forEach(o=>o.setMap(null));S.overlays=[];
+  renderWhere();renderTalk();renderPeople();loadTalk();loadRanking();
+  setTab('near');
+  toast(own?'내 학교로 돌아왔어요':`${sc.short}${sc.campus?' '+sc.campus:''} 둘러보는 중이에요`);
+  if(!window.kakao||!S.ps){renderList();return;}
+  try{S.coord=await schoolCoord();if(S.kmap){S.kmap.setCenter(new kakao.maps.LatLng(S.coord.y,S.coord.x));}await loadPlaces();}
+  catch(e){S.placesState='error';S.placesErr='가게를 불러오지 못했어요: '+esc(errText(e));renderList();}
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-school-switch]'))return openSchoolSwitch();
+  if(e.target.closest('[data-school-home]'))return switchSchool(S.me.school_id);
+});
+$('#swscrim').addEventListener('click',e=>{if(e.target===$('#swscrim'))$('#swscrim').hidden=true;});
 
 </script>
 </body>
