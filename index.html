@@ -544,7 +544,7 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .hero .thumb.ph{background-size:auto 96px!important;background-position:center!important}
 
 /* 첫 리뷰 안내 · 1호 뱃지 */
-.rcount.first{color:var(--accent);font-weight:700}
+.rcount.first{color:var(--sub);font-weight:400;opacity:.85}
 .no1{display:inline-block;vertical-align:1px;margin-left:5px;font-size:11px;font-weight:900;line-height:1;color:var(--accent);background:var(--soft);border:1px solid var(--accent);border-radius:999px;padding:2px 7px 1px;letter-spacing:-.02em}
 .empty small{display:block;margin-top:6px;font-size:12px;color:var(--sub)}
 .empty small .no1{margin-left:0}
@@ -1012,7 +1012,7 @@ function closeSheet(){openId=null;$('#scrim').hidden=true;}
 function keepScroll(fn){const sh=$('#sheet'),st=sh.scrollTop;fn();sh.scrollTop=st;}
 function picsHTML(rv){if(!rv.photos||!rv.photos.length)return '';
   return `<div class="pics">${rv.photos.map((u,j)=>`<button class="pic" type="button" data-pic="${esc(u)}" style="background-image:url('${esc(u)}')" aria-label="사진 ${j+1} 크게 보기"></button>`).join('')}</div>`;}
-const firstCall=()=>`✍️ 우리 학교 첫 리뷰어가 되어 보세요!`;
+const firstCall=()=>`우리 학교 첫 리뷰어가 되어 보세요`;
 // 가게에 가장 먼저 올라온 리뷰 (1호 뱃지)
 const firstOf=p=>p.reviews.reduce((a,r)=>!a||new Date(r.created_at)<new Date(a.created_at)?r:a,null);
 function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{},no1=firstOf(p)===rv;
