@@ -1880,10 +1880,9 @@ function visitorId(){let v=store.get('ul_vid');if(!v||v.length<8){v='v'+Math.ran
 function startPresence(uid){
   try{const id=visitorId();
     Promise.resolve(sb.rpc('ul_ping',{p_vid:id})).catch(()=>{});
-    if(!sb.channel)return;
-    const ch=sb.channel('ul-online',{config:{presence:{key:id}}});
-    ch.subscribe(st=>{if(st==='SUBSCRIBED')ch.track({t:Date.now(),u:uid?1:0});});
-    S.presence=ch;
+    const beat=()=>{if(!document.hidden)Promise.resolve(sb.rpc('ul_heartbeat',{p_vid:id})).catch(()=>{});};
+    beat();setInterval(beat,60000);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)beat();});
   }catch(e){}
 }
 async function boot(){

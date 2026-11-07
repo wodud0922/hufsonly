@@ -127,7 +127,7 @@ i.v,.bar .v{background:var(--accent)} i.m,.bar .m{background:var(--ok)} i.r,.bar
 
   <main id="main" hidden>
     <section class="stats" aria-label="통계">
-      <div class="st live"><span>지금 접속 중</span><b id="s-live" class="num">-</b><small><i class="dot"></i>실시간</small></div>
+      <div class="st live"><span>지금 접속 중</span><b id="s-live" class="num">-</b><small><i class="dot"></i><span id="s-live2">불러오는 중…</span></small></div>
       <div class="st"><span>오늘 방문자</span><b id="s-today" class="num">-</b><small id="s-today2">&nbsp;</small></div>
       <div class="st"><span>누적 방문자</span><b id="s-total" class="num">-</b><small id="s-total2">&nbsp;</small></div>
       <div class="st"><span>가입자</span><b id="s-mem" class="num">-</b><small id="s-mem2">&nbsp;</small></div>
@@ -214,11 +214,12 @@ function renderSchools(){
 }
 $("#schMore").onclick=()=>{schAll=!schAll;renderSchools();};
 function watchLive(){
-  try{
-    const ch=sb.channel("ul-online",{config:{presence:{key:"admin-"+Math.random().toString(36).slice(2)}}});
-    const upd=()=>{const st=ch.presenceState();$("#s-live").textContent=Object.keys(st).filter(k=>!k.startsWith("admin-")).length;};
-    ch.on("presence",{event:"sync"},upd).subscribe(s=>{if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")$("#s-live").textContent="?";});
-  }catch(e){$("#s-live").textContent="?";}
+  const tick=async()=>{
+    const {data,error}=await sb.rpc("ul_admin_online");
+    if(error){$("#s-live").textContent="?";$("#s-live2").textContent=/ul_admin_online|function/.test(error.message)?"6_online_now.sql 실행 필요":"불러오지 못했어요";return;}
+    $("#s-live").textContent=nf(data.online);$("#s-live2").textContent="로그인 "+nf(data.members)+"명 · 최근 2분";
+  };
+  tick();setInterval(()=>{if(!document.hidden)tick();},20000);
 }
 const nf=n=>Number(n||0).toLocaleString("ko-KR");
 async function loadStats(){
