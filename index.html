@@ -1548,7 +1548,7 @@ const EMO=[[/커피|카페|테마카페/,'cup'],[/베이커리|제과|빵|도넛
 function phKey(p){const cat=String(p&&(p.catFull||p.cat)||''),parts=cat.split('>').map(x=>x.trim()).filter(Boolean).reverse();
   for(const x of parts)for(const [re,k] of EMO)if(re.test(x))return k;return 'plate';}
 const phIcon=(p,sz)=>{const k=phKey(p);return `<svg viewBox="0 0 48 48" ${sz?`width="${sz}" height="${sz}"`:''} stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PHI[k]}</svg>`;};
-const phStyle=p=>`--phc:${PHC[phKey(p)]}`;
+const phStyle=p=>'--phc:var(--accent)';   /* 사진 없는 가게 그림은 모두 유니로그 주황색 하나로 */
 const phHTML=(p,cls)=>`<span class="thumb ph ${cls}" style="${phStyle(p)}" aria-hidden="true">${phIcon(p)}</span>`;
 function thumb(p,label=true,i=0,cls=''){const ph=photosOf(p)[i];if(ph)return `<span class="thumb ${cls}" style="background:url('${esc(ph)}') center/cover"></span>`;
   return phHTML(p,cls);}
@@ -2096,7 +2096,7 @@ function renderMe(){
   $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><div class="nm"><b>${esc(me.nick||'')}</b>${fdB(me)}${lvBadge(likes)}</div><span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?'<span>· 재학생 인증 확인 중</span>':''}</span></div>
       <span class="hd-btns"><button class="bell" type="button" data-noti aria-label="알림 ${un}개">${BELL}${un?`<span class="nbadge num">${un>99?'99+':un}</span>`:''}</button><button class="wbtn" type="button" data-pedit>프로필 수정</button></span></div>
     <div class="gauge"><div class="lbl"><b>${next?`${next.name}까지 "도움돼요" ${next.min-likes}개`:'최고 등급이에요'}</b><span>내 평가 반영 ×${LV[li].w}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
-    ${me.founder&&!S.fdCardHide?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>선착순 3명 · 재학생 인증</small></span><button class="x" type="button" data-fdcx aria-label="닫기">×</button></div>`:''}
+    ${false&&me.founder&&!S.fdCardHide?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>선착순 3명 · 재학생 인증</small></span><button class="x" type="button" data-fdcx aria-label="닫기">×</button></div>`:''}
     ${me.status==='none'||me.status==='rejected'?`<div class="vnudge"><span><b>${me.status==='rejected'?'재학생 인증이 반려됐어요':'재학생 인증을 해 보세요'}</b><small>${me.status==='rejected'?esc(me.reject_reason?'사유: '+me.reject_reason:'캡처를 다시 올려 주세요'):'인증하면 내 리뷰와 글에 재학생 인증 뱃지가 붙어요'}</small></span><button class="wbtn" type="button" data-verify-start>인증하기</button></div>`:''}
     <div class="kv"><div><b class="num">${S.counts.reviews??'-'}</b><span>리뷰</span></div><div><b class="num">${likes}</b><span>받은 도움돼요</span></div><div><b class="num">${S.counts.visits??'-'}</b><span>방문 인증</span></div></div>`;
   const fx=$('#profile [data-fdcx]');if(fx)fx.onclick=()=>{S.fdCardHide=true;renderMe();};
@@ -2632,6 +2632,7 @@ async function loadFounders(){
 }
 function renderFdBanner(){
   const el=$('#fdBanner');if(!el)return;
+  el.hidden=true;el.innerHTML='';return;   /* 홈의 개척자 배지 알림은 없앴어요 (배지 자체는 이름 옆에 그대로) */
   if(!S.founders||!S.school||(S.fdHide&&S.fdHide[S.school.id])){el.hidden=true;el.innerHTML='';return;}
   const F=[...S.founders].sort((x,y)=>x.founder-y.founder),left=3-F.length,short=esc(S.school.short),mine=F.find(u=>u.id===S.uid);
   const SEAT0='<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z" fill="#fff" fill-opacity=".75" stroke="#E0A55A" stroke-width="1.8" stroke-dasharray="2.6 2" stroke-linejoin="round"/></svg>';
@@ -2779,7 +2780,7 @@ let LVS=null,AL=null;
 const LIST_IC='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor"/></svg>';
 S.myLists=[];S.myListCats={};
 /* 리스트 표지: 담긴 가게 4곳까지 2×2 타일 (사진이 있으면 사진, 없으면 종류 그림) */
-const lcover=(items,cls='')=>{const L=items.slice(0,4);const t=L.length?L.map(p=>{const ph=p.reviews?photosOf(p)[0]:null;return ph?`<i style="background:url('${esc(ph)}') center/cover"></i>`:`<i class="ic" style="${phStyle(p)}">${phIcon(p)}</i>`;}).join(''):`<i class="ic" style="--phc:#B9B2A8">${LIST_IC}</i>`;
+const lcover=(items,cls='')=>{const L=items.slice(0,4);const t=L.length?L.map(p=>{const ph=p.reviews?photosOf(p)[0]:null;return ph?`<i style="background:url('${esc(ph)}') center/cover"></i>`:`<i class="ic" style="${phStyle(p)}">${phIcon(p)}</i>`;}).join(''):`<i class="ic" style="--phc:var(--accent)">${LIST_IC}</i>`;
   return `<span class="lcov n${Math.max(1,L.length)} ${cls}" aria-hidden="true">${t}</span>`;};
 const lemo=items=>{const seen=new Set(),L=[];items.forEach(p=>{const k=phKey(p);if(!seen.has(k)){seen.add(k);L.push(p);}});return (L.length?L.slice(0,3):[{catFull:''}]).map(p=>`<i style="${phStyle(p)}">${phIcon(p)}</i>`).join('');};
 async function loadMyLists(){
