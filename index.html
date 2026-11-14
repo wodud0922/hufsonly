@@ -540,16 +540,12 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .hero .thumb{background-size:cover!important;background-position:center!important}
 
-/* ===== 기본 사진 (리뷰 사진이 없을 때) ===== */
-
-.thumb.ph,.cchip .sq.ph{background-color:#FBE9DA;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23E35C0B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 33h40a20 20 0 0 1-40 0z' fill='%23fff'/%3E%3Cpath d='M22 13l13 18M30 11l10 19' /%3E%3Cpath d='M44 14c2 2 2 4 0 6M49 16c2 2 2 4 0 6' opacity='.45'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;background-size:52%;text-shadow:none}
-.thumb.mini.ph{background-size:60%}
+/* ===== 기본 사진 (리뷰 사진이 없을 때): 카테고리별 그림 ===== */
+.thumb.ph,.cchip .sq.ph{background:color-mix(in srgb,var(--phc,#E35C0B) 13%,var(--panel,#fff))!important;color:var(--phc,#E35C0B);--t:color-mix(in srgb,var(--phc,#E35C0B) 30%,var(--panel,#fff));display:grid;place-items:center;text-shadow:none}
+.thumb.ph svg,.cchip .sq.ph svg{width:58%;height:58%;display:block}
+.hero .thumb.ph svg{width:auto;height:46%;max-height:110px}
 .hero.one{grid-template-columns:1fr;grid-template-rows:1fr}
 .hero.one .thumb{grid-row:auto}
-.hero.one .thumb.ph{background-size:auto 62%}
-.cchip .sq.ph{background-size:80%}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(.thumb.ph,.cchip .sq.ph){background-color:#3A2414}}
-:root[data-theme="dark"] :is(.thumb.ph,.cchip .sq.ph){background-color:#3A2414}
 
 /* ===== 지도 핀 · 내 위치 ===== */
 .mapwrap{position:relative}
@@ -559,7 +555,6 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .me-dot{z-index:5}
 .locbtn{position:absolute;right:10px;bottom:12px;z-index:3;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#555;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.18);cursor:pointer}
 .locbtn.on{color:#2F7BFF}
-.hero .thumb.ph{background-size:auto 96px!important;background-position:center!important}
 
 /* 첫 리뷰 안내 · 1호 뱃지 */
 .rcount.first{color:var(--sub);font-weight:400;opacity:.85}
@@ -806,6 +801,324 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 .fdban.full .fdleft b{color:#8A4B0F}
 .fdneed{font-size:11.5px!important;color:#1D5FC8!important;font-weight:700}
 .fdneed button{border:0;background:none;padding:0 0 0 4px;color:#1D5FC8;font:inherit;font-weight:800;text-decoration:underline;cursor:pointer}
+
+/* ===== 로그인 없이 둘러보기 ===== */
+.guestbtn{border:0;background:none;color:var(--sub);font-size:14px;font-weight:700;padding:12px;width:100%;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.lgpop{position:fixed;inset:0;z-index:210;background:rgba(20,14,8,.45);display:flex;align-items:flex-end;justify-content:center;animation:fdFade .18s ease both}
+.lgpop-in{width:100%;max-width:520px;background:var(--panel);border-radius:18px 18px 0 0;padding:24px 20px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;animation:up .22s ease}
+.lgpop-in>b{font-size:18px;line-height:1.4}
+.lgpop-in p{margin:0 0 4px;font-size:13.5px;color:var(--sub);line-height:1.55}
+.lgpop-in .kakao{width:100%}
+.lg-mk{width:44px;height:44px;display:block}.lg-mk svg{width:100%;height:100%}
+.guestme{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:6px 0 2px}
+.guestme>b{font-size:17px}
+.guestme ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13.5px;color:var(--sub)}
+.guestme li::before{content:"✓ ";color:var(--accent);font-weight:800}
+.guestme .kakao{width:100%;margin-top:6px}
+
+/* ===== 맛집 리스트 ===== */
+.lstadd{margin-top:8px;align-self:flex-start;border:1px solid var(--accent);background:var(--panel);color:var(--accent);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+.lstripwrap{padding:12px 0 2px}
+.lstrip-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:0 max(16px,env(safe-area-inset-left,0px)) 8px}
+.lstrip-h b{font-size:15px}.lstrip-h small{font-size:11.5px;color:var(--sub)}
+.lstrip{display:flex;gap:10px;overflow-x:auto;scroll-padding-inline:max(16px,env(safe-area-inset-left,0px));padding:2px max(16px,env(safe-area-inset-left,0px)) 6px;scroll-snap-type:x proximity;scrollbar-width:none}
+.lstrip::-webkit-scrollbar{display:none}
+.lcard{flex:none;width:150px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;color:var(--ink)}
+.lcard b{font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
+.lcard small{font-size:11.5px;color:var(--sub)}
+.lcard.new{border-style:dashed;border-color:var(--accent);background:var(--soft)}
+.lcard.new b{color:var(--accent)}
+.lc-emo{display:flex;gap:4px;height:30px;align-items:center}
+.lc-emo i{font-style:normal;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:color-mix(in srgb,var(--phc,#E35C0B) 13%,var(--panel,#fff));color:var(--phc,#E35C0B);--t:color-mix(in srgb,var(--phc,#E35C0B) 30%,var(--panel,#fff))}
+.lc-emo i svg{width:20px;height:20px}
+.lcard.new .lc-emo i{font-family:inherit;color:var(--accent);font-weight:800}
+.lc-emo.big{height:48px;gap:6px}.lc-emo.big i{width:48px;height:48px;border-radius:12px}.lc-emo.big i svg{width:30px;height:30px}
+.lc-emo.sm{width:40px;height:40px;border-radius:10px;background:var(--soft);justify-content:center}.lc-emo.sm i{font-size:20px}
+.lview{gap:14px}
+.lhead{display:flex;flex-direction:column;gap:6px}
+.lhead h2{margin:4px 0 0;font-size:21px;line-height:1.3}
+.lhead p{margin:0;font-size:14px;color:var(--ink);line-height:1.55;white-space:pre-wrap}
+.lby{display:flex;align-items:center;gap:10px;margin-top:6px}
+.lby .av{width:36px;height:36px;font-size:14px}
+.lby>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lby small{font-size:12px;color:var(--sub)}
+.lacts{display:flex;gap:8px}
+.lacts .btn{display:flex;align-items:center;justify-content:center;gap:6px}
+.litems{display:flex;flex-direction:column}
+.litem{display:flex;align-items:center;gap:6px;border-top:1px solid var(--line)}
+.lrow{flex:1;min-width:0;display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 0;border:0;background:none;text-align:left;color:var(--ink);cursor:pointer}
+.lrow .who{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lrow .who b{font-size:14.5px}
+.lrow .d{font-size:12px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow .sc{color:var(--accent);font-weight:800}
+.lrow .note{font-size:12.5px;color:var(--ink);background:var(--sunk);border-radius:6px;padding:3px 7px;align-self:flex-start}
+.lrow .go,.lmine .go{color:var(--sub);font-size:18px}
+.lrm{flex:none;width:30px;height:30px;border-radius:50%;border:0;background:var(--sunk);color:var(--sub);font-size:15px;cursor:pointer}
+.ldel{border:0;background:none;color:#C0392B;font-weight:700;font-size:13px;padding:8px;cursor:pointer}
+.lnew{display:flex;gap:8px}
+.lnew input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px;background:var(--panel);color:var(--ink)}
+.lnew .btn{width:auto;flex:none;white-space:nowrap}
+.lnewbtn{width:100%;border:1.5px dashed var(--accent);background:var(--soft);color:var(--accent);border-radius:10px;padding:12px;font-weight:800;font-size:14px;margin:4px 0 6px;cursor:pointer}
+.lmine{grid-template-columns:40px 1fr auto!important}
+.fld textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;font-size:14px;resize:vertical;background:var(--panel);color:var(--ink)}
+
+/* ===== 당겨서 새로고침 ===== */
+html,body{overscroll-behavior-y:contain}
+.ptr{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));left:50%;z-index:150;width:40px;height:40px;margin-top:-46px;border-radius:50%;background:var(--panel);color:var(--accent);
+  box-shadow:0 3px 12px rgba(0,0,0,.18);display:grid;place-items:center;opacity:0;transform:translate(-50%,0);pointer-events:none;transition:opacity .15s}
+.ptr.on{transition:none}
+.ptr.ready{color:#fff;background:var(--accent)}
+.ptr.busy{opacity:1!important;transition:transform .2s ease}
+.ptr.busy svg{animation:ptrspin .8s linear infinite}
+@keyframes ptrspin{to{transform:rotate(360deg)}}
+body.guest .meact{display:none}
+.lstrip-cta{display:flex;align-items:center;gap:12px;width:calc(100% - 2*max(12px,env(safe-area-inset-left,0px)));margin:0 max(12px,env(safe-area-inset-left,0px));padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);text-align:left;color:var(--ink);cursor:pointer}
+.lstrip-cta>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.lstrip-cta b{font-size:14px}.lstrip-cta small{font-size:11.5px;color:var(--sub)}
+.lstrip-cta .go{color:var(--sub);font-size:18px}
+
+.lc-emo.sm i{background:var(--soft);color:var(--accent);width:40px;height:40px;border-radius:10px}
+.ktags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.kt{font-size:11.5px;font-weight:700;color:var(--sub);background:var(--sunk);border-radius:999px;padding:2px 8px;line-height:1.4}
+.kt.price{color:var(--accent);background:var(--soft)}
+body.guest .melists{display:none}
+#meLists .lnewbtn{margin-top:0}
+.lpick{display:flex;flex-direction:column;gap:10px}
+.lpick-h{display:flex;align-items:baseline;gap:8px}
+.lpick-h b{font-size:14px}.lpick-h .num{color:var(--accent);font-weight:800;font-size:13px}
+.lpick-sel,.lpick-list{display:flex;flex-wrap:wrap;gap:6px}
+.lpick-sel{padding:10px;border-radius:10px;background:var(--soft)}
+.lpick-list{max-height:260px;overflow-y:auto}
+.lpick-tabs{margin:0}
+/* 맛집 리스트: 만들기·편집 화면 */
+.lf-title{width:100%;border:0;border-bottom:2px solid var(--line);background:transparent;font-size:20px;font-weight:800;padding:8px 2px;color:var(--ink);outline:0}
+.lf-title:focus{border-bottom-color:var(--accent)}
+.lsel{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+.lsel::-webkit-scrollbar{display:none}
+.lsel-i{position:relative;flex:none;width:78px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.lsel-i .thumb.mini{width:64px;height:64px;border-radius:12px}
+.lsel-i b{font-size:11.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lsel-n{position:absolute;top:-4px;left:2px;z-index:2;min-width:20px;height:20px;border-radius:10px;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 5px}
+.lsel-i button{position:absolute;top:-4px;right:2px;z-index:2;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:13px;line-height:1;cursor:pointer}
+.lsel-empty{border:1.5px dashed var(--line);border-radius:12px;padding:18px;text-align:center;font-size:13px;color:var(--sub)}
+.lpick-tabs{display:flex;border-bottom:1px solid var(--line);margin:4px 0 0}
+.lpick-tabs button{flex:1;border:0;background:none;padding:10px 4px;font-size:13.5px;font-weight:700;color:var(--sub);border-bottom:2.5px solid transparent;margin-bottom:-1px;cursor:pointer}
+.lpick-tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.lpick-q input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;background:var(--sunk);color:var(--ink)}
+.lpick-list{display:flex!important;flex-direction:column;flex-wrap:nowrap!important;gap:0!important;max-height:min(46vh,420px)!important;overflow-y:auto}
+.prow2{display:grid;grid-template-columns:48px 1fr 26px;gap:12px;align-items:center;padding:8px 2px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;color:var(--ink);cursor:pointer;width:100%}
+.prow2 .thumb.mini{width:48px;height:48px}
+.prow2 .who{display:flex;flex-direction:column;gap:2px;min-width:0}
+.prow2 .who b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow2 .d{font-size:12px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow2 .sc{color:var(--accent);font-weight:800}
+.prow2 .ck{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:900;color:#fff}
+.prow2.on{background:var(--soft)}
+.prow2.on .ck{background:var(--accent);border-color:var(--accent)}
+.lf-bar{position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom,0px));margin:4px -16px calc(-18px - env(safe-area-inset-bottom,0px));padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--page);border-top:1px solid var(--line);display:flex;gap:8px;z-index:3}
+.lf-bar .btn{width:auto;flex:1;white-space:nowrap}
+.lf-bar .btn:last-child{flex:2}
+/* 리스트 보기: 번호 */
+.lno{flex:none;width:22px;text-align:center;font-weight:900;color:var(--accent);font-size:15px}
+/* 마이페이지 내 리스트 카드 */
+.lgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.lcard.mine{width:auto}
+/* 로그톡에 단 나만의 로그 */
+.pchips{display:flex;flex-wrap:wrap;gap:6px}
+.cchip .sq.lsq{display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 12%,var(--panel));color:var(--accent)}
+.cchip .sq.lsq svg{width:15px;height:15px}
+.cb>.lchip{margin-top:6px}
+.cp-tabs{display:flex;gap:6px}
+.cp-tabs button{border:1px solid var(--line);background:var(--panel);color:var(--sub);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+.cp-tabs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--soft)}
+.plhint{display:block;margin-top:4px;font-size:11.5px;color:var(--sub)}
+
+/* =====================================================================
+   무드: 일본 맛집 가이드 사이트 느낌
+   회색 바탕 위 꽉 찬 흰 구역, 가는 회색 선, 주황 평점, 담백한 고딕
+   기능·문구·배치는 그대로, 색·글꼴·모서리·여백만 바꿔요
+   ===================================================================== */
+:root{
+  --page:#EFEFEF; --panel:#FFFFFF; --sunk:#F6F6F6; --ink:#333333; --sub:#888888; --line:#E2E2E2;
+  --accent:#EE7A00; --star:#F29600; --star-off:#DDDDDD; --link:#1F5FAA;
+  --badge:#EE7A00; --soft:#FFF5E8; --cert:#2F6DB5; --cert-soft:#EAF2FB;
+  --f-body:"Noto Sans KR","Hiragino Sans","Apple SD Gothic Neo",system-ui,sans-serif;
+  --f-round:var(--f-body);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --page:#111111; --panel:#1C1C1C; --sunk:#252525; --ink:#E6E6E6; --sub:#9A9A9A; --line:#323232;
+  --accent:#FF9230; --star:#FFA436; --star-off:#444444; --soft:#33240F; --cert:#8DB6EA; --cert-soft:#1C2836; --link:#8FB8EE;
+}}
+:root[data-theme="dark"]{
+  --page:#111111; --panel:#1C1C1C; --sunk:#252525; --ink:#E6E6E6; --sub:#9A9A9A; --line:#323232;
+  --accent:#FF9230; --star:#FFA436; --star-off:#444444; --soft:#33240F; --cert:#8DB6EA; --cert-soft:#1C2836; --link:#8FB8EE;
+}
+body{font-size:14.5px;letter-spacing:-.01em}
+
+/* 머리글: 흰 바탕 + 주황 로고 글자 */
+.logo{font-family:var(--f-body);font-weight:900;font-size:21px;letter-spacing:-.06em;color:var(--accent)}
+.logo .mk,.logo svg.lg{border-radius:6px}
+.search{border-radius:8px;background:var(--sunk);border-color:var(--line)}
+
+/* 구역: 둥근 카드 대신 화면 끝까지 꽉 찬 흰 띠 */
+main{gap:8px;padding-top:8px}
+.view{gap:8px}
+.panel{margin-left:0!important;margin-right:0!important;border-radius:0;border-left:0;border-right:0;box-shadow:none}
+.panel.gut,.panel>.gut{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+.sh{padding-block:12px 8px;border-bottom:1px solid var(--line)}
+.sh h2{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.sh h2::before{width:3px;height:14px;border-radius:0;background:var(--accent)}
+
+/* 필터·정렬 */
+.genre button,.maptoggle{border-radius:8px;font-size:13px;padding:5px 12px;font-weight:500}
+.genre button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--soft);font-weight:700}
+.maptoggle[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--soft)}
+.sort button[aria-pressed="true"]{color:var(--accent);font-weight:700}
+
+/* 가게 목록: 파란 가게명 + 주황 별점·숫자 */
+.rs{padding-block:15px}
+.rs .nm{font-size:16.5px;font-weight:700;letter-spacing:-.03em;color:var(--link)}
+.rank{border-radius:4px;background:var(--accent);color:#fff;font-size:11px}
+.rank.low{background:var(--sunk);color:var(--sub);border:0}
+.thumb{border-radius:8px}
+.val{font-weight:900;font-size:20px;color:var(--accent);letter-spacing:-.03em}
+.snip{font-size:12.5px;color:#666}
+.budget{color:#666}
+
+/* 칭호·뱃지 */
+.lv,.cert,.mytag,.no1,.kt{border-radius:6px!important}
+
+/* 버튼 */
+.btn{border-radius:8px;font-weight:700}
+.btn.line{border-color:#CCCCCC;color:var(--ink)}
+.wbtn,.mbtn,.lstadd,.morebtn,.pager button,.mini,.ctag,.like{border-radius:8px!important}
+.opt{border-radius:8px;border-width:1px}
+.period,.period button{border-radius:8px}
+.period button[aria-pressed="true"]{color:var(--accent)}
+.fld input,.fld select,.fld textarea,.write input,.write textarea,.cbar input,.lnew input,.lpick-q input{border-radius:8px!important}
+.toast{border-radius:8px;background:rgba(30,30,30,.92);font-size:13px}
+
+/* 아래 탭바 */
+nav.tabs{box-shadow:none}
+nav.tabs button[aria-current="page"]{color:var(--accent);font-weight:700}
+
+/* 가게 상세 등 시트 */
+.sheet{border-radius:16px 16px 0 0}
+.dhead h3{font-size:20px;font-weight:700;letter-spacing:-.03em}
+.dhead .rating .val{font-size:26px}
+.dtabs button[aria-pressed="true"],.area-tabs button[aria-pressed="true"],.lpick-tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.hero .thumb,.pic{border-radius:0}
+.compare{border-radius:8px;background:var(--sunk)}
+table.facts th{font-weight:500;color:var(--sub);background:var(--sunk)}
+.rv .menu{border-radius:6px}
+
+/* 로그톡·랭킹·마이페이지 */
+.ptitle{font-weight:700;color:var(--link);letter-spacing:-.02em}
+.row2.is-me{background:var(--soft)}
+.kv,.tiers,.metabs,.explain{border-radius:8px!important}
+.metabs button[aria-selected="true"]{background:var(--soft)}
+.metabs button[aria-selected="true"] b{color:var(--accent)}
+.bell{border-radius:8px}
+
+/* 안내 카드: 그라데이션·그림자 빼고 담백하게 */
+.fdban{background:#FFFBF2!important;border:1px solid #F0D9A8;border-radius:0;border-left:0;border-right:0;box-shadow:none;animation:none}
+.fdwrap{padding-left:0!important;padding-right:0!important;padding-top:0}
+.fdban-tx>b{color:#8A4B0F}
+.seat{border-radius:8px}
+.fdcard{border-radius:8px;background:#FFFBF2;border-color:#F0D9A8}
+.vnudge,.pnudge,.pguide,.cp-empty,.lsel-empty,.ob-easy,.upload,.preview,.agree,.steps-info,.prow,.pset,.nlist{border-radius:8px!important}
+.lstrip-cta{width:100%!important;margin:0!important;border-radius:0;border-left:0;border-right:0}
+.lstripwrap{padding-top:0}
+.lcard,.lnewbtn,.lc-emo i,.lc-emo.sm i,.lsel-i .thumb.mini{border-radius:8px}
+.lcard b,.prow2 .who b,.lrow .who b{color:var(--link)}
+.lcard.new b{color:var(--accent)}
+.mchip{border-radius:8px}
+.intro-track{border-radius:6px}
+.ob-hero h1{font-family:var(--f-body);font-weight:900;letter-spacing:-.06em;color:var(--accent)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(.fdban,.fdcard,.seat.on,.seat.me){background:#2A2216!important;border-color:#5A4520}
+  :root:not([data-theme="light"]) .fdban-tx>b{color:#F0C27A}}
+:root[data-theme="dark"] :is(.fdban,.fdcard,.seat.on,.seat.me){background:#2A2216!important;border-color:#5A4520}
+:root[data-theme="dark"] .fdban-tx>b{color:#F0C27A}
+
+/* 조금 더 둥글게 */
+.genre button,.maptoggle{border-radius:999px!important;padding:5px 14px}
+.thumb{border-radius:10px}
+.hero .thumb{border-radius:0}
+
+/* ===== 맛집 리스트 정리 ===== */
+.dhb{display:flex;align-items:center;gap:6px;flex:none}
+.dlist{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px 0 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:12.5px;font-weight:700;cursor:pointer}
+.dlist svg{color:var(--accent)}
+.lcov{display:grid;width:100%;aspect-ratio:1/1;border-radius:10px;overflow:hidden;gap:2px;background:var(--line);flex:none}
+.lcov.n1{grid-template-columns:1fr}
+.lcov.n2{grid-template-columns:1fr 1fr}
+.lcov.n3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.lcov.n3 i:first-child{grid-row:span 2}
+.lcov.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.lcov i{display:grid;place-items:center;font-style:normal;min-width:0;min-height:0;background-color:var(--sunk)}
+.lcov i.ic{background:color-mix(in srgb,var(--phc,#E35C0B) 13%,var(--panel,#fff));color:var(--phc,#E35C0B);--t:color-mix(in srgb,var(--phc,#E35C0B) 30%,var(--panel,#fff))}
+.lcov i svg{width:46%;height:46%;max-width:56px;max-height:56px}
+.lcov.n1 i svg{width:40%;height:40%}
+.lcov i.plus{background:var(--soft);color:var(--accent);font-size:30px;font-weight:300}
+.lcov.big{width:120px;border-radius:12px}
+.lcov.sm{width:48px;border-radius:8px}
+.lstripwrap{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0 14px!important}
+.lstrip-h{display:flex;align-items:center;justify-content:space-between;padding:0 max(14px,env(safe-area-inset-left,0px)) 10px!important}
+.lstrip-h b{font-size:15px;font-weight:700}
+.lstrip-more{border:0;background:none;color:var(--accent);font-weight:700;font-size:13px;padding:4px 0;cursor:pointer}
+.lstrip{gap:12px!important;padding:0 max(14px,env(safe-area-inset-left,0px))!important}
+.lcard{width:132px!important;padding:0!important;border:0!important;background:transparent!important;gap:6px!important;border-radius:0!important}
+.lcard b{font-size:13.5px!important;min-height:0!important;-webkit-line-clamp:1!important;color:var(--ink)!important;padding:0 2px}
+.lcard small{padding:0 2px;font-size:11.5px}
+.lcard.new b{color:var(--accent)!important}
+.lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px;padding:12px 0 14px;margin:0}
+.lgrid .lcard{width:auto!important}
+.lview{gap:16px}
+.lhead{align-items:center;text-align:center;gap:8px;padding-top:4px}
+.lhead h2{font-size:20px}
+.lhead p{text-align:center}
+.lby{justify-content:center;margin-top:2px}
+.lby>span{align-items:flex-start;text-align:left}
+.lacts .btn{border-radius:999px}
+.lacts .btn.ic{flex:none;width:46px;padding:0;display:grid;place-items:center}
+.litems{border-top:1px solid var(--line)}
+.litem{border-top:0;border-bottom:1px solid var(--line)}
+.lrow{grid-template-columns:56px 1fr 14px;padding:12px 0}
+.lrow .thumb.mini{width:56px;height:56px;border-radius:10px}
+.lno{width:20px;font-size:14px}
+.alist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.alist .prow2{grid-template-columns:48px 1fr 26px}
+.lf-bar .btn{border-radius:999px}
+.lsel-i .thumb.mini{border-radius:10px!important}
+.prow2 .thumb.mini{border-radius:8px}
+/* 맛집 리스트: 이름 줄 + 눌러서 펼치기 */
+.laccs{display:flex;flex-direction:column}
+#listStrip .laccs{border-top:1px solid var(--line)}
+.lacc{border-bottom:1px solid var(--line)}
+#listStrip .lacc{padding:0 max(14px,env(safe-area-inset-left,0px))}
+.lacc-h{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:13px 0;text-align:left;color:var(--ink);cursor:pointer}
+.lacc-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.lacc-t b{font-size:15px;font-weight:700;color:var(--link);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lacc-t small{font-size:12px;color:var(--sub)}
+.chev{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:var(--sub);font-size:18px;line-height:1;transition:transform .2s;background:var(--sunk)}
+.lacc.open .chev{transform:rotate(180deg);color:var(--accent);background:var(--soft)}
+.lacc-b{padding:0 0 12px;animation:laccIn .18s ease}
+@keyframes laccIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.lacc-i{display:flex;align-items:center;gap:10px;width:100%;border:0;background:var(--sunk);padding:9px 12px;text-align:left;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--panel)}
+.lacc-i:first-child{border-radius:10px 10px 0 0}
+.lacc-i:nth-last-child(2){border-radius:0 0 10px 10px;border-bottom:0}
+.lacc-i:first-child:nth-last-child(2){border-radius:10px}
+.lacc-i .who{flex:1;min-width:0;display:flex;flex-direction:column}
+.lacc-i .who b{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lacc-i .d{font-size:12px;color:var(--sub)}
+.lacc-i .sc{color:var(--accent);font-weight:800}
+.lacc-i .go{color:var(--sub)}
+.lacc-i .lno{width:18px;font-size:13.5px;color:var(--accent)}
+.lacc-act{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.lacc-act button{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+.lacc-act button:first-child{border-color:var(--accent);color:var(--accent)}
+#meLists .lnewbtn{margin:12px 0 14px;border-radius:999px;border-style:dashed}
+.shadd{margin-left:auto;align-self:center;width:28px;height:28px;border-radius:50%;border:1px solid var(--accent);background:var(--panel);color:var(--accent);font-size:17px;font-weight:700;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer}
+.melists .sh{align-items:center}
 </style>
 </head>
 <body>
@@ -871,10 +1184,11 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 
     <section class="view" id="v-me" hidden>
       <div class="panel gut"><div class="prof" id="profile"></div></div>
-      <div class="panel gut"><div class="sh"><h2>내 활동</h2></div>
+      <div class="panel gut meact"><div class="sh"><h2>내 활동</h2></div>
         <div class="metabs" id="meTabs" role="tablist" aria-label="내 활동"></div>
         <div id="meBody"></div>
       </div>
+      <div class="panel gut melists"><div class="sh"><h2>나만의 로그</h2><button class="shadd" type="button" data-lnew aria-label="새 로그 만들기">＋</button></div><div id="meLists"></div></div>
     </section>
   </main>
 
@@ -888,12 +1202,14 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
   </nav>
 </div>
 
+<div class="scrim" id="lscrim" hidden><div class="sheet pe" id="lsheet" role="dialog" aria-modal="true" aria-label="나만의 로그"></div></div>
 <div class="scrim" id="scrim" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="가게 정보"></div></div>
 <div class="scrim" id="pscrim" hidden><div class="sheet" id="psheet" role="dialog" aria-modal="true" aria-label="로그톡 글"></div></div>
 <div class="scrim" id="nscrim" hidden><div class="sheet pe" id="nsheet" role="dialog" aria-modal="true" aria-label="알림"></div></div>
 <div class="scrim" id="pescrim" hidden><div class="sheet pe" id="pesheet" role="dialog" aria-modal="true" aria-label="프로필 수정"></div></div>
 <div class="scrim" id="rscrim" hidden><div class="sheet pe" id="rsheet" role="dialog" aria-modal="true" aria-label="신고"></div></div>
 <div class="scrim" id="swscrim" hidden><div class="sheet pe" id="swsheet" role="dialog" aria-modal="true" aria-label="학교 둘러보기"></div></div>
+<div class="scrim" id="ascrim" hidden><div class="sheet pe" id="asheet" role="dialog" aria-modal="true" aria-label="로그에 담기"></div></div>
 <div class="lb" id="lb" hidden role="dialog" aria-label="사진 크게 보기"></div>
 <div class="ob" id="ob" role="dialog" aria-modal="true" aria-label="유니로그 시작" hidden></div>
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
@@ -1028,7 +1344,7 @@ const opt=(v,sel)=>`<option value="${v}" ${sel===v?'selected':''}>${v}</option>`
 /* ---------- 상태 ---------- */
 const S={uid:null,me:null,priv:null,school:null,coord:null,ps:null,kmap:null,overlays:[],
   places:[],placeMap:{},saved:new Set(),visits:{},likedRev:new Set(),likedPost:new Set(),bmPost:new Set(),
-  genre:null,tag:null,sort:'score',q:'',listShow:10,mapOn:false,tab:'near',placesState:'loading',placesErr:'',
+  genres:new Set(),tags:new Set(),sort:'score',q:'',listShow:10,mapOn:false,tab:'near',placesState:'loading',placesErr:'',
   talk:{cat:'전체',page:1,total:0,list:[]},rank:{period:'all',show:10,list:[],loaded:false},
   meTab:null,meCache:{},counts:{},notis:[],notiAll:false};
 const U={};   // 회원 정보 캐시 (id → 공개 정보)
@@ -1041,7 +1357,7 @@ const FD=(s)=>`<svg width="${s}" height="${s}" aria-hidden="true"><use href="#fd
 const fdTitle=u=>`${u.school_short||''} 개척자 · 재학생 중 ${u.founder}번째로 리뷰를 쓴 사람`;
 NICON.founder=FD(24);
 const fdB=u=>u&&u.founder?`<span class="fd" role="img" aria-label="${esc(fdTitle(u))}" title="${esc(fdTitle(u))}">${FD(20)}</span>`:'';
-function needApproved(what='이용'){if(approved())return true;toast('이용이 정지된 계정이에요');return false;}
+function needApproved(what='이용'){if(!S.me){askLogin(what);return false;}if(approved())return true;toast('이용이 정지된 계정이에요');return false;}
 const userD=u=>u?`${u.school_short} ${u.year}`:'';
 const nameOf=id=>U[id]?.nick||'알 수 없음';
 const initialOf=id=>{const n=(U[id]?.nick||'?').replace(/[0-9]/g,'');return n.slice(0,1)||'?';};
@@ -1139,7 +1455,7 @@ async function loadPlaces(){
   (await nearbyKakao()).forEach(d=>addPlace(fromKakao(d),true));
   // 카카오 검색에서 빠졌더라도, 학교 근처에서 누가 리뷰·저장·방문 인증한 가게는 항상 목록에 넣어요
   await addKnownNearby();
-  const {data:sv}=await sb.from('ul_saved_places').select('place_id, ul_places(*)').order('created_at',{ascending:false});
+  const {data:sv}=S.uid?await sb.from('ul_saved_places').select('place_id, ul_places(*)').order('created_at',{ascending:false}):{data:[]};
   S.saved=new Set((sv||[]).map(x=>x.place_id));
   (sv||[]).forEach(x=>{if(x.ul_places){const p=addPlace(fromRow(x.ul_places),false);p._inDb=true;}});
   await loadReviewsFor(Object.keys(S.placeMap));
@@ -1157,7 +1473,7 @@ async function addKnownNearby(){
 }
 async function loadReviewsFor(ids){
   ids=[...new Set(ids)];if(!ids.length)return;
-  ids.forEach(id=>{if(S.placeMap[id])S.placeMap[id].reviews=[];});
+  ids.forEach(id=>{if(S.placeMap[id]){S.placeMap[id].reviews=[];S.placeMap[id]._vc={};}});
   const rows=[];
   for(let i=0;i<ids.length;i+=60){
     const {data,error}=await sb.from('ul_reviews').select('*').in('place_id',ids.slice(i,i+60)).order('created_at',{ascending:false}).limit(3000);
@@ -1165,9 +1481,13 @@ async function loadReviewsFor(ids){
   }
   rows.forEach(r=>{const p=S.placeMap[r.place_id];if(p){p.reviews.push(r);p._inDb=true;}});
   await ensureUsers(rows.map(r=>r.user_id));
-  if(rows.length){const {data:lk}=await sb.from('ul_review_likes').select('review_id').in('review_id',rows.map(r=>r.id).slice(0,900));(lk||[]).forEach(x=>S.likedRev.add(x.review_id));}
+  // 리뷰마다 "이 가게 방문 인증 횟수" (사람별 횟수만 받아와요)
+  for(let i=0;i<ids.length;i+=150){const {data:vc,error:ve}=await sb.rpc('ul_visit_counts',{p_places:ids.slice(i,i+150)});if(ve)break;
+    (vc||[]).forEach(x=>{const p=S.placeMap[x.place_id];if(p)(p._vc||(p._vc={}))[x.user_id]=+x.n;});}
+  if(rows.length&&S.uid){const {data:lk}=await sb.from('ul_review_likes').select('review_id').in('review_id',rows.map(r=>r.id).slice(0,900));(lk||[]).forEach(x=>S.likedRev.add(x.review_id));}
 }
 async function loadMyVisits(){
+  if(!S.uid){S.visits={};return;}
   const {data}=await sb.from('ul_visits').select('place_id,visit_day').eq('user_id',S.uid);
   const t=todayKST(),lim=new Date(Date.now()+9*3600e3-7*864e5).toISOString().slice(0,10);S.visits={};
   (data||[]).forEach(v=>{const o=S.visits[v.place_id]||(S.visits[v.place_id]={n:0,today:false,recent:false});o.n++;if(v.visit_day===t)o.today=true;if(v.visit_day>=lim)o.recent=true;});
@@ -1198,8 +1518,40 @@ const bestReview=p=>[...p.reviews].sort((a,b)=>(wOf(b.user_id)*20+b.likes)-(wOf(
 const photosOf=p=>p.reviews.flatMap(r=>r.photos||[]);
 function priceOf(p){const c=[0,0,0,0,0];let n=0;p.reviews.forEach(r=>{if(r.price_level!=null){c[r.price_level]++;n++;}});if(!n)return '';return '1인 '+PRICES[c.indexOf(Math.max(...c))];}
 function tagsOf(p){const c={};p.reviews.forEach(r=>(r.tags||[]).forEach(t=>c[t]=(c[t]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);}
+/* 사진 없는 가게: 카테고리별 그림 (세부 종류 → 큰 종류 순서로 찾아요) */
+const PHI={pot:`<path d="M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28z" fill="var(--t)"/><path d="M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28zM4 24h4M40 24h4M6 22h36" fill="none"/><path d="M18 16c-2-2 2-4 0-6M24 16c-2-2 2-4 0-6M30 16c-2-2 2-4 0-6" fill="none"/>`,
+rice:`<path d="M7 24h34a17 15 0 0 1-34 0z" fill="var(--t)"/><path d="M12 24c0-6 5-10 12-10s12 4 12 10" fill="#fff"/><path d="M7 24h34a17 15 0 0 1-34 0zM12 24c0-6 5-10 12-10s12 4 12 10M18 42h12" fill="none"/><path d="M30 6l-6 12M36 7l-8 11" fill="none"/>`,
+noodle:`<path d="M7 22h34a17 16 0 0 1-34 0z" fill="var(--t)"/><path d="M7 22h34a17 16 0 0 1-34 0zM18 42h12" fill="none"/><path d="M13 22c2-4 4 0 6-4s4 0 6-4 4 0 6-4" fill="none"/><path d="M28 4l-4 18M35 6l-7 16" fill="none"/>`,
+cup:`<path d="M9 18h24v12a10 10 0 0 1-10 10h-4A10 10 0 0 1 9 30z" fill="var(--t)"/><path d="M9 18h24v12a10 10 0 0 1-10 10h-4A10 10 0 0 1 9 30zM33 21h3a5 5 0 0 1 0 10h-3M6 44h30" fill="none"/><path d="M16 12c-2-2 2-4 0-6M23 12c-2-2 2-4 0-6" fill="none"/>`,
+bread:`<path d="M6 30c0-9 8-16 18-16s18 7 18 16v6a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3z" fill="var(--t)"/><path d="M6 30c0-9 8-16 18-16s18 7 18 16v6a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3zM16 22l4 6M23 20l3 7M30 22l2 6" fill="none"/>`,
+cake:`<path d="M6 26l30-10 6 2v20H6z" fill="var(--t)"/><path d="M6 26l30-10 6 2v20H6zM6 26h36M6 32h36" fill="none"/><circle cx="34" cy="11" r="3" fill="currentColor" stroke="none"/><path d="M34 14v2" fill="none"/>`,
+pizza:`<path d="M8 10c10-4 22-4 32 0L24 42z" fill="var(--t)"/><path d="M8 10c10-4 22-4 32 0L24 42zM10 15c9-3 19-3 28 0" fill="none"/><circle cx="20" cy="20" r="2.4" fill="currentColor" stroke="none"/><circle cx="28" cy="22" r="2.4" fill="currentColor" stroke="none"/><circle cx="24" cy="30" r="2.4" fill="currentColor" stroke="none"/>`,
+burger:`<path d="M8 20a16 11 0 0 1 32 0z" fill="var(--t)"/><path d="M8 34h32v2a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z" fill="var(--t)"/><path d="M8 20a16 11 0 0 1 32 0zM8 34h32v2a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4zM6 25h36M8 29c3 2 5-2 8 0s5 2 8 0 5-2 8 0 5 2 8 0" fill="none"/>`,
+chicken:`<path d="M30 10a11 11 0 0 1 2 21l-8 3c-5 2-10-3-8-8l3-8a11 11 0 0 1 11-8z" fill="var(--t)"/><path d="M30 10a11 11 0 0 1 2 21l-8 3c-5 2-10-3-8-8l3-8a11 11 0 0 1 11-8zM19 31l-8 8M9 35a3 3 0 1 0 4 4" fill="none"/>`,
+sushi:`<rect x="7" y="25" width="34" height="13" rx="6.5" fill="#fff"/><rect x="7" y="25" width="34" height="13" rx="6.5" fill="none"/><path d="M5 25c0-7 8-11 19-11s19 4 19 11z" fill="var(--t)"/><path d="M5 25c0-7 8-11 19-11s19 4 19 11zM15 16l-3 9M24 14l-2 11M33 16l-1 9" fill="none"/>`,
+meat:`<path d="M10 22c0-9 8-14 17-12s13 10 9 17-12 11-19 9-7-6-7-14z" fill="var(--t)"/><path d="M10 22c0-9 8-14 17-12s13 10 9 17-12 11-19 9-7-6-7-14z" fill="none"/><circle cx="24" cy="24" r="4" fill="#fff"/><circle cx="24" cy="24" r="4" fill="none"/>`,
+beer:`<path d="M10 14h22v26a3 3 0 0 1-3 3H13a3 3 0 0 1-3-3z" fill="var(--t)"/><path d="M10 14h22v26a3 3 0 0 1-3 3H13a3 3 0 0 1-3-3zM32 19h4a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-4M17 22v14M25 22v14" fill="none"/><path d="M9 14a5 5 0 0 1 5-7 6 6 0 0 1 11 0 5 5 0 0 1 8 7z" fill="#fff"/><path d="M9 14a5 5 0 0 1 5-7 6 6 0 0 1 11 0 5 5 0 0 1 8 7z" fill="none"/>`,
+dumpling:`<path d="M5 30c0-10 9-18 19-18s19 8 19 18c-4 4-10 6-19 6S9 34 5 30z" fill="var(--t)"/><path d="M5 30c0-10 9-18 19-18s19 8 19 18c-4 4-10 6-19 6S9 34 5 30zM16 15c1 3 1 6 0 9M24 13v10M32 15c-1 3-1 6 0 9" fill="none"/>`,
+plate:`<circle cx="24" cy="26" r="14" fill="var(--t)"/><circle cx="24" cy="26" r="14" fill="none"/><circle cx="24" cy="26" r="8" fill="none"/><path d="M5 8v10a3 3 0 0 0 3 3v19M8 8v8M43 8c-3 2-4 6-4 10s1 4 4 4v18" fill="none"/>`,
+skewer:`<path d="M5 26h38l-3 10a6 6 0 0 1-6 4H14a6 6 0 0 1-6-4z" fill="var(--t)"/><path d="M5 26h38l-3 10a6 6 0 0 1-6 4H14a6 6 0 0 1-6-4zM43 28h3" fill="none"/><rect x="12" y="17" width="14" height="6" rx="3" fill="#fff" transform="rotate(-12 19 20)"/><rect x="12" y="17" width="14" height="6" rx="3" transform="rotate(-12 19 20)" fill="none"/><rect x="24" y="16" width="14" height="6" rx="3" fill="#fff" transform="rotate(10 31 19)"/><rect x="24" y="16" width="14" height="6" rx="3" transform="rotate(10 31 19)" fill="none"/>`,
+salad:`<path d="M6 24h36a18 16 0 0 1-36 0z" fill="var(--t)"/><path d="M6 24h36a18 16 0 0 1-36 0zM18 42h12" fill="none"/><path d="M14 24c-2-6 2-10 7-10 0 5-2 8-7 10zM26 24c0-7 5-11 11-10-1 6-5 9-11 10zM22 24c2-4 5-5 8-4" fill="none"/>`,
+ice:`<path d="M16 22l8 22 8-22z" fill="var(--t)"/><path d="M16 22l8 22 8-22zM20 26h8M22 32h4" fill="none"/><path d="M14 22a10 10 0 1 1 20 0z" fill="#fff"/><path d="M14 22a10 10 0 1 1 20 0z" fill="none"/>`};
+const PHC={pot:'#E35C0B',rice:'#E35C0B',noodle:'#D98A1C',cup:'#8A5A3C',bread:'#C9822B',cake:'#D9567A',pizza:'#E0861A',burger:'#C9822B',chicken:'#E0861A',sushi:'#2F7FA8',meat:'#C0392B',beer:'#C99400',dumpling:'#D2402F',plate:'#7A6A5C',skewer:'#E2462E',salad:'#3E8E4B',ice:'#3D8FC4'};
+const EMO=[[/커피|카페|테마카페/,'cup'],[/베이커리|제과|빵|도넛|샌드위치|토스트|브런치/,'bread'],[/아이스크림|빙수/,'ice'],[/디저트|간식|와플|떡카페|케이크/,'cake'],
+  [/피자/,'pizza'],[/햄버거|버거/,'burger'],[/치킨|닭강정|찜닭|닭갈비|닭요리/,'chicken'],
+  [/초밥|스시|회|해산물|횟집|일식|덮밥/,'sushi'],[/라멘|일본식라면|우동|소바|쌀국수|베트남|태국|아시아/,'noodle'],[/돈까스|돈가스|카츠/,'plate'],
+  [/인도|커리|카레/,'rice'],[/중식|중국|짜장|짬뽕|마라|양꼬치|딤섬|만두/,'dumpling'],
+  [/파스타|이탈리안|이탈리아|스테이크|레스토랑|양식|패밀리|멕시칸|뷔페/,'plate'],[/샐러드|포케|건강식/,'salad'],
+  [/삼겹살|고기|갈비|구이|육류|곱창|막창|정육|족발|보쌈/,'meat'],[/해물|조개|해장국|생선|낙지|주꾸미|국밥|찌개|탕|전골|순대|죽/,'pot'],
+  [/떡볶이|분식/,'skewer'],[/국수|냉면|칼국수|면/,'noodle'],[/김밥|도시락|주먹밥|한식|백반|한정식|가정식/,'rice'],
+  [/술집|호프|이자카야|포장마차|요리주점|맥주|칵테일|와인|바$/,'beer']];
+function phKey(p){const cat=String(p&&(p.catFull||p.cat)||''),parts=cat.split('>').map(x=>x.trim()).filter(Boolean).reverse();
+  for(const x of parts)for(const [re,k] of EMO)if(re.test(x))return k;return 'plate';}
+const phIcon=(p,sz)=>{const k=phKey(p);return `<svg viewBox="0 0 48 48" ${sz?`width="${sz}" height="${sz}"`:''} stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PHI[k]}</svg>`;};
+const phStyle=p=>`--phc:${PHC[phKey(p)]}`;
+const phHTML=(p,cls)=>`<span class="thumb ph ${cls}" style="${phStyle(p)}" aria-hidden="true">${phIcon(p)}</span>`;
 function thumb(p,label=true,i=0,cls=''){const ph=photosOf(p)[i];if(ph)return `<span class="thumb ${cls}" style="background:url('${esc(ph)}') center/cover"></span>`;
-  return `<span class="thumb ph ${cls}" aria-hidden="true"></span>`;}
+  return phHTML(p,cls);}
 const miniThumb=p=>thumb(p,true,0,'mini');
 
 /* =====================================================================
@@ -1207,20 +1559,20 @@ const miniThumb=p=>thumb(p,true,0,'mini');
    ===================================================================== */
 function renderWhere(){
   const label=S.school?(S.school.campus?`${S.school.short} ${S.school.campus}`:S.school.short):'';
-  $('#where').innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span><b>${esc(label)}</b> 주변 맛집</span>${S.isAdmin?`<span class="wsw-wrap">${isOtherSchool()?'<button class="wsw home" type="button" data-school-home>내 학교로</button>':''}<button class="wsw" type="button" data-school-switch>${isOtherSchool()?'학교 바꾸기':'다른 학교 보기'} ▾</button></span>`:''}`;
+  $('#where').innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span><b>${esc(label)}</b> 주변 맛집</span>${S.isAdmin?`<span class="wsw-wrap">${isOtherSchool()?'<button class="wsw home" type="button" data-school-home>내 학교로</button>':''}<button class="wsw" type="button" data-school-switch>${isOtherSchool()?'학교 바꾸기':'다른 학교 보기'} ▾</button></span>`:S.guest?'<span class="wsw-wrap"><button class="wsw" type="button" data-school-switch>학교 바꾸기 ▾</button></span>':''}`;
   $('#where').classList.toggle('other',isOtherSchool());
 }
 function filtered(){
   const q=S.q.trim();
-  return S.places.filter(p=>(!S.genre||p.cat===S.genre)&&(!S.tag||tagsOf(p).includes(S.tag))&&
+  return S.places.filter(p=>(!S.genres.size||S.genres.has(p.cat))&&(!S.tags.size||(t=>[...S.tags].every(x=>t.includes(x)))(tagsOf(p)))&&
     (!q||p.name.includes(q)||p.catFull.includes(q)||p.reviews.some(r=>(r.menu||'').includes(q)||r.body.includes(q))||(S.searchHit&&S.searchHit.has(p.id))));
 }
 function renderFilters(){
   const c={};S.places.forEach(p=>c[p.cat]=(c[p.cat]||0)+1);
-  const cats=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]);
-  $('#genre').innerHTML=[`<button type="button" data-genre="" aria-pressed="${!S.genre&&!S.tag}">전체</button>`]
-    .concat(cats.map(g=>`<button type="button" data-genre="${esc(g)}" aria-pressed="${S.genre===g}">${esc(g)}</button>`))
-    .concat(TAGS.map(t=>`<button type="button" data-tag="${t}" aria-pressed="${S.tag===t}">${t}</button>`)).join('');
+  const cats=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]);S.genres.forEach(g=>{if(!cats.includes(g))cats.push(g);});
+  $('#genre').innerHTML=[`<button type="button" data-genre="" aria-pressed="${!S.genres.size&&!S.tags.size}">전체</button>`]
+    .concat(cats.map(g=>`<button type="button" data-genre="${esc(g)}" aria-pressed="${S.genres.has(g)}">${esc(g)}</button>`))
+    .concat(TAGS.map(t=>`<button type="button" data-tag="${t}" aria-pressed="${S.tags.has(t)}">${t}</button>`)).join('');
 }
 function renderList(){
   const el=$('#placeList');
@@ -1311,9 +1663,9 @@ function picsHTML(rv){if(!rv.photos||!rv.photos.length)return '';
 const firstCall=()=>`우리 학교 첫 리뷰어가 되어 보세요`;
 // 가게에 가장 먼저 올라온 리뷰 (1호 뱃지)
 const firstOf=p=>p.reviews.reduce((a,r)=>!a||new Date(r.created_at)<new Date(a.created_at)?r:a,null);
-function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{},no1=firstOf(p)===rv;
-  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(me?'나':nameOf(rv.user_id))}</b>${fdB(u)}${me?'<span class="mytag">내 리뷰</span>':''}${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${lvBadge(u.helpful)}${certB(u)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
-    <div class="meta">${starsHTML(+rv.rating)}<span class="val num">${(+rv.rating).toFixed(1)}</span>${rv.round>1?`<span class="kind">${rv.round}번째 리뷰</span>`:''}${!isLatest(p,rv)?'<span class="kind old">이전 리뷰 · 점수 미반영</span>':''}${rv.kind==='visit'?`<span class="visit num">방문 인증 ${rv.visit_count}회</span>`:`<span class="kind">${rv.kind==='delivery'?'배달':'포장'}</span>`}</div>
+function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{},no1=firstOf(p)===rv,vcnt=Math.max((p._vc&&p._vc[rv.user_id])||0,rv.kind==='visit'?(rv.visit_count||0):0);
+  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(nameOf(rv.user_id))}</b>${fdB(u)}${me?'<span class="mytag">내 리뷰</span>':''}${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${lvBadge(u.helpful)}${certB(u)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
+    <div class="meta">${starsHTML(+rv.rating)}<span class="val num">${(+rv.rating).toFixed(1)}</span>${rv.round>1?`<span class="kind">${rv.round}번째 리뷰</span>`:''}${!isLatest(p,rv)?'<span class="kind old">이전 리뷰 · 점수 미반영</span>':''}${rv.kind==='visit'?'':`<span class="kind">${rv.kind==='delivery'?'배달':'포장'}</span>`}${vcnt?`<span class="visit num" title="이 사람이 이 가게에 방문 인증한 횟수">📍 방문 인증 ${vcnt}회</span>`:''}</div>
     ${rv.menu||rv.price_level!=null?`<div class="menu">${rv.menu?`<span>먹은 메뉴 · </span>${menuShow(rv.menu)}`:''}${rv.menu&&rv.price_level!=null?' · ':''}${rv.price_level!=null?`<span>1인 </span>${PRICES[rv.price_level]}`:''}</div>`:''}
     <p>${esc(rv.body)}</p>
     ${(rv.tags||[]).length?`<div class="tagline">${rv.tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
@@ -1352,7 +1704,7 @@ function renderSheet(){
   const pc=photosOf(p).length,reg=p._reg;
   const sh=$('#sheet');
   sh.innerHTML=`<div class="dhead"><div class="gut">
-      <div class="t"><div><span class="area">${esc(p.cat)} · 도보 ${walk(p.dist)}분</span><h3>${esc(p.name)}</h3></div><button class="x" type="button" id="closeX" aria-label="닫기">×</button></div>
+      <div class="t"><div><span class="area">${esc(p.cat)} · 도보 ${walk(p.dist)}분</span><h3>${esc(p.name)}</h3></div><span class="dhb"><button class="dlist" type="button" data-addlist aria-label="맛집 로그에 담기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7M18 14v8M14 18h8"/></svg>로그</button><button class="x" type="button" id="closeX" aria-label="닫기">×</button></span></div>
       ${p.reviews.length?`<div class="rating">${starsHTML(s.w)}<span class="val num">${s.w.toFixed(2)}</span><span class="rcount num">${chatSVG}리뷰 ${p.reviews.length}${pc?` · 사진 ${pc}`:''}</span></div>
       <div class="split"><span>매장·포장 <b class="num">${sv.n?sv.w.toFixed(2):'-'}</b> <small class="num">(${sv.n})</small></span><span>배달 <b class="num">${sd.n?sd.w.toFixed(2):'-'}</b> <small class="num">(${sd.n})</small></span></div>`
       :`<div class="rating"><span class="rcount first">${firstCall()}</span></div>`}
@@ -1372,7 +1724,7 @@ function renderSheet(){
         ${price?`<tr><th>가격대</th><td>${price} <small style="color:var(--sub)">(리뷰 기준)</small></td></tr>`:''}
         ${tags.length?`<tr><th>특징</th><td>${tags.slice(0,5).map(esc).join(', ')}</td></tr>`:''}
         ${p.url?`<tr><th>영업시간·메뉴</th><td><a href="${esc(p.url)}" target="_blank" rel="noopener">카카오맵에서 보기 ›</a></td></tr>`:''}</table>
-        <div class="regular">${crownSVG(14)}<span>${reg?`단골왕 <b>${esc(reg.user_id===S.uid?'나':reg.nick)}</b> · 최근 30일 방문 인증 <span class="num">${reg.visits}</span>회`:'아직 단골왕이 없어요 · 방문 인증을 가장 많이 한 사람이 단골왕이 돼요'}</span></div></div>`
+        <div class="regular">${crownSVG(14)}<span>${reg?`단골왕 <b>${esc(reg.nick)}</b> · 최근 30일 방문 인증 <span class="num">${reg.visits}</span>회`:'아직 단골왕이 없어요 · 방문 인증을 가장 많이 한 사람이 단골왕이 돼요'}</span></div></div>`
     :`<div class="panel gut">${writing?writeHTML(p):''}
         <div class="sh"><h2>리뷰 ${p.reviews.length}건</h2><span class="rsort" role="group" aria-label="리뷰 정렬"><button type="button" data-rs="trust" aria-pressed="${revSort==='trust'}">신뢰도순</button><button type="button" data-rs="new" aria-pressed="${revSort==='new'}">최신순</button><button type="button" data-rs="photo" aria-pressed="${revSort==='photo'}">사진 리뷰</button></span></div>
         <p class="allcert"><span class="cert vb" style="margin:0">재학생 인증</span> 뱃지는 재학생 인증을 마친 학생에게만 붙어요</p>
@@ -1387,6 +1739,7 @@ function renderSheet(){
 function bindSheet(p){
   const sh=$('#sheet'),on=(sel,fn)=>sh.querySelectorAll(sel).forEach(x=>x.onclick=e=>fn(x,e));
   on('#closeX',closeSheet);
+  on('[data-addlist]',()=>openAddList(p));
   on('[data-dt]',x=>{dtab=x.dataset.dt;renderSheet();sh.scrollTop=0;});
   on('[data-exp]',()=>{if(!expanded&&p.reviews.length>10){dtab='rev';renderSheet();sh.scrollTop=0;return;}expanded=!expanded;renderSheet();if(!expanded){const r=$('#repRev');if(r)r.scrollIntoView({block:'start'});}});
   on('[data-revmore]',()=>{revShow+=10;keepScroll(renderSheet);});
@@ -1527,12 +1880,23 @@ function renderTalk(){
     +(pages>1?`<nav class="pager" aria-label="페이지"><button type="button" data-tpage="${T.page-1}" ${T.page===1?'disabled':''} aria-label="이전 페이지">‹</button>${nums}<button type="button" data-tpage="${T.page+1}" ${T.page===pages?'disabled':''} aria-label="다음 페이지">›</button></nav>`:'');
 }
 /* 글 화면 */
-let PO=null,postMode='view',editPost=null,delPost=false,cEdit=-1,cDel=-1,replyTo=-1,replyMention=null,openRep=new Set(),showAllC=false,pdraft={},cpick={open:false,place:'',text:''},likedCm=new Set(),pbusy=false;
+let PO=null,postMode='view',editPost=null,delPost=false,cEdit=-1,cDel=-1,replyTo=-1,replyMention=null,openRep=new Set(),showAllC=false,pdraft={},cpick={open:false,tab:'place',place:'',list:'',text:''},likedCm=new Set(),pbusy=false;
 const savedHere=()=>[...S.saved].map(id=>find(id)).filter(Boolean);
 function cchip(id,sel){const p=find(id);if(!p)return '';const s=scoreOf(p),ph=photosOf(p)[0];
-  return `<button class="cchip ${sel===true?'on':''}" type="button" ${sel===undefined?`data-goplace="${p.id}"`:`data-cpick="${p.id}" aria-pressed="${!!sel}"`}><span class="sq${ph?'':' ph'}"${ph?` style="background:url('${esc(ph)}') center/cover"`:''}></span><b>${esc(p.name)}</b>${s.n?`<span class="sc num">★ ${s.w.toFixed(2)}</span>`:''}${sel===undefined?'<span class="go">›</span>':''}</button>`;}
+  return `<button class="cchip ${sel===true?'on':''}" type="button" ${sel===undefined?`data-goplace="${p.id}"`:`data-cpick="${p.id}" aria-pressed="${!!sel}"`}>${ph?`<span class="sq" style="background:url('${esc(ph)}') center/cover"></span>`:`<span class="sq ph" style="${phStyle(p)}">${phIcon(p)}</span>`}<b>${esc(p.name)}</b>${s.n?`<span class="sc num">★ ${s.w.toFixed(2)}</span>`:''}${sel===undefined?'<span class="go">›</span>':''}</button>`;}
+/* 로그톡에 단 "나만의 로그" */
+const TL={};
+const myPubLists=()=>(S.myLists||[]).filter(l=>l.is_public);
+function lchip(l,sel){if(!l)return '';
+  return `<button class="cchip lchip ${sel===true?'on':''}" type="button" ${sel===undefined?`data-list="${l.id}"`:`data-cplist="${l.id}" aria-pressed="${!!sel}"`}><span class="sq lsq">${LIST_IC}</span><b>${esc(l.title)}</b><span class="sc num">${l.item_count}곳</span>${sel===undefined?'<span class="go">›</span>':''}</button>`;}
+async function loadTalkLists(ids){
+  (S.myLists||[]).forEach(l=>{TL[l.id]=l;});
+  const need=[...new Set(ids.filter(x=>x&&!(x in TL)))];if(!need.length)return;
+  const {data,error}=await sb.from('ul_lists').select('id,title,item_count,user_id,is_public').in('id',need);
+  if(error)return;need.forEach(id=>{TL[id]=null;});(data||[]).forEach(l=>{TL[l.id]=l;});
+}
 async function openPost(id){
-  postMode='view';editPost=null;delPost=false;cEdit=-1;cDel=-1;replyTo=-1;replyMention=null;openRep=new Set();showAllC=false;cpick={open:false,place:'',text:''};
+  postMode='view';editPost=null;delPost=false;cEdit=-1;cDel=-1;replyTo=-1;replyMention=null;openRep=new Set();showAllC=false;cpick={open:false,tab:'place',place:'',list:'',text:''};
   $('#psheet').innerHTML='<div class="empty" style="padding:60px 0"><span class="spin"></span></div>';$('#pscrim').hidden=false;
   if(!(await loadPost(id))){closePost();return;}
   renderPost();$('#psheet').scrollTop=0;
@@ -1545,15 +1909,18 @@ async function loadPost(id){
   await ensureUsers([po.user_id,...list.map(c=>c.user_id),...list.map(c=>c.mention)]);
   const pids=[po.place_id,...list.map(c=>c.place_id)].filter(x=>x&&!find(x));
   if(pids.length){const {data}=await sb.from('ul_places').select('*').in('id',[...new Set(pids)]);(data||[]).forEach(r=>{const p=addPlace(fromRow(r),false);p._inDb=true;});}
+  await loadTalkLists([po.list_id,...list.map(c=>c.list_id)]);
   if(list.length){const {data}=await sb.from('ul_comment_likes').select('comment_id').in('comment_id',list.map(c=>c.id));likedCm=new Set((data||[]).map(x=>x.comment_id));}else likedCm=new Set();
   return true;
 }
 function closePost(){$('#pscrim').hidden=true;PO=null;}
-function openWrite(){if(!needApproved('글을'))return;if(isOtherSchool()){toast('다른 학교 로그톡은 둘러보기만 할 수 있어요');return;}postMode='write';editPost=null;pdraft={cat:'질문',title:'',body:'',place:''};$('#pscrim').hidden=false;renderPost();}
+function openWrite(){if(!needApproved('글을'))return;if(isOtherSchool()){toast('다른 학교 로그톡은 둘러보기만 할 수 있어요');return;}postMode='write';editPost=null;pdraft={cat:'질문',title:'',body:'',place:'',list:''};$('#pscrim').hidden=false;renderPost();if(S.uid&&!(S.myLists||[]).length)loadMyLists().then(()=>{if(postMode==='write'&&(S.myLists||[]).length)renderPost();});}
 function renderPost(){
   const sh=$('#psheet');
   const placeOpts=sel=>{const L=savedHere();if(sel&&!L.find(x=>x.id===sel)&&find(sel))L.unshift(find(sel));
     return L.length?`<option value="">저장한 가게에서 고르기 (선택)</option>${L.map(p=>`<option value="${p.id}" ${sel===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}`:'<option value="">저장한 가게가 없어요</option>';};
+  const listOpts=sel=>{const A=S.myLists||[],L=myPubLists();
+    return L.length?`<option value="">나만의 로그에서 고르기 (선택)</option>${L.map(l=>`<option value="${l.id}" ${String(sel)===String(l.id)?'selected':''}>${esc(l.title)} · ${l.item_count}곳</option>`).join('')}`:`<option value="">${A.length?'공개한 로그가 없어요':'아직 만든 로그가 없어요'}</option>`;};
   const label=S.school.short+(S.school.campus?' '+S.school.campus:'');
   if(postMode==='write'){
     sh.innerHTML=`<div class="dhead"><div class="gut" style="padding-bottom:12px"><div class="t"><div><span class="area">${esc(label)} 로그톡</span><h3>${editPost?'글 수정':'글쓰기'}</h3></div><button class="x" type="button" data-pclose aria-label="닫기">×</button></div></div></div>
@@ -1562,24 +1929,25 @@ function renderPost(){
         <label for="pTitle">제목</label><input id="pTitle" maxlength="60" value="${esc(pdraft.title)}" placeholder="예) 혼밥하기 좋은 곳 있나요?" autocomplete="off">
         <label for="pBody">내용</label><textarea id="pBody" rows="7" maxlength="3000" placeholder="상황을 자세히 적을수록 좋은 답이 달려요 (인원, 예산, 시간 등)">${esc(pdraft.body)}</textarea>
         <label for="pPlace">가게 태그</label><select id="pPlace" class="psel">${placeOpts(pdraft.place)}</select>
+        <label for="pList">나만의 로그 달기</label><select id="pList" class="psel">${listOpts(pdraft.list)}</select>${(S.myLists||[]).some(l=>!l.is_public)?'<small class="plhint">나만 보기로 둔 로그는 달 수 없어요</small>':''}
         ${editPost?`<div class="two"><button class="btn line" type="button" data-pcancel>취소</button><button class="btn" type="button" data-psubmit ${pbusy?'disabled':''}>수정 완료</button></div>`:`<button class="btn" type="button" data-psubmit ${pbusy?'disabled':''}>${pbusy?'올리는 중…':'올리기'}</button>`}
         <p class="hint">욕설·광고·특정인 비방 글은 신고가 쌓이면 가려져요.</p></div></div></div>`;
   } else {
     const po=PO;if(!po)return;
     const mine=po.user_id===S.uid,canAdopt=mine&&po.cat==='질문'&&!po.adopted;
     const cs=[...po.comments].sort((a,b)=>b.best-a.best),word=po.cat==='질문'?'답변':'댓글';
-    const cname=id=>esc(id===S.uid?(U[id]?.nick||'나'):nameOf(id)),optag=id=>id===po.user_id?'<span class="optag">글쓴이</span>':'';
+    const cname=id=>esc(nameOf(id)),optag=id=>id===po.user_id?'<span class="optag">글쓴이</span>':'';
     sh.innerHTML=`<div class="dhead"><div class="gut" style="padding-bottom:12px"><div class="t"><div><span class="area">${esc(label)} 로그톡</span><h3><span class="pcat">${po.cat}</span> ${esc(po.title)}</h3></div><button class="x" type="button" data-pclose aria-label="닫기">×</button></div>
         <div class="pline">${av(po.user_id,'sm')}<b>${cname(po.user_id)}</b>${fdB(U[po.user_id])}${lvBadge(U[po.user_id]?.helpful)}${certB(U[po.user_id])}<span>· ${esc(userD(U[po.user_id]))} · ${rel(po.created_at)}${po.edited?' · 수정됨':''}</span>${mine?'<span class="mine-act" style="margin-left:auto"><button type="button" data-pedit-post>수정</button><button type="button" data-pdel>삭제</button></span>':''}</div>
         ${mine&&delPost?`<div class="delask" style="margin-top:10px"><span>이 글을 삭제할까요? ${word} ${po.comment_count}개도 함께 사라져요.</span><span class="btns"><button type="button" data-pdelno>취소</button><button type="button" class="danger" data-pdelyes>삭제</button></span></div>`:''}</div></div>
       <div class="dbody">
         <div class="postmain gut"><p class="ptext">${esc(po.body)}</p>
-          ${po.place_id&&find(po.place_id)?`<div class="pchips">${cchip(po.place_id)}</div>`:''}
+          ${(po.place_id&&find(po.place_id))||(po.list_id&&TL[po.list_id])?`<div class="pchips">${po.place_id&&find(po.place_id)?cchip(po.place_id):''}${po.list_id?lchip(TL[po.list_id]):''}</div>`:''}
           <div class="pact"><span class="cacts"><button class="mini num" type="button" data-plike aria-pressed="${S.likedPost.has(po.id)}">${thumbSVG} 공감 ${po.likes}</button><button class="mini bm" type="button" data-pbm aria-pressed="${S.bmPost.has(po.id)}">${S.bmPost.has(po.id)?'★ 북마크됨':'☆ 북마크'}</button></span>${mine?'':`<button class="report" type="button" data-report="post:${po.id}">신고</button>`}</div></div>
         <div class="panel gut"><div class="sh"><h2>${word} ${po.comment_count}</h2>${canAdopt&&po.comments.length?'<small>도움 된 답변을 채택해 주세요</small>':''}</div>
           ${cs.length?(showAllC?cs:cs.slice(0,5)).map(c=>{const j=c.id,me=c.user_id===S.uid,reps=c.replies||[];return `<div class="cm2">${av(c.user_id,'sm')}<div class="cb">
             <div class="cline"><b>${cname(c.user_id)}</b>${fdB(U[c.user_id])}${optag(c.user_id)}${lvBadge(U[c.user_id]?.helpful)}${certB(U[c.user_id])}${c.best?'<span class="bestTag">✓ 채택</span>':''}<span class="t">${rel(c.created_at)}</span></div>
-            ${me&&cEdit===j?`<div class="cedit"><textarea id="cEditIn" rows="3" maxlength="1000">${esc(c.body)}</textarea><span class="btns"><button type="button" class="mini" data-cedno>취소</button><button type="button" class="mini on" data-cedyes="${j}">저장</button></span></div>`:`<p>${esc(c.body)}${c.edited?' <small class="edited">(수정됨)</small>':''}</p>`}${c.place_id&&find(c.place_id)?cchip(c.place_id):''}
+            ${me&&cEdit===j?`<div class="cedit"><textarea id="cEditIn" rows="3" maxlength="1000">${esc(c.body)}</textarea><span class="btns"><button type="button" class="mini" data-cedno>취소</button><button type="button" class="mini on" data-cedyes="${j}">저장</button></span></div>`:`<p>${esc(c.body)}${c.edited?' <small class="edited">(수정됨)</small>':''}</p>`}${c.place_id&&find(c.place_id)?cchip(c.place_id):''}${c.list_id?lchip(TL[c.list_id]):''}
             <div class="cacts"><button class="mini num" type="button" data-clike="${j}" aria-pressed="${likedCm.has(j)}" ${me?'disabled':''}>${thumbSVG} 도움돼요 ${c.likes}</button><button class="mini" type="button" data-reply="${j}" aria-pressed="${replyTo===j}">답글${reps.length?' '+reps.length:''}</button>${canAdopt&&!me?`<button class="mini adopt" type="button" data-adopt="${j}">채택하기</button>`:''}${me&&cEdit!==j?`<span class="mine-act" style="margin-left:auto"><button type="button" data-cedit="${j}">수정</button><button type="button" data-cdel="${j}">삭제</button></span>`:me?'':`<button class="report" type="button" style="margin-left:auto" data-report="comment:${j}">신고</button>`}</div>
             ${me&&cDel===j?`<div class="delask"><span>이 ${word}을 삭제할까요?${reps.length?` 답글 ${reps.length}개도 함께 사라져요.`:''}</span><span class="btns"><button type="button" data-cdelno>취소</button><button type="button" class="danger" data-cdelyes="${j}">삭제</button></span></div>`:''}
             ${(openRep.has(j)?reps:reps.slice(0,2)).map(r=>{const rme=r.user_id===S.uid;return `<div class="rp"><span class="arrow" aria-hidden="true">↳</span>${av(r.user_id,'xs')}<div class="cb"><div class="cline"><b>${cname(r.user_id)}</b>${fdB(U[r.user_id])}${optag(r.user_id)}${lvBadge(U[r.user_id]?.helpful)}${certB(U[r.user_id])}<span class="t">${rel(r.created_at)}</span></div>
@@ -1590,8 +1958,10 @@ function renderPost(){
             :`<div class="empty">아직 ${word}이 없어요. 첫 ${word}을 달아주세요.</div>`}
         </div>
       </div>
-      <div class="cdock">${replyTo>=0?`<div class="replyto gut"><span>↳ <b>${replyMention?'@'+esc(nameOf(replyMention)):esc(nameOf((po.comments.find(c=>c.id===replyTo)||{}).user_id))+'님 댓글'}</b>에 답글 다는 중</span><button type="button" data-rcancel aria-label="답글 취소">×</button></div>`:''}${cpick.open?`<div class="cpicker gut"><div class="cp-h"><b>저장한 가게에서 추천하기</b><small>가게 화면에서 ☆ 저장한 곳만 보여요</small></div>${savedHere().length?`<div class="cp-list">${savedHere().map(sp=>cchip(sp.id,cpick.place===sp.id)).join('')}</div>`:'<div class="cp-empty">아직 저장한 가게가 없어요. 맛집 찾기에서 가게를 ☆ 저장해 두면 여기서 바로 추천할 수 있어요.</div>'}</div>`:''}
-        <div class="actbar gut cbar">${replyTo>=0?'<span></span>':`<button class="ctag" type="button" data-ctag aria-expanded="${cpick.open}" aria-pressed="${!!cpick.place}">🏷 ${cpick.place&&find(cpick.place)?esc(find(cpick.place).name.slice(0,4))+'…':'가게'}</button>`}<input id="cIn" maxlength="1000" placeholder="${replyTo>=0?'답글 남기기':word+' 남기기'}" autocomplete="off" aria-label="${word}" value="${esc(cpick.text)}"><button class="btn" type="button" data-csend ${pbusy?'disabled':''}>등록</button></div></div>`;
+      <div class="cdock">${replyTo>=0?`<div class="replyto gut"><span>↳ <b>${replyMention?'@'+esc(nameOf(replyMention)):esc(nameOf((po.comments.find(c=>c.id===replyTo)||{}).user_id))+'님 댓글'}</b>에 답글 다는 중</span><button type="button" data-rcancel aria-label="답글 취소">×</button></div>`:''}${cpick.open?`<div class="cpicker gut"><div class="cp-tabs" role="group" aria-label="무엇을 달까요"><button type="button" data-cptab="place" aria-pressed="${cpick.tab==='place'}">저장한 가게</button><button type="button" data-cptab="list" aria-pressed="${cpick.tab==='list'}">나만의 로그</button></div>${cpick.tab==='list'
+          ?(myPubLists().length?`<div class="cp-list">${myPubLists().map(l=>lchip(l,String(cpick.list)===String(l.id))).join('')}</div>`:`<div class="cp-empty">${(S.myLists||[]).length?'공개한 로그가 없어요. 나만 보기로 둔 로그는 달 수 없어요.':'아직 만든 로그가 없어요. 마이페이지 "나만의 로그"에서 만들 수 있어요.'}</div>`)
+          :(savedHere().length?`<div class="cp-list">${savedHere().map(sp=>cchip(sp.id,cpick.place===sp.id)).join('')}</div>`:'<div class="cp-empty">아직 저장한 가게가 없어요. 맛집 찾기에서 가게를 ☆ 저장해 두면 여기서 바로 추천할 수 있어요.</div>')}</div>`:''}
+        <div class="actbar gut cbar">${replyTo>=0?'<span></span>':`<button class="ctag" type="button" data-ctag aria-expanded="${cpick.open}" aria-pressed="${!!(cpick.place||cpick.list)}">🏷 ${cpick.place&&find(cpick.place)?esc(find(cpick.place).name.slice(0,4))+'…':cpick.list&&TL[cpick.list]?esc(TL[cpick.list].title.slice(0,4))+'…':'태그'}</button>`}<input id="cIn" maxlength="1000" placeholder="${replyTo>=0?'답글 남기기':word+' 남기기'}" autocomplete="off" aria-label="${word}" value="${esc(cpick.text)}"><button class="btn" type="button" data-csend ${pbusy?'disabled':''}>등록</button></div></div>`;
   }
   bindPost();
 }
@@ -1605,11 +1975,13 @@ function bindPost(){
   const pt=$('#pTitle');if(pt)pt.oninput=e=>pdraft.title=e.target.value;
   const pb=$('#pBody');if(pb)pb.oninput=e=>pdraft.body=e.target.value;
   const pp=$('#pPlace');if(pp)pp.onchange=e=>pdraft.place=e.target.value;
+  const pl=$('#pList');if(pl)pl.onchange=e=>pdraft.list=e.target.value;
   on('[data-psubmit]',async()=>{
     if(pdraft.title.trim().length<2){toast('제목을 2자 이상 적어주세요');return;}
     if(pdraft.body.trim().length<5){toast('내용을 5자 이상 적어주세요');return;}
     pbusy=true;renderPost();
     const row={cat:pdraft.cat,title:pdraft.title.trim(),body:pdraft.body.trim(),place_id:pdraft.place||null};
+    if(pdraft.list||(editPost&&editPost.list_id))row.list_id=pdraft.list?+pdraft.list:null;
     const res=editPost?await sb.from('ul_posts').update(row).eq('id',editPost.id).select().single():await sb.from('ul_posts').insert(row).select().single();
     pbusy=false;
     if(res.error){toast('올리지 못했어요: '+errText(res.error));renderPost();return;}
@@ -1618,7 +1990,7 @@ function bindPost(){
   on('[data-goplace]',x=>{closePost();openPlaceById(x.dataset.goplace);});
   if(postMode!=='view'||!PO)return;
   const po=PO;
-  on('[data-pedit-post]',()=>{editPost=po;pdraft={cat:po.cat,title:po.title,body:po.body,place:po.place_id||''};postMode='write';renderPost();sh.scrollTop=0;});
+  on('[data-pedit-post]',()=>{editPost=po;pdraft={cat:po.cat,title:po.title,body:po.body,place:po.place_id||'',list:po.list_id?String(po.list_id):''};postMode='write';renderPost();sh.scrollTop=0;});
   on('[data-pdel]',()=>{delPost=true;keep(renderPost);});
   on('[data-pdelno]',()=>{delPost=false;keep(renderPost);});
   on('[data-pdelyes]',async()=>{const {error}=await sb.from('ul_posts').delete().eq('id',po.id);if(error){toast('삭제하지 못했어요: '+errText(error));return;}closePost();loadTalk();loadCounts();S.meCache={};await refreshMe();toast('글을 삭제했어요');});
@@ -1637,15 +2009,17 @@ function bindPost(){
   on('[data-rmore]',x=>{const j=+x.dataset.rmore;openRep.has(j)?openRep.delete(j):openRep.add(j);keep(renderPost);});
   on('[data-cmore]',()=>{showAllC=!showAllC;keep(renderPost);});
   on('[data-ctag]',()=>{cpick.open=!cpick.open;keep(renderPost);});
-  on('[data-cpick]',x=>{cpick.place=cpick.place===x.dataset.cpick?'':x.dataset.cpick;cpick.open=false;keep(renderPost);$('#cIn').focus();});
+  on('[data-cpick]',x=>{cpick.place=cpick.place===x.dataset.cpick?'':x.dataset.cpick;cpick.list='';cpick.open=false;keep(renderPost);$('#cIn').focus();});
+  on('[data-cptab]',x=>{cpick.tab=x.dataset.cptab;if(cpick.tab==='list'&&S.uid&&!(S.myLists||[]).length)loadMyLists().then(()=>keep(renderPost));keep(renderPost);});
+  on('[data-cplist]',x=>{const id=x.dataset.cplist;cpick.list=String(cpick.list)===id?'':id;cpick.place='';(S.myLists||[]).forEach(l=>{TL[l.id]=l;});cpick.open=false;keep(renderPost);$('#cIn').focus();});
   const cin=$('#cIn');if(cin){cin.oninput=e=>cpick.text=e.target.value;cin.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();sh.querySelector('[data-csend]').click();}};}
   on('[data-csend]',async()=>{
     if(!needApproved('댓글을'))return;const t=cpick.text.trim();if(t.length<1){toast('내용을 적어주세요');return;}
     pbusy=true;const row={post_id:po.id,body:t};
-    if(replyTo>=0){row.parent_id=replyTo;if(replyMention)row.mention=replyMention;}else if(cpick.place)row.place_id=cpick.place;
+    if(replyTo>=0){row.parent_id=replyTo;if(replyMention)row.mention=replyMention;}else if(cpick.place)row.place_id=cpick.place;else if(cpick.list)row.list_id=+cpick.list;
     const {error}=await sb.from('ul_comments').insert(row);pbusy=false;
     if(error){toast('남기지 못했어요: '+errText(error));return;}
-    if(replyTo>=0)openRep.add(replyTo);const wasReply=replyTo>=0;replyTo=-1;replyMention=null;cpick={open:false,place:'',text:''};
+    if(replyTo>=0)openRep.add(replyTo);const wasReply=replyTo>=0;replyTo=-1;replyMention=null;cpick={open:false,tab:'place',place:'',list:'',text:''};
     await reload();if(!wasReply)sh.scrollTop=sh.scrollHeight;
     const li=S.talk.list.find(x=>x.id===po.id);if(li){li.comment_count=PO.comment_count;renderTalk();}S.meCache.cmts=null;loadCounts();toast(wasReply?'답글을 남겼어요':'댓글을 남겼어요');});
   on('[data-clike]',async x=>{if(!needApproved('"도움돼요"를 누를'))return;const id=+x.dataset.clike;const on=likedCm.has(id);
@@ -1699,7 +2073,7 @@ function renderPeople(){
   if(!S.rank.loaded){$('#peopleList').innerHTML='<div class="empty"><span class="spin"></span></div>';return;}
   const all=S.rank.list,show=all.slice(0,S.rank.show),meIdx=all.findIndex(r=>r.user_id===S.uid);
   const row=(r,rank)=>`<div class="row2 ${r.user_id===S.uid?'is-me':''}"><span class="n ${rank&&rank<=3?'top':''} num">${rank||'-'}</span>${av(r.user_id)}
-      <span class="who"><span class="nm"><b>${esc(r.user_id===S.uid?'나 ('+r.nick+')':r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.helpful)}</span><span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
+      <span class="who"><span class="nm"><b>${esc(r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.helpful)}</span><span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
       <span class="v num">${r.score}<small>도움돼요</small></span></div>`;
   $('#peopleList').innerHTML=(all.length?show.map((r,i)=>row(r,i+1)).join(''):'<div class="empty">아직 랭킹에 오른 학생이 없어요. 첫 리뷰를 남겨 1위가 되어 보세요.</div>')
     +(meIdx>=S.rank.show?row(all[meIdx],meIdx+1):'')
@@ -1718,15 +2092,15 @@ async function loadCounts(){
   S.counts={reviews:r.count||0,posts:p.count||0,cmts:c.count||0,visits:v.count||0};renderMe();
 }
 function renderMe(){
-  if(!S.me)return;const me=S.me,likes=me.helpful||0,li=lvOf(likes),next=LV[li+1],pct=next?((likes-LV[li].min)/(next.min-LV[li].min))*100:100,un=unread();
+  if(!S.me){if(S.entered)renderMeGuest();return;}const me=S.me,likes=me.helpful||0,li=lvOf(likes),next=LV[li+1],pct=next?((likes-LV[li].min)/(next.min-LV[li].min))*100:100,un=unread();
   $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><div class="nm"><b>${esc(me.nick||'')}</b>${fdB(me)}${lvBadge(likes)}</div><span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?'<span>· 재학생 인증 확인 중</span>':''}</span></div>
       <span class="hd-btns"><button class="bell" type="button" data-noti aria-label="알림 ${un}개">${BELL}${un?`<span class="nbadge num">${un>99?'99+':un}</span>`:''}</button><button class="wbtn" type="button" data-pedit>프로필 수정</button></span></div>
     <div class="gauge"><div class="lbl"><b>${next?`${next.name}까지 "도움돼요" ${next.min-likes}개`:'최고 등급이에요'}</b><span>내 평가 반영 ×${LV[li].w}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
-    ${me.founder&&!S.fdCardHide?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>재학생 인증을 한 학생 중 ${me.founder}번째로 리뷰를 쓴 사람에게만 주는 배지예요. 학교마다 딱 3명만 받을 수 있어요.</small></span><button class="x" type="button" data-fdcx aria-label="닫기">×</button></div>`:''}
+    ${me.founder&&!S.fdCardHide?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>선착순 3명 · 재학생 인증</small></span><button class="x" type="button" data-fdcx aria-label="닫기">×</button></div>`:''}
     ${me.status==='none'||me.status==='rejected'?`<div class="vnudge"><span><b>${me.status==='rejected'?'재학생 인증이 반려됐어요':'재학생 인증을 해 보세요'}</b><small>${me.status==='rejected'?esc(me.reject_reason?'사유: '+me.reject_reason:'캡처를 다시 올려 주세요'):'인증하면 내 리뷰와 글에 재학생 인증 뱃지가 붙어요'}</small></span><button class="wbtn" type="button" data-verify-start>인증하기</button></div>`:''}
     <div class="kv"><div><b class="num">${S.counts.reviews??'-'}</b><span>리뷰</span></div><div><b class="num">${likes}</b><span>받은 도움돼요</span></div><div><b class="num">${S.counts.visits??'-'}</b><span>방문 인증</span></div></div>`;
   const fx=$('#profile [data-fdcx]');if(fx)fx.onclick=()=>{S.fdCardHide=true;renderMe();};
-  renderMeTabs();updateBadges();
+  renderMeTabs();updateBadges();renderMeLists();
 }
 function renderMeTabs(){
   const C=S.counts,MT=[['reviews','내 리뷰',C.reviews],['posts','내 로그톡',C.posts],['cmts','내 댓글',C.cmts],['saved','저장한 가게',S.saved.size],['bm','북마크',S.bmPost.size]];
@@ -1746,7 +2120,7 @@ async function renderMeBody(){
   }
   const more=S.meCache['more_'+k],cut=a=>more?a:a.slice(0,3),mb=n=>n>3?`<button class="morebtn" type="button" data-memore="${k}">${more?'접기 ▲':`${n}개 모두 보기 ▼`}</button>`:'';
   let L,html='';
-  if(k==='reviews'){L=S.meCache.reviews;html=L.length?cut(L).map(r=>{const ph=(r.photos||[])[0];return `<button class="row2" type="button" data-openplace="${r.place_id}" style="grid-template-columns:56px 1fr auto">${ph?`<span class="thumb mini" style="background:url('${esc(ph)}') center/cover"></span>`:'<span class="thumb mini ph" aria-hidden="true"></span>'}<span class="who"><b style="color:var(--link)">${esc(r.ul_places?.name||'가게')}</b><span class="d">${esc(r.body)}</span></span><span class="v num" style="color:var(--accent)">${(+r.rating).toFixed(1)}<small>도움돼요 ${r.likes}</small></span></button>`;}).join('')+mb(L.length):'<div class="empty">아직 쓴 리뷰가 없어요.</div>';}
+  if(k==='reviews'){L=S.meCache.reviews;html=L.length?cut(L).map(r=>{const ph=(r.photos||[])[0];return `<button class="row2" type="button" data-openplace="${r.place_id}" style="grid-template-columns:56px 1fr auto">${ph?`<span class="thumb mini" style="background:url('${esc(ph)}') center/cover"></span>`:phHTML({catFull:r.ul_places?.category||''},'mini')}<span class="who"><b style="color:var(--link)">${esc(r.ul_places?.name||'가게')}</b><span class="d">${esc(r.body)}</span></span><span class="v num" style="color:var(--accent)">${(+r.rating).toFixed(1)}<small>도움돼요 ${r.likes}</small></span></button>`;}).join('')+mb(L.length):'<div class="empty">아직 쓴 리뷰가 없어요.</div>';}
   if(k==='posts'){L=S.meCache.posts;html=L.length?cut(L).map(po=>`<button class="post" type="button" data-post="${po.id}"><span class="ptop"><span class="pcat">${po.cat}</span><b class="ptitle" style="font-size:14.5px">${esc(po.title)}</b></span><span class="pmeta num">${rel(po.created_at)} · 댓글 ${po.comment_count} · 공감 ${po.likes}</span></button>`).join('')+mb(L.length):'<div class="empty">아직 로그톡에 쓴 글이 없어요.</div>';}
   if(k==='cmts'){L=S.meCache.cmts;html=L.length?cut(L).map(c=>`<button class="post" type="button" data-post="${c.post_id}"><span class="pbody" style="color:var(--ink);-webkit-line-clamp:2">${esc(c.body)}</span><span class="pmeta">${c.parent_id?'<span>↳ 답글</span>':''}${c.best?'<span class="bestTag" style="padding:0 5px">✓ 채택</span>':''}<span>「${esc(c.ul_posts?.title||'삭제된 글')}」</span><span class="num">· ${rel(c.created_at)} · 도움돼요 ${c.likes}</span></span></button>`).join('')+mb(L.length):'<div class="empty">아직 로그톡에 단 댓글이 없어요.</div>';}
   if(k==='saved'){L=savedHere();html=L.length?cut(L).map(p=>`<button class="row2" type="button" data-openplace="${p.id}" style="grid-template-columns:56px 1fr auto">${miniThumb(p)}<span class="who"><b>${esc(p.name)}</b><span class="d">${esc(p.cat)} · 도보 ${walk(p.dist)}분</span></span><span class="v num" style="color:var(--accent)">${p.reviews.length?scoreOf(p).w.toFixed(2):'-'}<small>리뷰 ${p.reviews.length}</small></span></button>`).join('')+mb(L.length):'<div class="empty">가게 화면 아래 ☆ 저장을 누르면 여기에 모여요.</div>';}
@@ -1932,7 +2306,7 @@ const schoolList=()=>{const q=ob.sq.trim();
   return L.map(x=>`<button class="opt" type="button" data-school="${x.id}" aria-pressed="${ob.school===x.id}"><span><b>${x.n}</b><span>${x.campus?x.campus+' · ':''}${x.cityDisp}</span></span><span class="ck">✓</span></button>`).join('');};
 function obOk(){
   if(ob.step===1)return !!(ob.agree.terms&&ob.agree.privacy&&ob.agree.age);
-  if(ob.step===2)return !!ob.school;
+  if(ob.step===2||ob.step==='gs')return !!ob.school;
   if(ob.step===3)return !!ob.file;
   if(ob.step===4)return ob.nickOk&&(ob.skip||!!ob.dept.trim())&&!!ob.year&&!ob.busy;
   return true;
@@ -1945,7 +2319,7 @@ const INTRO=[
   {t:'믿을 만한 리뷰어일수록 더 크게',d:'도움돼요를 많이 받으면 등급이 오르고 평점이 더 반영돼요',k:'rank'},
   {t:'궁금하면 로그톡에 물어봐요',d:'우리 학교 학생들이 직접 가게를 골라 답해줘요',k:'talk'}
 ];
-const INTRO_SNAPS={"list": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel\"><div class=\"fbar gut\"><div class=\"genre\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">한식<\/button><button type=\"button\" aria-pressed=\"false\">카페<\/button><button type=\"button\" aria-pressed=\"false\">일식<\/button><button type=\"button\" aria-pressed=\"false\">분식<\/button><button type=\"button\" aria-pressed=\"false\">아시아음식<\/button><button type=\"button\" aria-pressed=\"false\">양식<\/button><button type=\"button\" aria-pressed=\"false\">혼밥 가능<\/button><button type=\"button\" aria-pressed=\"false\">가성비<\/button><button type=\"button\" aria-pressed=\"false\">과모임<\/button><button type=\"button\" aria-pressed=\"false\">학생 할인<\/button><button type=\"button\" aria-pressed=\"false\">공부 가능<\/button><button type=\"button\" aria-pressed=\"false\">해장<\/button><button type=\"button\" aria-pressed=\"false\">야식<\/button><button type=\"button\" aria-pressed=\"false\">데이트<\/button><\/div><div class=\"fmeta\"><span class=\"sort\"><button type=\"button\" aria-pressed=\"true\">랭킹순<\/button><button type=\"button\" aria-pressed=\"false\">리뷰 많은 순<\/button><button type=\"button\" aria-pressed=\"false\">가까운 순<\/button><\/span><button class=\"maptoggle\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"><path d=\"M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z\"><\/path><path d=\"M9 4v14M15 6v14\"><\/path><\/svg>지도<\/button><\/div><\/div><\/div><div class=\"panel\"><div class=\"gut\"><button class=\"rs\" type=\"button\"><span class=\"thumb ph \"><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">1위<\/span><span class=\"nm\">녹두 순대국<\/span><\/span><span class=\"area\">한식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.60<\/span><span class=\"rcount num\">리뷰 31<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물이 진하고 순대가 정말 실해요. 시험기간 혼밥 1순위!”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \"><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">2위<\/span><span class=\"nm\">카페 온기<\/span><\/span><span class=\"area\">카페 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 22<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“라떼 맛있고 자리 넉넉해요. 시험기간엔 일찍 가야 해요”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \"><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">3위<\/span><span class=\"nm\">쌀국수 한그릇<\/span><\/span><span class=\"area\">아시아음식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 11<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물 시원해요 또 갈게요”<\/span><\/span><\/button><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div>", "map": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel\"><div class=\"fbar gut\"><div class=\"genre\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">한식<\/button><button type=\"button\" aria-pressed=\"false\">카페<\/button><button type=\"button\" aria-pressed=\"false\">일식<\/button><button type=\"button\" aria-pressed=\"false\">분식<\/button><button type=\"button\" aria-pressed=\"false\">아시아음식<\/button><button type=\"button\" aria-pressed=\"false\">양식<\/button><button type=\"button\" aria-pressed=\"false\">혼밥 가능<\/button><button type=\"button\" aria-pressed=\"false\">가성비<\/button><button type=\"button\" aria-pressed=\"false\">과모임<\/button><button type=\"button\" aria-pressed=\"false\">학생 할인<\/button><button type=\"button\" aria-pressed=\"false\">공부 가능<\/button><button type=\"button\" aria-pressed=\"false\">해장<\/button><button type=\"button\" aria-pressed=\"false\">야식<\/button><button type=\"button\" aria-pressed=\"false\">데이트<\/button><\/div><div class=\"fmeta\"><span class=\"sort\"><button type=\"button\" aria-pressed=\"true\">랭킹순<\/button><button type=\"button\" aria-pressed=\"false\">리뷰 많은 순<\/button><button type=\"button\" aria-pressed=\"false\">가까운 순<\/button><\/span><button class=\"maptoggle\" type=\"button\" aria-pressed=\"true\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"><path d=\"M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z\"><\/path><path d=\"M9 4v14M15 6v14\"><\/path><\/svg>지도<\/button><\/div><\/div><div class=\"mapwrap\"><div class=\"kmap\" style=\"overflow: hidden; background: rgb(232, 238, 240);\" data-ivmap=\"1\"><\/div><button class=\"locbtn on\" type=\"button\" data-keep=\"1\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"4\"><\/circle><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3\"><\/path><\/svg><\/button><\/div><\/div><div class=\"panel\"><div class=\"gut\"><button class=\"rs\" type=\"button\"><span class=\"thumb ph \"><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">1위<\/span><span class=\"nm\">녹두 순대국<\/span><\/span><span class=\"area\">한식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.60<\/span><span class=\"rcount num\">리뷰 31<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물이 진하고 순대가 정말 실해요. 시험기간 혼밥 1순위!”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \"><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">2위<\/span><span class=\"nm\">카페 온기<\/span><\/span><span class=\"area\">카페 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 22<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“라떼 맛있고 자리 넉넉해요. 시험기간엔 일찍 가야 해요”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \"><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">3위<\/span><span class=\"nm\">쌀국수 한그릇<\/span><\/span><span class=\"area\">아시아음식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 11<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물 시원해요 또 갈게요”<\/span><\/span><\/button><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div>", "review": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel\"><div class=\"fbar gut\"><div class=\"genre\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">한식<\/button><button type=\"button\" aria-pressed=\"false\">카페<\/button><button type=\"button\" aria-pressed=\"false\">일식<\/button><button type=\"button\" aria-pressed=\"false\">분식<\/button><button type=\"button\" aria-pressed=\"false\">아시아음식<\/button><button type=\"button\" aria-pressed=\"false\">양식<\/button><button type=\"button\" aria-pressed=\"false\">혼밥 가능<\/button><button type=\"button\" aria-pressed=\"false\">가성비<\/button><button type=\"button\" aria-pressed=\"false\">과모임<\/button><button type=\"button\" aria-pressed=\"false\">학생 할인<\/button><button type=\"button\" aria-pressed=\"false\">공부 가능<\/button><button type=\"button\" aria-pressed=\"false\">해장<\/button><button type=\"button\" aria-pressed=\"false\">야식<\/button><button type=\"button\" aria-pressed=\"false\">데이트<\/button><\/div><div class=\"fmeta\"><span class=\"sort\"><button type=\"button\" aria-pressed=\"true\">랭킹순<\/button><button type=\"button\" aria-pressed=\"false\">리뷰 많은 순<\/button><button type=\"button\" aria-pressed=\"false\">가까운 순<\/button><\/span><button class=\"maptoggle\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"><path d=\"M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z\"><\/path><path d=\"M9 4v14M15 6v14\"><\/path><\/svg>지도<\/button><\/div><\/div><\/div><div class=\"panel\"><div class=\"gut\"><button class=\"rs\" type=\"button\"><span class=\"thumb ph \"><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">1위<\/span><span class=\"nm\">녹두 순대국<\/span><\/span><span class=\"area\">한식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.60<\/span><span class=\"rcount num\">리뷰 31<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물이 진하고 순대가 정말 실해요. 시험기간 혼밥 1순위!”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \"><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">2위<\/span><span class=\"nm\">카페 온기<\/span><\/span><span class=\"area\">카페 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 22<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“라떼 맛있고 자리 넉넉해요. 시험기간엔 일찍 가야 해요”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \"><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">3위<\/span><span class=\"nm\">쌀국수 한그릇<\/span><\/span><span class=\"area\">아시아음식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 11<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물 시원해요 또 갈게요”<\/span><\/span><\/button><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div><div class=\"scrim\"><div class=\"sheet\"><div class=\"dhead\"><div class=\"gut\"><div class=\"t\"><div><span class=\"area\">한식 · 도보 1분<\/span><h3>녹두 순대국<\/h3><\/div><button class=\"x\" type=\"button\">×<\/button><\/div><div class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.60<\/span><span class=\"rcount num\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M4 5h16v11H9l-5 4z\"><\/path><\/svg>리뷰 31<\/span><\/div><div class=\"split\"><span>매장·포장 <b class=\"num\">4.60<\/b><small class=\"num\">(21)<\/small><\/span><span>배달 <b class=\"num\">4.59<\/b><small class=\"num\">(6)<\/small><\/span><\/div><div class=\"budget\" style=\"margin-top:2px\">1인 5천~1만원<\/div><\/div><div class=\"dtabs gut\"><button type=\"button\" aria-pressed=\"false\">가게 정보<\/button><button type=\"button\" aria-pressed=\"true\">리뷰 (31)<\/button><\/div><\/div><div class=\"dbody\"><div class=\"panel gut\"><div class=\"sh\"><h2>리뷰 31건<\/h2><span class=\"rsort\"><button type=\"button\" aria-pressed=\"true\">신뢰도순<\/button><button type=\"button\" aria-pressed=\"false\">최신순<\/button><button type=\"button\" aria-pressed=\"false\">사진 리뷰<\/button><\/span><\/div><p class=\"allcert\"><span class=\"cert vb\" style=\"margin:0\">재학생 인증<\/span> 뱃지는 재학생 인증을 마친 학생에게만 붙어요<\/p><article class=\"rv\"><div class=\"who\"><span class=\"av \">국<\/span><div><b>국밥요정<\/b><span class=\"no1\">1호<\/span><span class=\"lv l3\">미식왕<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 21학번 · 받은 도움돼요 312<\/span><\/div><\/div><div class=\"meta\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><\/span><span class=\"val num\">5.0<\/span><span class=\"visit num\">방문 인증 6회<\/span><\/div><div class=\"menu\"><span>먹은 메뉴 · <\/span>순대국밥 · <span>1인 <\/span>5천~1만원<\/div><p>국물이 진하고 순대가 정말 실해요. 시험기간 혼밥 1순위!<\/p><div class=\"tagline\"><span>혼밥 가능<\/span><span>가성비<\/span><\/div><div class=\"foot\"><small class=\"num\">2026.10.26 방문<\/small><span class=\"foot-r\"><button class=\"report\" type=\"button\">신고<\/button><button class=\"like num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 도움돼요 24<\/button><\/span><\/div><\/article><article class=\"rv\"><div class=\"who\"><span class=\"av \">샤<\/span><div><b>샤로수곰<\/b><span class=\"lv l2\">미식가<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 22학번 · 받은 도움돼요 148<\/span><\/div><\/div><div class=\"meta\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"\"><\/i><\/span><span class=\"val num\">4.0<\/span><span class=\"visit num\">방문 인증 3회<\/span><\/div><div class=\"menu\"><span>먹은 메뉴 · <\/span>순대국 · <span>1인 <\/span>5천~1만원<\/div><p>양 많고 김치가 맛있어요. 점심엔 줄 조금 서요.<\/p><div class=\"tagline\"><span>혼밥 가능<\/span><\/div><div class=\"foot\"><small class=\"num\">2026.11.05 방문<\/small><span class=\"foot-r\"><button class=\"report\" type=\"button\">신고<\/button><button class=\"like num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 도움돼요 9<\/button><\/span><\/div><\/article><button class=\"morebtn\" type=\"button\">리뷰 10개 더 보기 ▼ <small class=\"num\">(10/31)<\/small><\/button><\/div><\/div><div class=\"actbar gut\"><button class=\"btn line save\" type=\"button\" aria-pressed=\"false\">☆ 저장<\/button><button class=\"btn line\" type=\"button\">📍 방문 인증<\/button><button class=\"btn\" type=\"button\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 20h4L19 9l-4-4L4 16z\"><\/path><path d=\"M14 6l4 4\"><\/path><\/svg>리뷰 쓰기<\/button><\/div><\/div><\/div>", "rank": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel gut\"><div class=\"sh\"><h2>서울대 리뷰어 랭킹<\/h2><\/div><div class=\"period\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">이번 달<\/button><button type=\"button\" aria-pressed=\"false\">이번 주<\/button><\/div><p class=\"pcap\">가입 후 지금까지 받은 \"도움돼요\" 기준 · 등급은 전체 기준이에요<\/p><div><div class=\"row2 \"><span class=\"n top num\">1<\/span><span class=\"av \">국<\/span><span class=\"who\"><b>국밥요정<\/b><span class=\"lv l3\">미식왕<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 21학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">312<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n top num\">2<\/span><span class=\"av \">막<\/span><span class=\"who\"><b>막학기<\/b><span class=\"lv l2\">미식가<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 20학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">160<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n top num\">3<\/span><span class=\"av \">샤<\/span><span class=\"who\"><b>샤로수곰<\/b><span class=\"lv l2\">미식가<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 22학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">148<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n  num\">4<\/span><span class=\"av \">라<\/span><span class=\"who\"><b>라떼중독<\/b><span class=\"lv l2\">미식가<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 23학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">120<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n  num\">5<\/span><span class=\"av \">공<\/span><span class=\"who\"><b>공대생<\/b><span class=\"lv l2\">미식가<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 26학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">110<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n  num\">6<\/span><span class=\"av \">면<\/span><span class=\"who\"><b>면치기장인<\/b><span class=\"lv l1\">단골<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 24학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">87<small>도움돼요<\/small><\/span><\/div><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div>", "talk": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel gut\"><div class=\"sh\"><h2>서울대 로그톡<\/h2><button class=\"wbtn\" type=\"button\">✎ 글쓰기<\/button><\/div><p class=\"talk-desc\">우리 학교 학생들끼리 맛집을 묻고 답하는 곳이에요. 맛집이 궁금하면 물어보고, 아는 곳이 있으면 알려주세요. 답변에 가게를 태그하면 바로 가게로 이동할 수 있어요.<\/p><div class=\"genre\" style=\"padding-bottom:12px\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">질문<\/button><button type=\"button\" aria-pressed=\"false\">추천<\/button><button type=\"button\" aria-pressed=\"false\">정보<\/button><\/div><\/div><div class=\"panel\"><div class=\"gut\"><button class=\"post\" type=\"button\"><span class=\"ptop\"><span class=\"pcat\">질문<\/span><\/span><b class=\"ptitle\">시험기간 혼밥하기 좋은 곳 있어요?<\/b><span class=\"pbody\">혼자 빨리 먹고 중도 가기 좋은 곳 추천해 주세요!<\/span><span class=\"pmeta\"><span>새내기A<\/span><span class=\"lv l0\">새내기<\/span><span class=\"num\">· 3시간 전 · 댓글 2 · 공감 6<\/span><\/span><\/button><button class=\"post\" type=\"button\"><span class=\"ptop\"><span class=\"pcat\">추천<\/span><\/span><b class=\"ptitle\">녹두거리 카공 카페 정리해봤어요<\/b><span class=\"pbody\">콘센트 많은 곳 위주로!<\/span><span class=\"pmeta\"><span>카공족<\/span><span class=\"lv l1\">단골<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"num\">· 20시간 전 · 댓글 0 · 공감 12<\/span><\/span><\/button><button class=\"post\" type=\"button\"><span class=\"ptop\"><span class=\"pcat\">정보<\/span><\/span><b class=\"ptitle\">샤로수길 떡볶이집 학생 할인 생겼어요<\/b><span class=\"pbody\">학생증 보여주면 10%<\/span><span class=\"pmeta\"><span>떡볶이러버<\/span><span class=\"lv l1\">단골<\/span><span class=\"num\">· 1일 전 · 댓글 0 · 공감 9<\/span><\/span><\/button><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div><div class=\"scrim\"><div class=\"sheet\"><div class=\"dhead\"><div class=\"gut\" style=\"padding-bottom:12px\"><div class=\"t\"><div><span class=\"area\">서울대 로그톡<\/span><h3><span class=\"pcat\">질문<\/span> 시험기간 혼밥하기 좋은 곳 있어요?<\/h3><\/div><button class=\"x\" type=\"button\">×<\/button><\/div><div class=\"pline\"><span class=\"av sm\">새<\/span><b>새내기A<\/b><span class=\"lv l0\">새내기<\/span><span>· 서울대 26학번 · 3시간 전<\/span><\/div><\/div><\/div><div class=\"dbody\"><div class=\"postmain gut\"><p class=\"ptext\">혼자 빨리 먹고 중도 가기 좋은 곳 추천해 주세요!<\/p><div class=\"pact\"><span class=\"cacts\"><button class=\"mini num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 공감 6<\/button><button class=\"mini bm\" type=\"button\" aria-pressed=\"false\">☆ 북마크<\/button><\/span><button class=\"report\" type=\"button\">신고<\/button><\/div><\/div><div class=\"panel gut\"><div class=\"sh\"><h2>답변 2<\/h2><\/div><div class=\"cm2\"><span class=\"av sm\">국<\/span><div class=\"cb\"><div class=\"cline\"><b>국밥요정<\/b><span class=\"lv l3\">미식왕<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"t\">2시간 전<\/span><\/div><p>여기 혼자 가도 편하고 금방 나와요<\/p><button class=\"cchip \" type=\"button\"><span class=\"sq ph\"><\/span><b>녹두 순대국<\/b><span class=\"sc num\">★ 4.60<\/span><span class=\"go\">›<\/span><\/button><div class=\"cacts\"><button class=\"mini num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 도움돼요 5<\/button><button class=\"mini\" type=\"button\" aria-pressed=\"false\">답글<\/button><button class=\"report\" type=\"button\" style=\"margin-left:auto\">신고<\/button><\/div><\/div><\/div><div class=\"cm2\"><span class=\"av sm\">면<\/span><div class=\"cb\"><div class=\"cline\"><b>면치기장인<\/b><span class=\"lv l1\">단골<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"t\">1시간 전<\/span><\/div><p>봉천 라멘집도 1인석 있어요!<\/p><button class=\"cchip \" type=\"button\"><span class=\"sq ph\"><\/span><b>봉천 라멘집<\/b><span class=\"sc num\">★ 4.07<\/span><span class=\"go\">›<\/span><\/button><div class=\"cacts\"><button class=\"mini num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 도움돼요 2<\/button><button class=\"mini\" type=\"button\" aria-pressed=\"false\">답글<\/button><button class=\"report\" type=\"button\" style=\"margin-left:auto\">신고<\/button><\/div><\/div><\/div><\/div><\/div><div class=\"cdock\"><div class=\"actbar gut cbar\"><button class=\"ctag\" type=\"button\" aria-pressed=\"false\">🏷 가게<\/button><input maxlength=\"1000\" placeholder=\"답변 남기기\" autocomplete=\"off\" value=\"\"><button class=\"btn\" type=\"button\">등록<\/button><\/div><\/div><\/div><\/div>"};
+const INTRO_SNAPS={"list": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel\"><div class=\"fbar gut\"><div class=\"genre\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">한식<\/button><button type=\"button\" aria-pressed=\"false\">카페<\/button><button type=\"button\" aria-pressed=\"false\">일식<\/button><button type=\"button\" aria-pressed=\"false\">분식<\/button><button type=\"button\" aria-pressed=\"false\">아시아음식<\/button><button type=\"button\" aria-pressed=\"false\">양식<\/button><button type=\"button\" aria-pressed=\"false\">혼밥 가능<\/button><button type=\"button\" aria-pressed=\"false\">가성비<\/button><button type=\"button\" aria-pressed=\"false\">과모임<\/button><button type=\"button\" aria-pressed=\"false\">학생 할인<\/button><button type=\"button\" aria-pressed=\"false\">공부 가능<\/button><button type=\"button\" aria-pressed=\"false\">해장<\/button><button type=\"button\" aria-pressed=\"false\">야식<\/button><button type=\"button\" aria-pressed=\"false\">데이트<\/button><\/div><div class=\"fmeta\"><span class=\"sort\"><button type=\"button\" aria-pressed=\"true\">랭킹순<\/button><button type=\"button\" aria-pressed=\"false\">리뷰 많은 순<\/button><button type=\"button\" aria-pressed=\"false\">가까운 순<\/button><\/span><button class=\"maptoggle\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"><path d=\"M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z\"><\/path><path d=\"M9 4v14M15 6v14\"><\/path><\/svg>지도<\/button><\/div><\/div><\/div><div class=\"panel\"><div class=\"gut\"><button class=\"rs\" type=\"button\"><span class=\"thumb ph \" style=\"--phc:#E35C0B\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28z\" fill=\"var(--t)\"><\/path><path d=\"M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28zM4 24h4M40 24h4M6 22h36\" fill=\"none\"><\/path><path d=\"M18 16c-2-2 2-4 0-6M24 16c-2-2 2-4 0-6M30 16c-2-2 2-4 0-6\" fill=\"none\"><\/path><\/svg><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">1위<\/span><span class=\"nm\">녹두 순대국<\/span><\/span><span class=\"area\">한식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.60<\/span><span class=\"rcount num\">리뷰 31<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물이 진하고 순대가 정말 실해요. 시험기간 혼밥 1순위!”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \" style=\"--phc:#8A5A3C\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18h24v12a10 10 0 0 1-10 10h-4A10 10 0 0 1 9 30z\" fill=\"var(--t)\"><\/path><path d=\"M9 18h24v12a10 10 0 0 1-10 10h-4A10 10 0 0 1 9 30zM33 21h3a5 5 0 0 1 0 10h-3M6 44h30\" fill=\"none\"><\/path><path d=\"M16 12c-2-2 2-4 0-6M23 12c-2-2 2-4 0-6\" fill=\"none\"><\/path><\/svg><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">2위<\/span><span class=\"nm\">카페 온기<\/span><\/span><span class=\"area\">카페 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 22<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“라떼 맛있고 자리 넉넉해요. 시험기간엔 일찍 가야 해요”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \" style=\"--phc:#D98A1C\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 22h34a17 16 0 0 1-34 0z\" fill=\"var(--t)\"><\/path><path d=\"M7 22h34a17 16 0 0 1-34 0zM18 42h12\" fill=\"none\"><\/path><path d=\"M13 22c2-4 4 0 6-4s4 0 6-4 4 0 6-4\" fill=\"none\"><\/path><path d=\"M28 4l-4 18M35 6l-7 16\" fill=\"none\"><\/path><\/svg><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">3위<\/span><span class=\"nm\">쌀국수 한그릇<\/span><\/span><span class=\"area\">아시아음식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 11<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물 시원해요 또 갈게요”<\/span><\/span><\/button><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div>", "map": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel\"><div class=\"fbar gut\"><div class=\"genre\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">한식<\/button><button type=\"button\" aria-pressed=\"false\">카페<\/button><button type=\"button\" aria-pressed=\"false\">일식<\/button><button type=\"button\" aria-pressed=\"false\">분식<\/button><button type=\"button\" aria-pressed=\"false\">아시아음식<\/button><button type=\"button\" aria-pressed=\"false\">양식<\/button><button type=\"button\" aria-pressed=\"false\">혼밥 가능<\/button><button type=\"button\" aria-pressed=\"false\">가성비<\/button><button type=\"button\" aria-pressed=\"false\">과모임<\/button><button type=\"button\" aria-pressed=\"false\">학생 할인<\/button><button type=\"button\" aria-pressed=\"false\">공부 가능<\/button><button type=\"button\" aria-pressed=\"false\">해장<\/button><button type=\"button\" aria-pressed=\"false\">야식<\/button><button type=\"button\" aria-pressed=\"false\">데이트<\/button><\/div><div class=\"fmeta\"><span class=\"sort\"><button type=\"button\" aria-pressed=\"true\">랭킹순<\/button><button type=\"button\" aria-pressed=\"false\">리뷰 많은 순<\/button><button type=\"button\" aria-pressed=\"false\">가까운 순<\/button><\/span><button class=\"maptoggle\" type=\"button\" aria-pressed=\"true\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"><path d=\"M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z\"><\/path><path d=\"M9 4v14M15 6v14\"><\/path><\/svg>지도<\/button><\/div><\/div><div class=\"mapwrap\"><div class=\"kmap\" style=\"overflow: hidden; background: rgb(232, 238, 240);\" data-ivmap=\"1\"><\/div><button class=\"locbtn on\" type=\"button\" data-keep=\"1\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"4\"><\/circle><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3\"><\/path><\/svg><\/button><\/div><\/div><div class=\"panel\"><div class=\"gut\"><button class=\"rs\" type=\"button\"><span class=\"thumb ph \" style=\"--phc:#E35C0B\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28z\" fill=\"var(--t)\"><\/path><path d=\"M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28zM4 24h4M40 24h4M6 22h36\" fill=\"none\"><\/path><path d=\"M18 16c-2-2 2-4 0-6M24 16c-2-2 2-4 0-6M30 16c-2-2 2-4 0-6\" fill=\"none\"><\/path><\/svg><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">1위<\/span><span class=\"nm\">녹두 순대국<\/span><\/span><span class=\"area\">한식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.60<\/span><span class=\"rcount num\">리뷰 31<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물이 진하고 순대가 정말 실해요. 시험기간 혼밥 1순위!”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \" style=\"--phc:#8A5A3C\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18h24v12a10 10 0 0 1-10 10h-4A10 10 0 0 1 9 30z\" fill=\"var(--t)\"><\/path><path d=\"M9 18h24v12a10 10 0 0 1-10 10h-4A10 10 0 0 1 9 30zM33 21h3a5 5 0 0 1 0 10h-3M6 44h30\" fill=\"none\"><\/path><path d=\"M16 12c-2-2 2-4 0-6M23 12c-2-2 2-4 0-6\" fill=\"none\"><\/path><\/svg><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">2위<\/span><span class=\"nm\">카페 온기<\/span><\/span><span class=\"area\">카페 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 22<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“라떼 맛있고 자리 넉넉해요. 시험기간엔 일찍 가야 해요”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \" style=\"--phc:#D98A1C\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 22h34a17 16 0 0 1-34 0z\" fill=\"var(--t)\"><\/path><path d=\"M7 22h34a17 16 0 0 1-34 0zM18 42h12\" fill=\"none\"><\/path><path d=\"M13 22c2-4 4 0 6-4s4 0 6-4 4 0 6-4\" fill=\"none\"><\/path><path d=\"M28 4l-4 18M35 6l-7 16\" fill=\"none\"><\/path><\/svg><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">3위<\/span><span class=\"nm\">쌀국수 한그릇<\/span><\/span><span class=\"area\">아시아음식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 11<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물 시원해요 또 갈게요”<\/span><\/span><\/button><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div>", "review": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel\"><div class=\"fbar gut\"><div class=\"genre\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">한식<\/button><button type=\"button\" aria-pressed=\"false\">카페<\/button><button type=\"button\" aria-pressed=\"false\">일식<\/button><button type=\"button\" aria-pressed=\"false\">분식<\/button><button type=\"button\" aria-pressed=\"false\">아시아음식<\/button><button type=\"button\" aria-pressed=\"false\">양식<\/button><button type=\"button\" aria-pressed=\"false\">혼밥 가능<\/button><button type=\"button\" aria-pressed=\"false\">가성비<\/button><button type=\"button\" aria-pressed=\"false\">과모임<\/button><button type=\"button\" aria-pressed=\"false\">학생 할인<\/button><button type=\"button\" aria-pressed=\"false\">공부 가능<\/button><button type=\"button\" aria-pressed=\"false\">해장<\/button><button type=\"button\" aria-pressed=\"false\">야식<\/button><button type=\"button\" aria-pressed=\"false\">데이트<\/button><\/div><div class=\"fmeta\"><span class=\"sort\"><button type=\"button\" aria-pressed=\"true\">랭킹순<\/button><button type=\"button\" aria-pressed=\"false\">리뷰 많은 순<\/button><button type=\"button\" aria-pressed=\"false\">가까운 순<\/button><\/span><button class=\"maptoggle\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"><path d=\"M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z\"><\/path><path d=\"M9 4v14M15 6v14\"><\/path><\/svg>지도<\/button><\/div><\/div><\/div><div class=\"panel\"><div class=\"gut\"><button class=\"rs\" type=\"button\"><span class=\"thumb ph \" style=\"--phc:#E35C0B\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28z\" fill=\"var(--t)\"><\/path><path d=\"M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28zM4 24h4M40 24h4M6 22h36\" fill=\"none\"><\/path><path d=\"M18 16c-2-2 2-4 0-6M24 16c-2-2 2-4 0-6M30 16c-2-2 2-4 0-6\" fill=\"none\"><\/path><\/svg><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">1위<\/span><span class=\"nm\">녹두 순대국<\/span><\/span><span class=\"area\">한식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.60<\/span><span class=\"rcount num\">리뷰 31<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물이 진하고 순대가 정말 실해요. 시험기간 혼밥 1순위!”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \" style=\"--phc:#8A5A3C\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18h24v12a10 10 0 0 1-10 10h-4A10 10 0 0 1 9 30z\" fill=\"var(--t)\"><\/path><path d=\"M9 18h24v12a10 10 0 0 1-10 10h-4A10 10 0 0 1 9 30zM33 21h3a5 5 0 0 1 0 10h-3M6 44h30\" fill=\"none\"><\/path><path d=\"M16 12c-2-2 2-4 0-6M23 12c-2-2 2-4 0-6\" fill=\"none\"><\/path><\/svg><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">2위<\/span><span class=\"nm\">카페 온기<\/span><\/span><span class=\"area\">카페 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 22<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“라떼 맛있고 자리 넉넉해요. 시험기간엔 일찍 가야 해요”<\/span><\/span><\/button><button class=\"rs\" type=\"button\"><span class=\"thumb ph \" style=\"--phc:#D98A1C\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 22h34a17 16 0 0 1-34 0z\" fill=\"var(--t)\"><\/path><path d=\"M7 22h34a17 16 0 0 1-34 0zM18 42h12\" fill=\"none\"><\/path><path d=\"M13 22c2-4 4 0 6-4s4 0 6-4 4 0 6-4\" fill=\"none\"><\/path><path d=\"M28 4l-4 18M35 6l-7 16\" fill=\"none\"><\/path><\/svg><\/span><span class=\"info\"><span class=\"top\"><span class=\"rank num\">3위<\/span><span class=\"nm\">쌀국수 한그릇<\/span><\/span><span class=\"area\">아시아음식 · 도보 1분<\/span><span class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.32<\/span><span class=\"rcount num\">리뷰 11<\/span><\/span><span class=\"budget\">1인 5천~1만원<\/span><span class=\"snip\">“국물 시원해요 또 갈게요”<\/span><\/span><\/button><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div><div class=\"scrim\"><div class=\"sheet\"><div class=\"dhead\"><div class=\"gut\"><div class=\"t\"><div><span class=\"area\">한식 · 도보 1분<\/span><h3>녹두 순대국<\/h3><\/div><button class=\"x\" type=\"button\">×<\/button><\/div><div class=\"rating\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"half\"><\/i><\/span><span class=\"val num\">4.60<\/span><span class=\"rcount num\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M4 5h16v11H9l-5 4z\"><\/path><\/svg>리뷰 31<\/span><\/div><div class=\"split\"><span>매장·포장 <b class=\"num\">4.60<\/b><small class=\"num\">(21)<\/small><\/span><span>배달 <b class=\"num\">4.59<\/b><small class=\"num\">(6)<\/small><\/span><\/div><div class=\"budget\" style=\"margin-top:2px\">1인 5천~1만원<\/div><button class=\"lstadd\" type=\"button\">＋ 리스트에 담기<\/button><\/div><div class=\"dtabs gut\"><button type=\"button\" aria-pressed=\"false\">가게 정보<\/button><button type=\"button\" aria-pressed=\"true\">리뷰 (31)<\/button><\/div><\/div><div class=\"dbody\"><div class=\"panel gut\"><div class=\"sh\"><h2>리뷰 31건<\/h2><span class=\"rsort\"><button type=\"button\" aria-pressed=\"true\">신뢰도순<\/button><button type=\"button\" aria-pressed=\"false\">최신순<\/button><button type=\"button\" aria-pressed=\"false\">사진 리뷰<\/button><\/span><\/div><p class=\"allcert\"><span class=\"cert vb\" style=\"margin:0\">재학생 인증<\/span> 뱃지는 재학생 인증을 마친 학생에게만 붙어요<\/p><article class=\"rv\"><div class=\"who\"><span class=\"av \">국<\/span><div><b>국밥요정<\/b><span class=\"no1\">1호<\/span><span class=\"lv l3\">미식왕<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 21학번 · 받은 도움돼요 312<\/span><\/div><\/div><div class=\"meta\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><\/span><span class=\"val num\">5.0<\/span><span class=\"visit num\">📍 방문 인증 6회<\/span><\/div><div class=\"menu\"><span>먹은 메뉴 · <\/span>순대국밥 · <span>1인 <\/span>5천~1만원<\/div><p>국물이 진하고 순대가 정말 실해요. 시험기간 혼밥 1순위!<\/p><div class=\"tagline\"><span>혼밥 가능<\/span><span>가성비<\/span><\/div><div class=\"foot\"><small class=\"num\">2026.11.02 방문<\/small><span class=\"foot-r\"><button class=\"report\" type=\"button\">신고<\/button><button class=\"like num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 도움돼요 24<\/button><\/span><\/div><\/article><article class=\"rv\"><div class=\"who\"><span class=\"av \">샤<\/span><div><b>샤로수곰<\/b><span class=\"lv l2\">미식가<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"d\">서울대 22학번 · 받은 도움돼요 148<\/span><\/div><\/div><div class=\"meta\"><span class=\"stars\"><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"on\"><\/i><i class=\"\"><\/i><\/span><span class=\"val num\">4.0<\/span><span class=\"visit num\">📍 방문 인증 3회<\/span><\/div><div class=\"menu\"><span>먹은 메뉴 · <\/span>순대국 · <span>1인 <\/span>5천~1만원<\/div><p>양 많고 김치가 맛있어요. 점심엔 줄 조금 서요.<\/p><div class=\"tagline\"><span>혼밥 가능<\/span><\/div><div class=\"foot\"><small class=\"num\">2026.11.12 방문<\/small><span class=\"foot-r\"><button class=\"report\" type=\"button\">신고<\/button><button class=\"like num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 도움돼요 9<\/button><\/span><\/div><\/article><button class=\"morebtn\" type=\"button\">리뷰 10개 더 보기 ▼ <small class=\"num\">(10/31)<\/small><\/button><\/div><\/div><div class=\"actbar gut\"><button class=\"btn line save\" type=\"button\" aria-pressed=\"false\">☆ 저장<\/button><button class=\"btn line\" type=\"button\">📍 방문 인증<\/button><button class=\"btn\" type=\"button\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 20h4L19 9l-4-4L4 16z\"><\/path><path d=\"M14 6l4 4\"><\/path><\/svg>리뷰 쓰기<\/button><\/div><\/div><\/div>", "rank": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel gut\"><div class=\"sh\"><h2>서울대 리뷰어 랭킹<\/h2><\/div><div class=\"period\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">이번 달<\/button><button type=\"button\" aria-pressed=\"false\">이번 주<\/button><\/div><p class=\"pcap\">가입 후 지금까지 받은 \"도움돼요\" 기준 · 재학생 인증한 학생만 랭킹에 올라요<\/p><div><div class=\"row2 \"><span class=\"n top num\">1<\/span><span class=\"av \">국<\/span><span class=\"who\"><span class=\"nm\"><b>국밥요정<\/b><span class=\"lv l3\">미식왕<\/span><\/span><span class=\"d\">서울대 21학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">312<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n top num\">2<\/span><span class=\"av \">막<\/span><span class=\"who\"><span class=\"nm\"><b>막학기<\/b><span class=\"lv l2\">미식가<\/span><\/span><span class=\"d\">서울대 20학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">160<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n top num\">3<\/span><span class=\"av \">샤<\/span><span class=\"who\"><span class=\"nm\"><b>샤로수곰<\/b><span class=\"lv l2\">미식가<\/span><\/span><span class=\"d\">서울대 22학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">148<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n  num\">4<\/span><span class=\"av \">라<\/span><span class=\"who\"><span class=\"nm\"><b>라떼중독<\/b><span class=\"lv l2\">미식가<\/span><\/span><span class=\"d\">서울대 23학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">120<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n  num\">5<\/span><span class=\"av \">공<\/span><span class=\"who\"><span class=\"nm\"><b>공대생<\/b><span class=\"lv l2\">미식가<\/span><\/span><span class=\"d\">서울대 26학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">110<small>도움돼요<\/small><\/span><\/div><div class=\"row2 \"><span class=\"n  num\">6<\/span><span class=\"av \">면<\/span><span class=\"who\"><span class=\"nm\"><b>면치기장인<\/b><span class=\"lv l1\">단골<\/span><\/span><span class=\"d\">서울대 24학번 · 리뷰 1 · 댓글 1<\/span><\/span><span class=\"v num\">87<small>도움돼요<\/small><\/span><\/div><div class=\"vnudge\" style=\"margin-top:12px\"><span><b>재학생 인증을 하면 랭킹에 올라요<\/b><small>리뷰·댓글은 인증 없이도 쓸 수 있어요. 랭킹은 인증한 학생끼리만 겨뤄요<\/small><\/span><button class=\"wbtn\" type=\"button\">인증하기<\/button><\/div><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div>", "talk": "<div class=\"app\"><header class=\"top\"><div class=\"hrow gut\"><div class=\"logo\"><svg class=\"lg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"10\" style=\"fill:var(--accent)\"><\/rect><path d=\"M6.5 15.5h19a9.5 9.5 0 0 1-19 0z\" fill=\"#fff\"><\/path><path d=\"M10.5 4.5l7.5 10M15 3.5l6 11\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" fill=\"none\"><\/path><\/svg>유니로그<\/div><form class=\"search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"><\/circle><path d=\"M20 20l-4-4\"><\/path><\/svg><input type=\"search\" placeholder=\"가게·메뉴 검색\" autocomplete=\"off\" enterkeyhint=\"search\"><\/form><\/div><div class=\"where gut\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z\"><\/path><\/svg><span><b>서울대<\/b> 주변 맛집<\/span><\/div><\/header><main><section class=\"view\"><div class=\"panel gut\"><div class=\"sh\"><h2>서울대 로그톡<\/h2><button class=\"wbtn\" type=\"button\">✎ 글쓰기<\/button><\/div><p class=\"talk-desc\">우리 학교 학생들끼리 맛집을 묻고 답하는 곳이에요. 맛집이 궁금하면 물어보고, 아는 곳이 있으면 알려주세요. 답변에 가게를 태그하면 바로 가게로 이동할 수 있어요.<\/p><div class=\"genre\" style=\"padding-bottom:12px\"><button type=\"button\" aria-pressed=\"true\">전체<\/button><button type=\"button\" aria-pressed=\"false\">질문<\/button><button type=\"button\" aria-pressed=\"false\">추천<\/button><button type=\"button\" aria-pressed=\"false\">정보<\/button><\/div><\/div><div class=\"panel\"><div class=\"gut\"><button class=\"post\" type=\"button\"><span class=\"ptop\"><span class=\"pcat\">질문<\/span><\/span><b class=\"ptitle\">시험기간 혼밥하기 좋은 곳 있어요?<\/b><span class=\"pbody\">혼자 빨리 먹고 중도 가기 좋은 곳 추천해 주세요!<\/span><span class=\"pmeta\"><span>새내기A<\/span><span class=\"lv l0\">새내기<\/span><span class=\"num\">· 3시간 전 · 댓글 2 · 공감 6<\/span><\/span><\/button><button class=\"post\" type=\"button\"><span class=\"ptop\"><span class=\"pcat\">추천<\/span><\/span><b class=\"ptitle\">녹두거리 카공 카페 정리해봤어요<\/b><span class=\"pbody\">콘센트 많은 곳 위주로!<\/span><span class=\"pmeta\"><span>카공족<\/span><span class=\"lv l1\">단골<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"num\">· 20시간 전 · 댓글 0 · 공감 12<\/span><\/span><\/button><button class=\"post\" type=\"button\"><span class=\"ptop\"><span class=\"pcat\">정보<\/span><\/span><b class=\"ptitle\">샤로수길 떡볶이집 학생 할인 생겼어요<\/b><span class=\"pbody\">학생증 보여주면 10%<\/span><span class=\"pmeta\"><span>떡볶이러버<\/span><span class=\"lv l1\">단골<\/span><span class=\"num\">· 1일 전 · 댓글 0 · 공감 9<\/span><\/span><\/button><\/div><\/div><\/section><\/main><nav class=\"tabs\"><div class=\"in\"><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 7s1 4 3 4\"><\/path><\/svg>맛집 찾기<\/button><button type=\"button\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><path d=\"M4 5h16v11H10l-5 4v-4H4z\"><\/path><path d=\"M8 9.5h8M8 12.5h5\"><\/path><\/svg>로그톡<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z\"><\/path><\/svg>리뷰어 등급<\/button><button type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"><\/circle><path d=\"M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6\"><\/path><\/svg>마이페이지<\/button><\/div><\/nav><\/div><div class=\"scrim\"><div class=\"sheet\"><div class=\"dhead\"><div class=\"gut\" style=\"padding-bottom:12px\"><div class=\"t\"><div><span class=\"area\">서울대 로그톡<\/span><h3><span class=\"pcat\">질문<\/span> 시험기간 혼밥하기 좋은 곳 있어요?<\/h3><\/div><button class=\"x\" type=\"button\">×<\/button><\/div><div class=\"pline\"><span class=\"av sm\">새<\/span><b>새내기A<\/b><span class=\"lv l0\">새내기<\/span><span>· 서울대 26학번 · 3시간 전<\/span><\/div><\/div><\/div><div class=\"dbody\"><div class=\"postmain gut\"><p class=\"ptext\">혼자 빨리 먹고 중도 가기 좋은 곳 추천해 주세요!<\/p><div class=\"pact\"><span class=\"cacts\"><button class=\"mini num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 공감 6<\/button><button class=\"mini bm\" type=\"button\" aria-pressed=\"false\">☆ 북마크<\/button><\/span><button class=\"report\" type=\"button\">신고<\/button><\/div><\/div><div class=\"panel gut\"><div class=\"sh\"><h2>답변 2<\/h2><\/div><div class=\"cm2\"><span class=\"av sm\">국<\/span><div class=\"cb\"><div class=\"cline\"><b>국밥요정<\/b><span class=\"lv l3\">미식왕<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"t\">2시간 전<\/span><\/div><p>여기 혼자 가도 편하고 금방 나와요<\/p><button class=\"cchip \" type=\"button\"><span class=\"sq ph\" style=\"--phc:#E35C0B\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28z\" fill=\"var(--t)\"><\/path><path d=\"M8 22h32v6a14 14 0 0 1-14 14h-4A14 14 0 0 1 8 28zM4 24h4M40 24h4M6 22h36\" fill=\"none\"><\/path><path d=\"M18 16c-2-2 2-4 0-6M24 16c-2-2 2-4 0-6M30 16c-2-2 2-4 0-6\" fill=\"none\"><\/path><\/svg><\/span><b>녹두 순대국<\/b><span class=\"sc num\">★ 4.60<\/span><span class=\"go\">›<\/span><\/button><div class=\"cacts\"><button class=\"mini num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 도움돼요 5<\/button><button class=\"mini\" type=\"button\" aria-pressed=\"false\">답글<\/button><button class=\"report\" type=\"button\" style=\"margin-left:auto\">신고<\/button><\/div><\/div><\/div><div class=\"cm2\"><span class=\"av sm\">면<\/span><div class=\"cb\"><div class=\"cline\"><b>면치기장인<\/b><span class=\"lv l1\">단골<\/span><span class=\"cert vb\">재학생 인증<\/span><span class=\"t\">1시간 전<\/span><\/div><p>봉천 라멘집도 1인석 있어요!<\/p><button class=\"cchip \" type=\"button\"><span class=\"sq ph\" style=\"--phc:#D98A1C\"><svg viewBox=\"0 0 48 48\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 22h34a17 16 0 0 1-34 0z\" fill=\"var(--t)\"><\/path><path d=\"M7 22h34a17 16 0 0 1-34 0zM18 42h12\" fill=\"none\"><\/path><path d=\"M13 22c2-4 4 0 6-4s4 0 6-4 4 0 6-4\" fill=\"none\"><\/path><path d=\"M28 4l-4 18M35 6l-7 16\" fill=\"none\"><\/path><\/svg><\/span><b>봉천 라멘집<\/b><span class=\"sc num\">★ 4.07<\/span><span class=\"go\">›<\/span><\/button><div class=\"cacts\"><button class=\"mini num\" type=\"button\" aria-pressed=\"false\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linejoin=\"round\"><path d=\"M7 10v11H3V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7\"><\/path><\/svg> 도움돼요 2<\/button><button class=\"mini\" type=\"button\" aria-pressed=\"false\">답글<\/button><button class=\"report\" type=\"button\" style=\"margin-left:auto\">신고<\/button><\/div><\/div><\/div><\/div><\/div><div class=\"cdock\"><div class=\"actbar gut cbar\"><button class=\"ctag\" type=\"button\" aria-pressed=\"false\">🏷 가게<\/button><input maxlength=\"1000\" placeholder=\"답변 남기기\" autocomplete=\"off\" value=\"\"><button class=\"btn\" type=\"button\">등록<\/button><\/div><\/div><\/div><\/div>"};
 /* 지도 소개 화면: 실제 카카오맵(서울대입구 주변)을 띄우고, 못 띄우면 그림 지도로 대신해요 */
 const IV_CENTER={y:37.4800,x:126.9530};
 const IV_PINS=[[0.0016,-0.0024,'4.46'],[0.0031,0.0012,'4.33'],[-0.0004,0.0027,'4.08'],[0.0006,-0.0052,'4.12'],[-0.0027,-0.0010,'3.97'],
@@ -2003,7 +2377,14 @@ function obHTML(){
     ${introHTML()}
     <div class="grow"></div><div class="ob-easy"><b>카카오 로그인만 하면 바로 시작해요</b><span>재학생 인증은 하고 싶을 때 마이페이지에서 언제든 할 수 있어요</span></div>
     <button class="kakao" type="button" data-act="kakao">${kakaoSVG}카카오로 시작하기</button>
+    <button class="guestbtn" type="button" data-act="guest">로그인 없이 먼저 둘러볼게요</button>
     <p class="fine">서울·경기·인천·광역시·제주 지역 대학에서 쓸 수 있어요</p>`;
+  if(s==='gs')return `<div class="ob-nav"><button class="back" type="button" data-act="back" aria-label="뒤로">‹</button><div class="ob-prog" style="visibility:hidden"><i></i></div><small></small></div>
+    <h2 class="ob-t">어느 학교 주변을<br>둘러볼까요?</h2><p class="ob-d">로그인 없이 맛집·리뷰·로그톡·랭킹을 볼 수 있어요. 리뷰 쓰기, 도움돼요, 저장은 그때 로그인하면 돼요.</p>
+    <div class="fld"><input id="obSchool" type="search" placeholder="학교 이름이나 지역 검색" value="${esc(ob.sq)}" autocomplete="off" aria-label="학교 검색"></div>
+    <div class="genre" role="group" aria-label="지역" style="margin-top:-6px">${REGIONS.map(r=>`<button type="button" data-region="${r}" aria-pressed="${ob.region===r}">${r}</button>`).join('')}</div>
+    <div class="opts school-box" id="schoolList">${schoolList()}</div>
+    <div class="grow"></div><button class="btn" id="obNext" type="button" data-act="next" ${obOk()?'':'disabled'}>둘러보기 시작</button>`;
   if(s===5&&ob.skip)return `<div class="done-ic">✓</div><div class="center"><h2 class="ob-t">가입이 끝났어요</h2><p style="color:var(--sub);margin:8px 0 0">${esc(ob.nick.trim())}님, 반가워요!</p></div>
     <div class="steps-info"><div><b>1</b><span>바로 학교 앞 맛집을 찾고 리뷰와 로그톡 글을 쓸 수 있어요.</span></div><div><b>2</b><span>재학생 인증은 마이페이지에서 언제든 할 수 있어요.</span></div><div><b>3</b><span>인증하면 내 리뷰와 글에 <span class="cert vb" style="margin:0">재학생 인증</span> 뱃지가 붙어요.</span></div></div>
     <div class="grow"></div><button class="btn" type="button" data-act="finish">유니로그 시작하기</button>`;
@@ -2087,10 +2468,12 @@ function bindOb(){
     const a=e.target.closest('[data-act]');
     if(a){const act=a.dataset.act;
       if(act==='kakao')return kakaoLogin();
+      if(act==='guest'){ob.step='gs';ob.school=ob.school||store.get('ul_guest_school')||'';return obRender();}
       if(act==='logout')return sb.auth.signOut().then(()=>location.replace(location.origin+location.pathname));
       if(act==='finish'){el.hidden=true;if(ob.mode==='verify'||S.entered){ob.mode='join';return route();}$('#boot').hidden=false;return route();}
-      if(act==='back'){if(ob.mode==='verify'&&ob.step===3){el.hidden=true;ob.mode='join';return;}ob.step=Math.max(1,ob.step-1);return obRender();}
+      if(act==='back'){if(ob.step==='gs'){ob.step=0;return obRender();}if(ob.mode==='verify'&&ob.step===3){el.hidden=true;ob.mode='join';return;}ob.step=Math.max(1,ob.step-1);return obRender();}
       if(act==='skip'){ob.skip=true;ob.step=4;return obRender();}
+      if(act==='next'&&!a.disabled&&ob.step==='gs')return enterGuest(ob.school);
       if(act==='next'&&!a.disabled){if(ob.step===4)return obSubmit();if(ob.step===3)ob.skip=false;ob.step++;return obRender();}
       return;}
     const rg=e.target.closest('[data-region]');if(rg){ob.region=rg.dataset.region;el.querySelectorAll('[data-region]').forEach(b=>b.setAttribute('aria-pressed',b===rg));$('#schoolList').innerHTML=schoolList();$('#schoolList').scrollTop=0;return;}
@@ -2166,7 +2549,12 @@ async function boot(){
     navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='go'){try{goTo(new URL(e.data.url).searchParams.get('go'));}catch(_){}}});}
   const {data:{session}}=await sb.auth.getSession();
   startPresence(session&&session.user.id);
-  if(!session){ob.step=0;obRender();return;}
+  const listId=+new URLSearchParams(location.search).get('list')||0;if(listId)S.pendingList=listId;
+  if(!session){
+    if(listId){const {data:l}=await sb.from('ul_lists').select('school_id').eq('id',listId).maybeSingle();
+      const sid=(l&&l.school_id&&SCHOOLS.some(x=>x.id===l.school_id))?l.school_id:(store.get('ul_guest_school')||'');
+      if(sid)return enterGuest(sid);}
+    ob.step=0;obRender();return;}
   S.uid=session.user.id;
   sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')location.replace(location.origin+location.pathname);});
   await route();
@@ -2174,7 +2562,7 @@ async function boot(){
 async function route(){
   const {data:me,error}=await sb.from('ul_profiles').select('*').eq('id',S.uid).maybeSingle();
   if(error){fatal(/ul_profiles|relation|schema cache/.test(error.message)?'데이터베이스 설정이 아직 안 됐어요. Supabase에서 1_unilog_schema.sql을 실행해 주세요.':'정보를 불러오지 못했어요: '+esc(errText(error)));return;}
-  if(!me){ob.step=1;obRender();return;}
+  if(!me){const rs=resumeGet();if(rs&&rs.school&&!ob.school&&SCHOOLS.some(x=>x.id===rs.school))ob.school=rs.school;ob.step=1;obRender();return;}
   S.me=me;U[S.uid]=me;
   if(me.status==='banned'){
     if(me.banned_until&&new Date(me.banned_until)<=new Date()){const {data:st}=await sb.rpc('ul_lift_my_ban');if(st&&st!=='banned')return route();}
@@ -2198,22 +2586,32 @@ function goTo(go){
   if(m[1]==='post'){setTab('talk');openPost(+m[2]);}
   else openPlaceById(decodeURIComponent(m[2]),'rev');
 }
+function enterGuest(id){
+  const sc=SCHOOLS.find(x=>x.id===id);if(!sc)return;
+  S.guest=true;S.uid=null;S.me=null;store.set('ul_guest_school',id);S.school=sc;
+  $('#ob').hidden=true;stopIntro();return enterApp();
+}
 async function enterApp(){
   S.entered=true;
-  S.school=SCHOOLS.find(x=>x.id===S.me.school_id)||{id:S.me.school_id,n:S.me.school_name,short:S.me.school_short,campus:S.me.campus,cityDisp:''};
-  $('#boot').hidden=true;$('#app').hidden=false;renderBar();
-  sb.from('admins').select('id').eq('id',S.uid).maybeSingle().then(({data})=>{S.isAdmin=!!data;if(S.isAdmin)renderWhere();},()=>{});
+  if(S.me)S.school=SCHOOLS.find(x=>x.id===S.me.school_id)||{id:S.me.school_id,n:S.me.school_name,short:S.me.school_short,campus:S.me.campus,cityDisp:''};
+  $('#boot').hidden=true;$('#app').hidden=false;renderBar();document.body.classList.toggle('guest',!S.me);
   renderWhere();renderList();renderTalk();renderPeople();renderMe();
-  sb.from('ul_private').select('*').eq('id',S.uid).maybeSingle().then(({data})=>{S.priv=data;});
-  const [pl,bm]=await Promise.all([sb.from('ul_post_likes').select('post_id').eq('user_id',S.uid),sb.from('ul_post_bookmarks').select('post_id').eq('user_id',S.uid)]);
-  S.likedPost=new Set((pl.data||[]).map(x=>x.post_id));S.bmPost=new Set((bm.data||[]).map(x=>x.post_id));
-  loadCounts();loadNotis();loadTalk();loadRanking();loadFounders();
-  loadPushState().then(()=>{if(!$('#nscrim').hidden)renderNoti();});
-  const go=new URLSearchParams(location.search).get('go');if(go){history.replaceState(null,'',location.pathname);setTimeout(()=>goTo(go),400);}
-  setInterval(()=>{if(!document.hidden)loadNotis();},40000);
+  if(S.me){
+    sb.from('admins').select('id').eq('id',S.uid).maybeSingle().then(({data})=>{S.isAdmin=!!data;if(S.isAdmin)renderWhere();},()=>{});
+    sb.from('ul_private').select('*').eq('id',S.uid).maybeSingle().then(({data})=>{S.priv=data;});
+    const [pl,bm]=await Promise.all([sb.from('ul_post_likes').select('post_id').eq('user_id',S.uid),sb.from('ul_post_bookmarks').select('post_id').eq('user_id',S.uid)]);
+    S.likedPost=new Set((pl.data||[]).map(x=>x.post_id));S.bmPost=new Set((bm.data||[]).map(x=>x.post_id));
+    loadCounts();loadNotis();loadMyLists();
+    loadPushState().then(()=>{if(!$('#nscrim').hidden)renderNoti();});
+    setInterval(()=>{if(!document.hidden)loadNotis();},40000);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadNotis();});
+  }
+  loadTalk();loadRanking();loadFounders();loadListStrip();
+  const go=new URLSearchParams(location.search).get('go');if(go||S.pendingList){history.replaceState(null,'',location.pathname);if(go)setTimeout(()=>goTo(go),400);}
+  if(S.pendingList){const id=S.pendingList;S.pendingList=0;setTimeout(()=>openList(id),300);}
+  else if(S.me){const rs=resumeGet();if(rs){resumeClear();if(rs.list)setTimeout(()=>openList(rs.list),500);else if(rs.place)setTimeout(()=>openPlaceById(rs.place,rs.tab||'top'),900);}}
   setInterval(()=>{if(!document.hidden&&S.tab==='near'&&!(S.fdHide&&S.school&&S.fdHide[S.school.id]))loadFounders();},30000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadFounders();});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadNotis();});
   try{await loadKakao();S.ps=new kakao.maps.services.Places();S.coord=await schoolCoord();await loadPlaces();renderMeTabs();}
   catch(e){S.placesState='error';
     S.placesErr=e.message==='NO_KEY'?'config.js에 카카오 JavaScript 키(KAKAO_JS_KEY)를 넣어야 주변 가게를 불러올 수 있어요.'
@@ -2238,17 +2636,15 @@ function renderFdBanner(){
   const F=[...S.founders].sort((x,y)=>x.founder-y.founder),left=3-F.length,short=esc(S.school.short),mine=F.find(u=>u.id===S.uid);
   const SEAT0='<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z" fill="#fff" fill-opacity=".75" stroke="#E0A55A" stroke-width="1.8" stroke-dasharray="2.6 2" stroke-linejoin="round"/></svg>';
   const seats=[1,2,3].map(i=>{const u=F.find(x=>x.founder===i);
-    return u?`<span class="seat on${u.id===S.uid?' me':''}">${FD(16)}<em class="num">${i}</em><b>${esc(u.id===S.uid?'나':u.nick||'')}</b></span>`
+    return u?`<span class="seat on${u.id===S.uid?' me':''}">${FD(16)}<em class="num">${i}</em><b>${esc(u.nick||'')}</b></span>`
             :`<span class="seat off">${SEAT0}<em class="num">${i}</em><b>빈 자리</b></span>`;}).join('');
-  const head=left>0?`우리 학교 개척자 배지, 딱 3명만`:`${short} 개척자 3명이 모두 정해졌어요`;
-  const body=left>0
-    ?`${short} <b>재학생 인증을 한 학생</b> 중 리뷰를 <b>가장 먼저 쓰는 3명</b>에게 왼쪽의 <b>금빛 방패 배지</b>를 드려요. 내 이름 옆에 계속 붙어요.`
-    :`재학생 인증을 한 학생 중 리뷰를 가장 먼저 쓴 세 사람이 <b>금빛 방패 배지</b>를 받았어요. 이 배지는 더 이상 받을 수 없어요.`;
+  const head=left>0?`${short} 개척자 배지 · 선착순 3명`:`${short} 개척자 배지 · 마감`;
   el.innerHTML=`<div class="fdban${left>0?'':' full'}" role="status">
     <span class="fdban-ic">${FD(52)}</span>
-    <div class="fdban-tx"><b>${head}</b><span>${body}</span>
-      ${mine?`<span class="fdme">나는 ${short} <b>${mine.founder}번째</b> 개척자예요</span>`:''}
-      ${left>0&&S.me&&S.me.status!=='approved'&&S.school.id===S.me.school_id?`<span class="fdneed">${S.me.status==='pending'?'재학생 인증을 확인하고 있어요. 승인되면 받을 수 있어요':'재학생 인증을 해야 받을 수 있어요'}${S.me.status==='pending'?'':' <button type="button" data-verify-start>인증하기 ›</button>'}</span>`:''}
+    <div class="fdban-tx"><b>${head}</b>
+      ${mine?`<span class="fdme">내 순서 <b>${mine.founder}번째</b></span>`:''}
+      ${left>0&&!S.me?'<span class="fdneed">재학생 인증 필요 <button type="button" data-login>로그인 ›</button></span>':''}
+      ${left>0&&S.me&&S.me.status!=='approved'&&S.school.id===S.me.school_id?`<span class="fdneed">${S.me.status==='pending'?'재학생 인증 확인 중':'재학생 인증 필요'}${S.me.status==='pending'?'':' <button type="button" data-verify-start>인증하기 ›</button>'}</span>`:''}
       <span class="fdseats">${seats}</span>
       <span class="fdleft">${left>0?`남은 자리 <b class="num">${left}</b>/3`:'<b>마감</b> · 3/3'}</span></div>
     <button class="x" type="button" data-fdx aria-label="닫기">×</button></div>`;
@@ -2261,7 +2657,7 @@ async function checkFounder(){
   S.me.founder=data.founder;U[S.uid]=Object.assign(U[S.uid]||{},{founder:data.founder,school_short:S.me.school_short});
   loadFounders();renderMe();loadNotis();
   const d=document.createElement('div');d.className='fdpop';d.setAttribute('role','dialog');d.setAttribute('aria-label','개척자 배지를 받았어요');
-  d.innerHTML=`<div class="fdpop-in"><span class="fdpop-ic">${FD(84)}</span><b>개척자 배지를 받았어요!</b><p>${esc(S.me.school_short)} 재학생 중 <b>${data.founder}번째</b>로 리뷰를 쓴 사람이에요.<br>이제 내 이름 옆에 이 배지가 계속 붙어요.</p><button class="btn" type="button">좋아요</button></div>`;
+  d.innerHTML=`<div class="fdpop-in"><span class="fdpop-ic">${FD(84)}</span><b>개척자 배지</b><p>${esc(S.me.school_short)} · <b>${data.founder}번째</b></p><button class="btn" type="button">좋아요</button></div>`;
   document.body.appendChild(d);const close=()=>d.remove();d.querySelector('button').onclick=close;d.onclick=e=>{if(e.target===d)close();};
 }
 function setTab(t){S.tab=t;['near','talk','people','me'].forEach(x=>$('#v-'+x).hidden=x!==t);
@@ -2291,8 +2687,8 @@ document.addEventListener('click',e=>{
   if(t.closest('[data-rankmore]')){S.rank.show+=10;renderPeople();return;}
   if(t.closest('[data-rankless]')){S.rank.show=10;renderPeople();$('#v-people').scrollIntoView();return;}
   const pd=t.closest('[data-period]');if(pd){S.rank.period=pd.dataset.period;S.rank.show=10;S.rank.loaded=false;renderPeople();loadRanking();return;}
-  const g=t.closest('[data-genre]');if(g){S.genre=g.dataset.genre||null;if(!g.dataset.genre)S.tag=null;S.listShow=10;renderFilters();renderList();renderMap();return;}
-  const tg=t.closest('[data-tag]');if(tg){S.tag=S.tag===tg.dataset.tag?null:tg.dataset.tag;S.listShow=10;renderFilters();renderList();renderMap();return;}
+  const g=t.closest('[data-genre]');if(g){const v=g.dataset.genre;if(!v){S.genres.clear();S.tags.clear();}else if(S.genres.has(v))S.genres.delete(v);else S.genres.add(v);S.listShow=10;renderFilters();renderList();renderMap();return;}
+  const tg=t.closest('[data-tag]');if(tg){const v=tg.dataset.tag;if(S.tags.has(v))S.tags.delete(v);else S.tags.add(v);S.listShow=10;renderFilters();renderList();renderMap();return;}
   const o=t.closest('[data-open]');if(o)return openSheet(o.dataset.open);
 });
 [['#scrim',closeSheet],['#pscrim',closePost],['#nscrim',()=>$('#nscrim').hidden=true],['#pescrim',()=>$('#pescrim').hidden=true],['#rscrim',()=>$('#rscrim').hidden=true]]
@@ -2306,17 +2702,18 @@ boot();
    ===================================================================== */
 let swq='',swr='전체';
 function isOtherSchool(){return !!(S.school&&S.me&&S.school.id!==S.me.school_id);}
-function openSchoolSwitch(){if(!S.isAdmin)return;swq='';renderSwitch();$('#swscrim').hidden=false;}
+function openSchoolSwitch(){if(!S.isAdmin&&!S.guest)return;swq='';renderSwitch();$('#swscrim').hidden=false;}
 function swList(){
   const q=swq.trim(),L=SCHOOLS.filter(x=>(swr==='전체'||x.r===swr)&&(!q||x.n.includes(q)||x.short.includes(q)||x.campus.includes(q)||x.cityDisp.includes(q)));
-  return L.length?L.map(x=>`<button class="opt" type="button" data-sw="${x.id}" aria-pressed="${S.school.id===x.id}"><span><b>${esc(x.n)}${x.id===S.me.school_id?' · 내 학교':''}</b><span>${x.campus?esc(x.campus)+' · ':''}${esc(x.cityDisp)}</span></span><span class="ck">✓</span></button>`).join('')
+  return L.length?L.map(x=>`<button class="opt" type="button" data-sw="${x.id}" aria-pressed="${S.school.id===x.id}"><span><b>${esc(x.n)}${S.me&&x.id===S.me.school_id?' · 내 학교':''}</b><span>${x.campus?esc(x.campus)+' · ':''}${esc(x.cityDisp)}</span></span><span class="ck">✓</span></button>`).join('')
     :'<div class="empty">찾는 학교가 없어요.</div>';
 }
 function renderSwitch(){
   const sh=$('#swsheet');
   sh.innerHTML=`<div class="gut pe-wrap" style="gap:10px">
     <div class="nhead"><h3>학교 둘러보기</h3><span><button class="x" type="button" data-swclose aria-label="닫기">×</button></span></div>
-    <p class="hint" style="margin:0;font-size:12.5px;color:var(--sub)">관리자에게만 보이는 기능이에요. 고른 학교의 주변 맛집, 리뷰, 로그톡, 리뷰어 랭킹을 볼 수 있어요. 로그톡 글쓰기는 내 학교에서만 돼요.</p>
+    <p class="hint" style="margin:0;font-size:12.5px;color:var(--sub)">${S.guest?'고른 학교의 주변 맛집, 리뷰, 로그톡, 리뷰어 랭킹을 볼 수 있어요.':'관리자에게만 보이는 기능이에요. 고른 학교의 주변 맛집, 리뷰, 로그톡, 리뷰어 랭킹을 볼 수 있어요. 로그톡 글쓰기는 내 학교에서만 돼요.'}</p>
+    
     <div class="fld" style="margin:0"><input id="swq" type="search" placeholder="학교 이름이나 지역 검색" value="${esc(swq)}" autocomplete="off" aria-label="학교 검색"></div>
     <div class="genre" role="group" aria-label="지역">${REGIONS.map(r=>`<button type="button" data-swr="${r}" aria-pressed="${swr===r}">${r}</button>`).join('')}</div>
     <div class="opts school-box" id="swList">${swList()}</div></div>`;
@@ -2328,7 +2725,7 @@ function renderSwitch(){
 async function switchSchool(id){
   $('#swscrim').hidden=true;
   if(!S.school||S.school.id===id)return;
-  const own=id===S.me.school_id;
+  const own=!!S.me&&id===S.me.school_id;if(S.guest)store.set('ul_guest_school',id);
   const sc=own?(SCHOOLS.find(x=>x.id===id)||{id:S.me.school_id,n:S.me.school_name,short:S.me.school_short,campus:S.me.campus,cityDisp:''}):SCHOOLS.find(x=>x.id===id);
   if(!sc)return;
   S.school=sc;S.places=[];S.placeMap={};S.searchHit=null;S.listShow=10;S.q='';const qi=$('#q');if(qi)qi.value='';
@@ -2337,7 +2734,7 @@ async function switchSchool(id){
   S.founders=null;renderFdBanner();
   renderWhere();renderTalk();renderPeople();loadTalk();loadRanking();loadFounders();
   setTab('near');
-  toast(own?'내 학교로 돌아왔어요':`${sc.short}${sc.campus?' '+sc.campus:''} 둘러보는 중이에요`);
+  toast(own?'내 학교로 돌아왔어요':`${sc.short}${sc.campus?' '+sc.campus:''} 둘러보는 중이에요`);loadListStrip();
   if(!window.kakao||!S.ps){renderList();return;}
   try{S.coord=await schoolCoord();if(S.kmap){S.kmap.setCenter(new kakao.maps.LatLng(S.coord.y,S.coord.x));}await loadPlaces();}
   catch(e){S.placesState='error';S.placesErr='가게를 불러오지 못했어요: '+esc(errText(e));renderList();}
@@ -2347,6 +2744,338 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-school-home]'))return switchSchool(S.me.school_id);
 });
 $('#swscrim').addEventListener('click',e=>{if(e.target===$('#swscrim'))$('#swscrim').hidden=true;});
+
+/* =====================================================================
+   로그인 없이 둘러보기: 쓰기 기능을 누르면 로그인 안내
+   ===================================================================== */
+const LOGIN_WHY={'리뷰를':'리뷰를 쓰려면','"도움돼요"를 누를':'"도움돼요"를 누르려면','가게를 저장':'가게를 저장하려면','방문 인증을':'방문 인증을 하려면',
+  '글을':'로그톡에 글을 쓰려면','공감':'공감을 누르려면','답글을':'답글을 쓰려면','댓글을':'댓글을 쓰려면','신고':'신고하려면',
+  '로그를':'나만의 로그를 만들려면','로그 복사를':'이 로그를 내 로그로 복사하려면'};
+function resumeSet(){store.set('ul_resume',JSON.stringify({school:S.school&&S.school.id,place:openId||null,tab:dtab,list:(LVS&&LVS.id)||null,t:Date.now()}));}
+function resumeGet(){try{const r=JSON.parse(store.get('ul_resume')||'null');return r&&Date.now()-r.t<3600e3?r:null;}catch(e){return null;}}
+function resumeClear(){store.set('ul_resume','');}
+function startLogin(){resumeSet();kakaoLogin();}
+function askLogin(what){
+  const why=LOGIN_WHY[what];let d=$('#lgpop');if(d)d.remove();
+  d=document.createElement('div');d.id='lgpop';d.className='lgpop';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-label','로그인 안내');
+  d.innerHTML=`<div class="lgpop-in"><span class="lg-mk">${LOGO}</span><b>${why?esc(why)+'<br>로그인이 필요해요':'로그인하고 유니로그를<br>제대로 써 보세요'}</b>
+    <p>카카오 로그인만 하면 바로 할 수 있어요.<br>재학생 인증은 나중에 해도 돼요.</p>
+    <button class="kakao" type="button" data-lg="kakao">${kakaoSVG}카카오로 시작하기</button>
+    <button class="guestbtn" type="button" data-lg="close">계속 둘러볼게요</button></div>`;
+  document.body.appendChild(d);kakaoPrep();
+  d.onclick=e=>{const b=e.target.closest('[data-lg]');if(e.target===d||(b&&b.dataset.lg==='close')){d.remove();return;}if(b&&b.dataset.lg==='kakao')startLogin();};
+}
+function renderMeGuest(){
+  $('#profile').innerHTML=`<div class="guestme"><span class="lg-mk">${LOGO}</span><b>로그인하면 이런 걸 할 수 있어요</b>
+    <ul><li>맛집 리뷰 쓰고 사진 올리기</li><li>"도움돼요" 누르고 가게 저장하기</li><li>나만의 로그 만들고 공유하기</li><li>로그톡에 묻고 답하기</li></ul>
+    <button class="kakao" type="button" data-lgk>${kakaoSVG}카카오로 시작하기</button><p class="fine" style="margin:0">재학생 인증은 하고 싶을 때 해도 돼요</p></div>`;
+  $('#meTabs').innerHTML='';$('#meBody').innerHTML='';
+}
+
+/* =====================================================================
+   나만의 나만의 로그: 만들기 · 담기 · 공유 · 복사
+   ===================================================================== */
+let LVS=null,AL=null;
+const LIST_IC='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor"/></svg>';
+S.myLists=[];S.myListCats={};
+/* 리스트 표지: 담긴 가게 4곳까지 2×2 타일 (사진이 있으면 사진, 없으면 종류 그림) */
+const lcover=(items,cls='')=>{const L=items.slice(0,4);const t=L.length?L.map(p=>{const ph=p.reviews?photosOf(p)[0]:null;return ph?`<i style="background:url('${esc(ph)}') center/cover"></i>`:`<i class="ic" style="${phStyle(p)}">${phIcon(p)}</i>`;}).join(''):`<i class="ic" style="--phc:#B9B2A8">${LIST_IC}</i>`;
+  return `<span class="lcov n${Math.max(1,L.length)} ${cls}" aria-hidden="true">${t}</span>`;};
+const lemo=items=>{const seen=new Set(),L=[];items.forEach(p=>{const k=phKey(p);if(!seen.has(k)){seen.add(k);L.push(p);}});return (L.length?L.slice(0,3):[{catFull:''}]).map(p=>`<i style="${phStyle(p)}">${phIcon(p)}</i>`).join('');};
+async function loadMyLists(){
+  if(!S.uid)return;
+  const {data,error}=await sb.from('ul_lists').select('*').eq('user_id',S.uid).order('updated_at',{ascending:false});
+  if(error)return;S.myLists=data||[];S.myListCats={};
+  const ids=S.myLists.map(l=>l.id);
+  if(ids.length){const {data:it}=await sb.from('ul_list_items').select('list_id,pos,ul_places(category)').in('list_id',ids).order('pos').limit(400);
+    (it||[]).forEach(x=>{(S.myListCats[x.list_id]=S.myListCats[x.list_id]||[]).push({catFull:x.ul_places?x.ul_places.category:''});});}
+  renderMeLists();
+}
+/* 홈의 '학생들의 로그' 줄은 없앴어요 (호출하는 곳이 남아 있어도 괜찮게 빈 함수로 둬요) */
+function loadListStrip(){}
+
+function newList(){if(!needApproved('로그를'))return;LVS={form:true,isNew:true,f:{title:'',intro:'',pub:true,sel:[],src:S.saved.size?'saved':'near',q:''}};renderListView();$('#lscrim').hidden=false;loadPickSrc();}
+/* 리스트 만들기·편집: 저장한 가게 · 내 리뷰에서 골라 담기 (로그톡 가게 추천처럼) */
+let myRevPlaces=null;
+async function loadPickSrc(){
+  if(!S.uid)return;
+  const {data}=await sb.from('ul_reviews').select('place_id,created_at,ul_places(*)').eq('user_id',S.uid).order('created_at',{ascending:false}).limit(200);
+  const ids=[];(data||[]).forEach(r=>{if(!r.ul_places||ids.includes(r.place_id))return;const p=addPlace(fromRow(r.ul_places),false);p._inDb=true;ids.push(p.id);});
+  myRevPlaces=ids;if(LVS&&LVS.form)refreshPick();
+}
+const pickRow=(id,on)=>{const p=find(id);if(!p)return '';const sc=scoreOf(p);
+  return `<button class="prow2${on?' on':''}" type="button" data-cpick="${esc(id)}" aria-pressed="${on}">${miniThumb(p)}<span class="who"><b>${esc(p.name)}</b><span class="d">${esc(p.cat)}${sc.n?` · <span class="sc num">★ ${sc.w.toFixed(2)}</span>`:''}${p.dist&&p.dist<3000?` · 도보 ${walk(p.dist)}분`:''}</span></span><span class="ck" aria-hidden="true">${on?'✓':''}</span></button>`;};
+function pickSource(f){
+  if(f.src==='reviews')return myRevPlaces;
+  if(f.src==='near'){const q=(f.q||'').trim();
+    let L=S.places.filter(p=>!q||p.name.includes(q)||p.catFull.includes(q));
+    L.sort((a,b)=>(b.reviews.length>0)-(a.reviews.length>0)||scoreOf(b).w-scoreOf(a).w||a.dist-b.dist);
+    return L.slice(0,60).map(p=>p.id);}
+  return [...S.saved];
+}
+function pickHTML(f){
+  const src=pickSource(f),list=src?src.filter(id=>find(id)):null;
+  const tabs=[['saved','저장한 가게',S.saved.size],['reviews','내 리뷰',myRevPlaces?myRevPlaces.length:null],['near','주변 검색',null]];
+  return `<div class="lpick">
+    <div class="lpick-h"><b>담은 가게</b><span class="num">${f.sel.length}곳</span></div>
+    ${f.sel.length?`<div class="lsel">${f.sel.map((id,i)=>{const p=find(id);return p?`<span class="lsel-i"><span class="lsel-n num">${i+1}</span>${miniThumb(p)}<b>${esc(p.name)}</b><button type="button" data-cpick="${esc(id)}" aria-label="${esc(p.name)} 빼기">×</button></span>`:'';}).join('')}</div>`
+      :'<div class="lsel-empty">아래에서 가게를 눌러 담아 보세요</div>'}
+    <div class="lpick-tabs" role="tablist">${tabs.map(([k,n,c])=>`<button type="button" role="tab" data-lsrc="${k}" aria-selected="${f.src===k}">${n}${c!=null?` <span class="num">${c}</span>`:''}</button>`).join('')}</div>
+    ${f.src==='near'?`<div class="lpick-q"><input id="lpQ" type="search" placeholder="가게 이름·메뉴 종류로 찾기" value="${esc(f.q||'')}" autocomplete="off"></div>`:''}
+    <div class="lpick-list" id="lpList">${pickListHTML(f,list)}</div>
+  </div>`;
+}
+function pickListHTML(f,list){
+  if(list===null)return '<div class="empty"><span class="spin"></span></div>';
+  if(!list.length)return `<div class="cp-empty" style="margin:0">${f.src==='reviews'?'아직 리뷰를 쓴 가게가 없어요.':f.src==='near'?'찾는 가게가 없어요.':'아직 저장한 가게가 없어요. 가게 화면에서 ☆ 저장해 두면 여기서 바로 고를 수 있어요.'}</div>`;
+  return list.map(id=>pickRow(id,f.sel.includes(id))).join('');
+}
+/* 리스트 내용 불러오기 (펼치기·자세히 보기 공용) */
+async function fetchList(id){
+  const {data:l,error}=await sb.from('ul_lists').select('*').eq('id',id).maybeSingle();
+  if(error||!l)return {err:error?'불러오지 못했어요: '+errText(error):'나만 보기로 바뀌었거나 지워진 로그예요'};
+  const {data:it}=await sb.from('ul_list_items').select('place_id,note,pos,created_at,ul_places(*)').eq('list_id',id).order('pos').order('created_at');
+  await ensureUsers([l.user_id]);
+  const items=(it||[]).filter(x=>x.ul_places).map(x=>{const p=addPlace(fromRow(x.ul_places),false);p._inDb=true;return {p,note:x.note||''};});
+  const need=items.map(x=>x.p).filter(p=>!p._loaded&&!S.places.includes(p)).map(p=>p.id);
+  if(need.length){try{await loadReviewsFor(need);}catch(e){}need.forEach(i=>{if(S.placeMap[i])S.placeMap[i]._loaded=true;});}
+  return {l,items};
+}
+/* 이름 줄을 누르면 아래로 가게가 주르륵 펼쳐져요 */
+S.lopen=S.lopen||{};S.lcache=S.lcache||{};
+function listRowHTML(l,by){
+  const open=!!S.lopen[l.id],c=S.lcache[l.id];
+  let body='';
+  if(open){
+    if(!c)body='<div class="empty" style="padding:14px 0"><span class="spin"></span></div>';
+    else if(c.err)body=`<div class="empty" style="padding:14px 0">${esc(c.err)}</div>`;
+    else{const mine=!!S.uid&&c.l.user_id===S.uid;
+      body=(c.items.length?c.items.map(({p},i)=>{const sc=scoreOf(p);return `<button class="lacc-i" type="button" data-openplace="${esc(p.id)}"><span class="lno num">${i+1}</span><span class="who"><b>${esc(p.name)}</b><span class="d">${esc(p.cat)}${sc.n?` · <span class="sc num">★ ${sc.w.toFixed(2)}</span>`:''}${p.dist&&p.dist<3000?` · 도보 ${walk(p.dist)}분`:''}</span></span><span class="go">›</span></button>`;}).join('')
+        :`<div class="empty" style="padding:12px 0">${mine?'아직 담은 가게가 없어요':'아직 담긴 가게가 없어요'}</div>`)
+       +`<div class="lacc-act">${mine?`<button type="button" data-lact="add" data-id="${l.id}">＋ 가게 추가·빼기</button><button type="button" data-lact="edit" data-id="${l.id}">이름·공개 설정</button>`:`<button type="button" data-lact="copy" data-id="${l.id}">내 로그로 복사</button>`}<button type="button" data-lact="share" data-id="${l.id}">공유</button></div>`;}
+  }
+  return `<div class="lacc${open?' open':''}"><button class="lacc-h" type="button" data-ltog="${l.id}" aria-expanded="${open}"><span class="lacc-t"><b>${esc(l.title)}</b><small>${by?esc(nameOf(l.user_id))+' · ':''}<span class="num">${l.item_count}</span>곳${l.is_public===false?' · 나만 보기':''}${l.copies?` · 복사 <span class="num">${l.copies}</span>`:''}</small></span><span class="chev" aria-hidden="true">⌄</span></button>${open?`<div class="lacc-b">${body}</div>`:''}</div>`;
+}
+async function toggleListRow(id){
+  if(S.lopen[id]){delete S.lopen[id];rerenderLists();return;}
+  S.lopen[id]=true;delete S.lcache[id];rerenderLists();
+  S.lcache[id]=await fetchList(id);rerenderLists();
+}
+function rerenderLists(){renderMeLists();}
+async function listAct(act,id){
+  let c=S.lcache[id];if(!c||c.err){c=S.lcache[id]=await fetchList(id);if(c.err){toast(c.err);return;}}
+  LVS={id,l:c.l,items:c.items};
+  if(act==='share')return shareList();
+  if(act==='copy')return copyList();
+  LVS.form=true;LVS.f={title:c.l.title,intro:c.l.intro||'',pub:c.l.is_public,sel:c.items.map(x=>x.p.id),src:S.saved.size?'saved':'near',q:''};LVS.delAsk=false;
+  renderListView();$('#lscrim').hidden=false;loadPickSrc();
+  if(act==='add'){const lp=$('#lsheet .lpick-tabs');lp&&lp.scrollIntoView({block:'start'});}
+}
+async function openList(id){
+  if(!$('#pscrim').hidden){$('#pscrim').hidden=true;S.postUnder=true;}
+  LVS={id,loading:true};renderListView();$('#lscrim').hidden=false;
+  const {data:l,error}=await sb.from('ul_lists').select('*').eq('id',id).maybeSingle();
+  if(!LVS||LVS.id!==id)return;
+  if(error||!l){LVS={id,err:error?'불러오지 못했어요: '+errText(error):'나만 보기로 바뀌었거나 지워진 로그예요'};renderListView();return;}
+  const {data:it}=await sb.from('ul_list_items').select('place_id,note,pos,created_at,ul_places(*)').eq('list_id',id).order('pos').order('created_at');
+  await ensureUsers([l.user_id]);
+  const items=(it||[]).filter(x=>x.ul_places).map(x=>{const p=addPlace(fromRow(x.ul_places),false);p._inDb=true;return {p,note:x.note||''};});
+  const need=items.map(x=>x.p).filter(p=>!p._loaded&&!S.places.includes(p)).map(p=>p.id);
+  if(need.length){try{await loadReviewsFor(need);}catch(e){}need.forEach(i=>{if(S.placeMap[i])S.placeMap[i]._loaded=true;});}
+  if(!LVS||LVS.id!==id)return;
+  LVS={id,l,items};renderListView();
+}
+function closeList(){$('#lscrim').hidden=true;LVS=null;if(S.postUnder){S.postUnder=false;if(PO)$('#pscrim').hidden=false;}}
+function listFormHTML(f,isNew){
+  return `<input class="lf-title" id="lfT" maxlength="30" value="${esc(f.title)}" placeholder="로그 이름 (예: 시험기간 혼밥)" autocomplete="off" aria-label="로그 이름">
+    ${pickHTML(f)}
+    <div class="prow"><span><b>다른 사람에게 공개</b><small>${f.pub?'링크로 공유하고, 다른 학생이 복사할 수 있어요':'나만 볼 수 있어요. 공유 링크도 열리지 않아요'}</small></span><button class="tg" type="button" role="switch" aria-checked="${f.pub}" data-lfpub><i></i></button></div>
+    ${isNew?'':`<button class="ldel" type="button" data-ldel>${LVS.delAsk?'정말 지울까요? 한 번 더 누르면 지워져요':'로그 지우기'}</button>`}
+    <div class="lf-bar"><button class="btn line" type="button" data-lfcancel>취소</button><button class="btn" type="button" data-lfsave ${f.title.trim()?'':'disabled'}>${isNew?'만들기':'저장'}${f.sel.length?` · ${f.sel.length}곳`:''}</button></div>`;
+}
+function renderListView(){
+  const sh=$('#lsheet'),v=LVS;if(!v)return;
+  const head=`<div class="nhead"><h3>${v.isNew?'새 로그':'나만의 로그'}</h3><span><button class="x" type="button" data-lclose aria-label="닫기">×</button></span></div>`;
+  let body='';
+  if(v.loading)body='<div class="empty"><span class="spin"></span></div>';
+  else if(v.err)body=`<div class="empty">${esc(v.err)}</div>`;
+  else if(v.form)body=listFormHTML(v.f,v.isNew);
+  else{
+    const l=v.l,u=U[l.user_id]||{},mine=!!S.uid&&l.user_id===S.uid;
+    body=`<div class="lhead">${lcover(v.items.map(x=>x.p),'big')}<h2>${esc(l.title)}</h2>${l.intro?`<p>${esc(l.intro)}</p>`:''}
+        <div class="lby">${av(l.user_id)}<span><span class="nm"><b>${esc(u.nick||'')}</b>${fdB(u)}${lvBadge(u.helpful)}</span><small>${esc(userD(u))} · 가게 <span class="num">${v.items.length}</span>곳${l.copies?` · <span class="num">${l.copies}</span>명이 복사했어요`:''}${l.is_public?'':' · 나만 보기'}</small></span></div></div>
+      <div class="lacts">${mine?'<button class="btn" type="button" data-ladd>＋ 가게 추가·빼기</button>':'<button class="btn" type="button" data-lcopy>내 로그로 복사</button>'}<button class="btn line ic" type="button" data-lshare aria-label="공유">${shareSVG}</button>${mine?`<button class="btn line ic" type="button" data-ledit aria-label="이름·공개 설정"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>`:''}</div>
+      <div class="litems">${v.items.length?v.items.map(({p,note},i)=>{const s=scoreOf(p);return `<div class="litem"><span class="lno num">${i+1}</span><button class="lrow" type="button" data-openplace="${esc(p.id)}">${miniThumb(p)}<span class="who"><b>${esc(p.name)}</b><span class="d">${esc(p.cat)}${p.dist&&p.dist<3000?` · 도보 ${walk(p.dist)}분`:''}${s.n?` · <span class="sc num">★ ${s.w.toFixed(2)}</span> <span class="num">(${p.reviews.length})</span>`:' · 아직 리뷰 없음'}</span>${note?`<span class="note">${esc(note)}</span>`:''}</span><span class="go">›</span></button></div>`;}).join('')
+        :`<div class="empty">${mine?'아직 담은 가게가 없어요.<br><small>"＋ 가게 추가"를 눌러 채워 보세요</small>':'아직 담긴 가게가 없어요.'}</div>`}</div>`;
+  }
+  sh.innerHTML=`<div class="gut pe-wrap lview">${head}${body}</div>`;
+  const ti=sh.querySelector('#lfT');if(ti)ti.oninput=e=>{v.f.title=e.target.value;sh.querySelector('[data-lfsave]').disabled=!v.f.title.trim();};
+  bindPickQ();
+}
+function refreshPick(){
+  const v=LVS;if(!v||!v.form)return;const sh=$('#lsheet'),st=sh.scrollTop,old=sh.querySelector('.lpick');if(!old)return renderListView();
+  const ls=old.querySelector('#lpList'),lst=ls?ls.scrollTop:0,q=old.querySelector('#lpQ'),qf=q&&document.activeElement===q,cur=q?q.selectionStart:0;
+  old.outerHTML=pickHTML(v.f);
+  const b=sh.querySelector('[data-lfsave]');if(b)b.innerHTML=`${v.isNew?'만들기':'저장'}${v.f.sel.length?` · ${v.f.sel.length}곳`:''}`;
+  const nl=sh.querySelector('#lpList');if(nl)nl.scrollTop=lst;sh.scrollTop=st;bindPickQ();
+  if(qf){const n=sh.querySelector('#lpQ');if(n){n.focus();n.setSelectionRange(cur,cur);}}
+}
+function bindPickQ(){const q=$('#lsheet #lpQ');if(q)q.oninput=e=>{LVS.f.q=e.target.value;const l=$('#lsheet #lpList');if(l)l.innerHTML=pickListHTML(LVS.f,pickSource(LVS.f).filter(id=>find(id)));};}
+const shareSVG='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/></svg>';
+async function shareList(){
+  const l=LVS&&LVS.l;if(!l)return;
+  if(!l.is_public){toast('나만 보기 로그는 공유할 수 없어요. 편집에서 공개로 바꿔 주세요');return;}
+  const url=location.origin+'/?list='+l.id,title=`${l.title} · 유니로그 나만의 로그`;
+  if(navigator.share){try{await navigator.share({title,text:`${nameOf(l.user_id)}님의 로그 "${l.title}"`,url});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  try{await navigator.clipboard.writeText(url);toast('링크를 복사했어요. 원하는 곳에 붙여넣어 공유하세요');}
+  catch(e){toast('이 주소를 복사해서 공유하세요: '+url);}
+}
+async function copyList(){
+  if(!needApproved('로그 복사를'))return;const l=LVS&&LVS.l;if(!l||LVS.busy)return;LVS.busy=true;
+  const {data,error}=await sb.rpc('ul_copy_list',{p_list:l.id});LVS.busy=false;
+  if(error){toast('복사하지 못했어요: '+errText(error));return;}
+  toast('내 로그로 복사했어요 · 마이페이지 "나만의 로그"에서 볼 수 있어요');closeList();S.lopen[data]=true;await loadMyLists();S.lcache[data]=await fetchList(data);rerenderLists();
+}
+async function saveListForm(){
+  const v=LVS,f=v.f;if(!f.title.trim()||v.busy)return;v.busy=true;
+  const row={title:f.title.trim(),is_public:!!f.pub};
+  const {data,error}=v.isNew?await sb.from('ul_lists').insert(row).select('id').single():await sb.from('ul_lists').update(row).eq('id',v.id).select('id').single();
+  if(error){v.busy=false;toast('저장하지 못했어요: '+errText(error));return;}
+  const id=data.id,after=v.after;
+  try{  // 고른 가게 맞추기: 새로 고른 건 담고, 뺀 건 지우기
+    const before=v.isNew?[]:(v.items||[]).map(x=>x.p.id),add=f.sel.filter(x=>!before.includes(x)),del=before.filter(x=>!f.sel.includes(x));
+    for(const pid of add){const p=find(pid);if(p)await ensurePlace(p);}
+    if(del.length){const {error:e1}=await sb.from('ul_list_items').delete().eq('list_id',id).in('place_id',del);if(e1)throw e1;}
+    if(add.length){const {error:e2}=await sb.from('ul_list_items').insert(add.map(pid=>({list_id:id,place_id:pid,pos:f.sel.indexOf(pid)})));if(e2&&e2.code!=='23505')throw e2;}
+  }catch(e){toast('가게를 담지 못했어요: '+errText(e));}
+  v.busy=false;await loadMyLists();loadListStrip();
+  if(after){closeList();after(id);return;}
+  delete S.lcache[id];
+  if(!v.isNew&&S.lopen[id]){closeList();toast('저장했어요');S.lcache[id]=await fetchList(id);rerenderLists();return;}
+  toast(v.isNew?'로그를 만들었어요':'저장했어요');S.lopen[id]=true;S.lcache[id]=null;closeList();S.lcache[id]=await fetchList(id);rerenderLists();
+}
+async function deleteList(){
+  const v=LVS;if(!v.delAsk){v.delAsk=true;renderListView();return;}
+  const {error}=await sb.from('ul_lists').delete().eq('id',v.id);
+  if(error){toast('지우지 못했어요: '+errText(error));return;}
+  closeList();toast('로그를 지웠어요');await loadMyLists();loadListStrip();
+}
+async function removeItem(pid){
+  const v=LVS;const {error}=await sb.from('ul_list_items').delete().eq('list_id',v.id).eq('place_id',pid);
+  if(error){toast('빼지 못했어요: '+errText(error));return;}
+  v.items=v.items.filter(x=>x.p.id!==pid);renderListView();loadMyLists();loadListStrip();
+}
+$('#lsheet').addEventListener('click',e=>{
+  const t=e.target,v=LVS;if(!v)return;
+  if(t.closest('[data-lclose]'))return closeList();
+  if(t.closest('[data-lshare]'))return shareList();
+  if(t.closest('[data-lcopy]'))return copyList();
+  const ed=t.closest('[data-ledit],[data-ladd]');if(ed){const add=ed.hasAttribute('data-ladd');LVS=Object.assign(v,{form:true,f:{title:v.l.title,intro:v.l.intro||'',pub:v.l.is_public,sel:v.items.map(x=>x.p.id),src:S.saved.size?'saved':'near',q:''},delAsk:false});renderListView();loadPickSrc();if(add){const lp=$('#lsheet .lpick-tabs');lp&&lp.scrollIntoView({block:'start'});}return;}
+  const ls=t.closest('[data-lsrc]');if(ls&&v.form){v.f.src=ls.dataset.lsrc;return refreshPick();}
+  const cp=t.closest('[data-cpick]');if(cp&&v.form){const id=cp.dataset.cpick,i=v.f.sel.indexOf(id);if(i>=0)v.f.sel.splice(i,1);else{if(v.f.sel.length>=100){toast('로그 하나에 100곳까지 담을 수 있어요');return;}v.f.sel.push(id);}refreshPick();return;}
+  if(t.closest('[data-lfpub]')){v.f.pub=!v.f.pub;return renderListView();}
+  if(t.closest('[data-lfcancel]')){if(v.isNew)return closeList();v.form=false;return renderListView();}
+  if(t.closest('[data-lfsave]'))return saveListForm();
+  if(t.closest('[data-ldel]'))return deleteList();
+  const rm=t.closest('[data-lrm]');if(rm)return removeItem(rm.dataset.lrm);
+});
+
+/* 가게 화면 → 로그에 담기 */
+async function openAddList(p){
+  if(!needApproved('로그를'))return;
+  AL={p,has:new Set(),ready:false,busy:false,newT:''};renderAddList();$('#ascrim').hidden=false;
+  await loadMyLists();const ids=S.myLists.map(l=>l.id);
+  if(ids.length){const {data}=await sb.from('ul_list_items').select('list_id').eq('place_id',p.id).in('list_id',ids);AL.has=new Set((data||[]).map(x=>x.list_id));}
+  AL.ready=true;renderAddList();
+}
+function renderAddList(){
+  const sh=$('#asheet'),a=AL;if(!a)return;
+  sh.innerHTML=`<div class="gut pe-wrap" style="gap:12px">
+    <div class="nhead"><h3>로그에 담기</h3><span><button class="x" type="button" data-aclose aria-label="닫기">×</button></span></div>
+    <p class="hint" style="margin:0;font-size:13px;color:var(--sub)"><b style="color:var(--ink)">${esc(a.p.name)}</b>을(를) 담을 로그를 골라 주세요. 다시 누르면 빠져요.</p>
+    ${!a.ready?'<div class="empty"><span class="spin"></span></div>':S.myLists.length?`<div class="alist">${S.myLists.map(l=>{const on=a.has.has(l.id);return `<button class="prow2${on?' on':''}" type="button" data-alt="${l.id}" aria-pressed="${on}">${lcover(S.myListCats[l.id]||[],'sm')}<span class="who"><b>${esc(l.title)}</b><span class="d"><span class="num">${l.item_count}</span>곳${l.is_public?'':' · 나만 보기'}</span></span><span class="ck" aria-hidden="true">${on?'✓':''}</span></button>`;}).join('')}</div>`:'<div class="cp-empty" style="margin:0">아직 만든 로그가 없어요. 아래에서 첫 로그를 만들어 보세요.</div>'}
+    <div class="lnew"><input id="alNew" maxlength="30" placeholder="새 로그 이름 (예: 비 오는 날 국물)" value="${esc(a.newT)}" autocomplete="off"><button class="btn" type="button" data-anew ${a.newT.trim()?'':'disabled'}>만들고 담기</button></div>
+    <button class="btn line" type="button" data-aclose>완료</button></div>`;
+  const i=sh.querySelector('#alNew');i.oninput=e=>{a.newT=e.target.value;sh.querySelector('[data-anew]').disabled=!a.newT.trim();};
+  i.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();addNewList();}};
+}
+async function toggleInList(id){
+  const a=AL;if(a.busy)return;a.busy=true;const l=S.myLists.find(x=>x.id===id);
+  try{
+    if(a.has.has(id)){const {error}=await sb.from('ul_list_items').delete().eq('list_id',id).eq('place_id',a.p.id);if(error)throw error;a.has.delete(id);if(l)l.item_count=Math.max(0,l.item_count-1);toast(`"${l?l.title:'로그'}"에서 뺐어요`);}
+    else{await ensurePlace(a.p);const {error}=await sb.from('ul_list_items').insert({list_id:id,place_id:a.p.id,pos:l?l.item_count:0});if(error&&error.code!=='23505')throw error;a.has.add(id);if(l)l.item_count++;toast(`"${l?l.title:'로그'}"에 담았어요`);}
+  }catch(e){toast('담지 못했어요: '+errText(e));}
+  a.busy=false;renderAddList();loadListStrip();
+}
+async function addNewList(){
+  const a=AL;const t=a.newT.trim();if(!t||a.busy)return;a.busy=true;
+  const {data,error}=await sb.from('ul_lists').insert({title:t,intro:'',is_public:true}).select('*').single();
+  a.busy=false;if(error){toast('만들지 못했어요: '+errText(error));return;}
+  S.myLists.unshift(data);a.newT='';await toggleInList(data.id);
+}
+$('#asheet').addEventListener('click',e=>{
+  const t=e.target;if(!AL)return;
+  if(t.closest('[data-aclose]')){$('#ascrim').hidden=true;AL=null;loadMyLists();if(LVS&&LVS.id&&!LVS.form)openList(LVS.id);return;}
+  const b=t.closest('[data-alt]');if(b)return toggleInList(+b.dataset.alt);
+  if(t.closest('[data-anew]'))return addNewList();
+});
+
+/* 마이페이지 "나만의 로그" (내 활동 아래 따로) */
+function renderMeLists(){const el=$('#meLists');if(el&&S.me)el.innerHTML=myListsHTML();}
+function myListsHTML(){
+  return S.myLists.length?`<div class="laccs">${S.myLists.map(l=>listRowHTML(l,false)).join('')}</div>`:'<div class="empty" style="padding:16px 0">아직 만든 로그가 없어요. 제목 옆 ＋를 눌러 만들어 보세요</div>';
+}
+
+/* 화면 공통 */
+document.addEventListener('click',e=>{
+  const t=e.target;
+  if(t.closest('#lsheet,#asheet,#lgpop'))return;
+  if(t.closest('[data-lgk]'))return startLogin();
+  if(t.closest('[data-login]'))return askLogin('로그인');
+  if(t.closest('[data-lnew]'))return newList();
+  const tg=t.closest('[data-ltog]');if(tg)return toggleListRow(+tg.dataset.ltog);
+  const la=t.closest('[data-lact]');if(la)return listAct(la.dataset.lact,+la.dataset.id);
+  const l=t.closest('[data-list]');if(l)return openList(+l.dataset.list);
+});
+[['#lscrim',closeList],['#ascrim',()=>{$('#ascrim').hidden=true;AL=null;}]].forEach(([id,fn])=>$(id).addEventListener('click',e=>{if(e.target===$(id))fn();}));
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const lg=$('#lgpop');if(lg){lg.remove();return;}
+  if(!$('#ascrim').hidden){$('#ascrim').hidden=true;AL=null;return;}if(!$('#lscrim').hidden&&$('#scrim').hidden)closeList();});
+
+/* =====================================================================
+   당겨서 새로고침: 맨 위에서 아래로 쭉 당기면 지금 화면을 새로 불러와요
+   ===================================================================== */
+async function softRefresh(){
+  const t=S.tab,jobs=[];
+  if(S.me){jobs.push(refreshMe());jobs.push(loadNotis());jobs.push(loadMyLists());}
+  jobs.push(loadFounders());jobs.push(loadListStrip());
+  if(t==='near'){
+    if(S.placesState==='error'||!S.coord){location.reload();return;}
+    jobs.push((async()=>{await addKnownNearby();await loadReviewsFor(Object.keys(S.placeMap));await loadMyVisits();renderAll();})());
+  }
+  if(t==='talk')jobs.push(loadTalk());
+  if(t==='people'){S.rank.loaded=false;jobs.push(loadRanking());}
+  if(t==='me'&&S.me){S.meCache={};jobs.push(loadCounts());}
+  await Promise.all(jobs.map(j=>Promise.resolve(j).catch(()=>{})));
+}
+(function(){
+  const ind=document.createElement('div');ind.className='ptr';ind.setAttribute('aria-hidden','true');
+  ind.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg>';
+  document.body.appendChild(ind);
+  let y0=null,pull=0,busy=false;const MAX=96,GO=64;
+  const blocked=t=>$('#app').hidden||['#scrim','#pscrim','#nscrim','#pescrim','#rscrim','#swscrim','#lscrim','#ascrim'].some(id=>{const x=$(id);return x&&!x.hidden;})
+    ||$('#lgpop')||document.querySelector('.fdpop')||(t&&t.closest&&t.closest('#map,.lstrip,.genre,input,textarea,select'));
+  const reset=()=>{pull=0;ind.classList.remove('on','ready');ind.style.transform='';ind.style.opacity='';};
+  addEventListener('touchstart',e=>{if(busy||e.touches.length!==1||window.scrollY>2||blocked(e.target)){y0=null;return;}y0=e.touches[0].clientY;pull=0;},{passive:true});
+  addEventListener('touchmove',e=>{if(y0==null)return;const d=e.touches[0].clientY-y0;
+    if(d<=0||window.scrollY>2){reset();return;}
+    pull=Math.min(d*.5,MAX);ind.classList.add('on');ind.classList.toggle('ready',pull>=GO);
+    ind.style.transform=`translate(-50%,${pull}px) rotate(${pull*3}deg)`;ind.style.opacity=Math.min(1,pull/GO);},{passive:true});
+  addEventListener('touchend',async()=>{if(y0==null)return;y0=null;
+    if(pull<GO){reset();return;}
+    busy=true;ind.classList.add('busy');ind.style.transform='translate(-50%,56px)';
+    try{await softRefresh();toast('새로 불러왔어요');}catch(e){}
+    busy=false;ind.classList.remove('busy');reset();},{passive:true});
+})();
 
 </script>
 </body>
