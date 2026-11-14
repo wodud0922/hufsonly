@@ -1559,7 +1559,7 @@ const miniThumb=p=>thumb(p,true,0,'mini');
    ===================================================================== */
 function renderWhere(){
   const label=S.school?(S.school.campus?`${S.school.short} ${S.school.campus}`:S.school.short):'';
-  $('#where').innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span><b>${esc(label)}</b> 주변 맛집</span>${S.isAdmin?`<span class="wsw-wrap">${isOtherSchool()?'<button class="wsw home" type="button" data-school-home>내 학교로</button>':''}<button class="wsw" type="button" data-school-switch>${isOtherSchool()?'학교 바꾸기':'다른 학교 보기'} ▾</button></span>`:S.guest?'<span class="wsw-wrap"><button class="wsw" type="button" data-school-switch>학교 바꾸기 ▾</button></span>':''}`;
+  $('#where').innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span><b>${esc(label)}</b> 주변 맛집</span>${S.me?`<span class="wsw-wrap">${isOtherSchool()?'<button class="wsw home" type="button" data-school-home>내 학교로</button>':''}<button class="wsw" type="button" data-school-switch>${isOtherSchool()?'학교 바꾸기':'다른 학교 보기'} ▾</button></span>`:S.guest?'<span class="wsw-wrap"><button class="wsw" type="button" data-school-switch>학교 바꾸기 ▾</button></span>':''}`;
   $('#where').classList.toggle('other',isOtherSchool());
 }
 function filtered(){
@@ -1914,7 +1914,7 @@ async function loadPost(id){
   return true;
 }
 function closePost(){$('#pscrim').hidden=true;PO=null;}
-function openWrite(){if(!needApproved('글을'))return;if(isOtherSchool()){toast('다른 학교 로그톡은 둘러보기만 할 수 있어요');return;}postMode='write';editPost=null;pdraft={cat:'질문',title:'',body:'',place:'',list:''};$('#pscrim').hidden=false;renderPost();if(S.uid&&!(S.myLists||[]).length)loadMyLists().then(()=>{if(postMode==='write'&&(S.myLists||[]).length)renderPost();});}
+function openWrite(){if(!needApproved('글을'))return;postMode='write';editPost=null;pdraft={cat:'질문',title:'',body:'',place:'',list:''};$('#pscrim').hidden=false;renderPost();if(S.uid&&!(S.myLists||[]).length)loadMyLists().then(()=>{if(postMode==='write'&&(S.myLists||[]).length)renderPost();});}
 function renderPost(){
   const sh=$('#psheet');
   const placeOpts=sel=>{const L=savedHere();if(sel&&!L.find(x=>x.id===sel)&&find(sel))L.unshift(find(sel));
@@ -1982,6 +1982,7 @@ function bindPost(){
     pbusy=true;renderPost();
     const row={cat:pdraft.cat,title:pdraft.title.trim(),body:pdraft.body.trim(),place_id:pdraft.place||null};
     if(pdraft.list||(editPost&&editPost.list_id))row.list_id=pdraft.list?+pdraft.list:null;
+    if(!editPost&&isOtherSchool())row.school_id=S.school.id;   /* 다른 학교를 보고 있으면 그 학교 로그톡에 */
     const res=editPost?await sb.from('ul_posts').update(row).eq('id',editPost.id).select().single():await sb.from('ul_posts').insert(row).select().single();
     pbusy=false;
     if(res.error){toast('올리지 못했어요: '+errText(res.error));renderPost();return;}
@@ -2058,7 +2059,7 @@ function renderReport(){
 /* =====================================================================
    리뷰어 등급·랭킹
    ===================================================================== */
-const PERIOD_CAP={all:'가입 후 지금까지 받은 "도움돼요" 기준',month:'이번 달 1일부터 받은 "도움돼요" 기준',week:'이번 주 월요일부터 받은 "도움돼요" 기준'};
+const PERIOD_CAP={all:'지금까지 쓴 리뷰 수 기준',month:'이번 달 1일부터 쓴 리뷰 수 기준',week:'이번 주 월요일부터 쓴 리뷰 수 기준'};
 async function loadRanking(){
   const {data,error}=await sb.rpc('ul_ranking',{p_school:S.school.id,p_period:S.rank.period,p_limit:200});
   if(error){$('#peopleList').innerHTML=`<div class="empty">불러오지 못했어요: ${esc(errText(error))}</div>`;return;}
@@ -2073,12 +2074,12 @@ function renderPeople(){
   if(!S.rank.loaded){$('#peopleList').innerHTML='<div class="empty"><span class="spin"></span></div>';return;}
   const all=S.rank.list,show=all.slice(0,S.rank.show),meIdx=all.findIndex(r=>r.user_id===S.uid);
   const row=(r,rank)=>`<div class="row2 ${r.user_id===S.uid?'is-me':''}"><span class="n ${rank&&rank<=3?'top':''} num">${rank||'-'}</span>${av(r.user_id)}
-      <span class="who"><span class="nm"><b>${esc(r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.helpful)}</span><span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
-      <span class="v num">${r.score}<small>도움돼요</small></span></div>`;
+      <span class="who"><span class="nm"><b>${esc(r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.helpful)}</span><span class="d">${esc(r.school_short+' '+r.year)} · 도움돼요 ${r.helpful} · 댓글 ${r.comments}</span></span>
+      <span class="v num">${r.score}<small>리뷰</small></span></div>`;
   $('#peopleList').innerHTML=(all.length?show.map((r,i)=>row(r,i+1)).join(''):'<div class="empty">아직 랭킹에 오른 학생이 없어요. 첫 리뷰를 남겨 1위가 되어 보세요.</div>')
     +(meIdx>=S.rank.show?row(all[meIdx],meIdx+1):'')
     +(all.length>S.rank.show?`<button class="morebtn" type="button" data-rankmore>${S.rank.show+1}~${Math.min(all.length,S.rank.show+10)}위 더 보기 ▼</button>`:(S.rank.show>10?'<button class="morebtn" type="button" data-rankless>접기 ▲</button>':''))
-    +(S.me&&S.me.status!=='approved'&&S.school&&S.school.id===S.me.school_id?`<div class="vnudge" style="margin-top:12px"><span><b>${S.me.status==='pending'?'재학생 인증을 확인하고 있어요':'재학생 인증을 하면 랭킹에 올라요'}</b><small>${S.me.status==='pending'?'승인되면 받은 도움돼요 그대로 바로 랭킹에 올라가요':'리뷰·댓글은 인증 없이도 쓸 수 있어요. 랭킹은 인증한 학생끼리만 겨뤄요'}</small></span>${S.me.status==='pending'?'':'<button class="wbtn" type="button" data-verify-start>인증하기</button>'}</div>`:'');
+    +(S.me&&S.me.status!=='approved'&&S.school&&S.school.id===S.me.school_id?`<div class="vnudge" style="margin-top:12px"><span><b>${S.me.status==='pending'?'재학생 인증을 확인하고 있어요':'재학생 인증을 하면 랭킹에 올라요'}</b><small>${S.me.status==='pending'?'승인되면 지금까지 쓴 리뷰 그대로 바로 랭킹에 올라가요':'리뷰·댓글은 인증 없이도 쓸 수 있어요. 랭킹은 인증한 학생끼리만 겨뤄요'}</small></span>${S.me.status==='pending'?'':'<button class="wbtn" type="button" data-verify-start>인증하기</button>'}</div>`:'');
 }
 
 /* =====================================================================
@@ -2699,11 +2700,11 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('#lb').
 boot();
 
 /* =====================================================================
-   관리자: 다른 학교 둘러보기 (맛집 · 리뷰 · 로그톡 · 랭킹)
+   다른 학교 보기: 누구나 (맛집 · 리뷰 · 로그톡 · 랭킹 보기와 쓰기)
    ===================================================================== */
 let swq='',swr='전체';
 function isOtherSchool(){return !!(S.school&&S.me&&S.school.id!==S.me.school_id);}
-function openSchoolSwitch(){if(!S.isAdmin&&!S.guest)return;swq='';renderSwitch();$('#swscrim').hidden=false;}
+function openSchoolSwitch(){if(!S.me&&!S.guest)return;swq='';renderSwitch();$('#swscrim').hidden=false;}
 function swList(){
   const q=swq.trim(),L=SCHOOLS.filter(x=>(swr==='전체'||x.r===swr)&&(!q||x.n.includes(q)||x.short.includes(q)||x.campus.includes(q)||x.cityDisp.includes(q)));
   return L.length?L.map(x=>`<button class="opt" type="button" data-sw="${x.id}" aria-pressed="${S.school.id===x.id}"><span><b>${esc(x.n)}${S.me&&x.id===S.me.school_id?' · 내 학교':''}</b><span>${x.campus?esc(x.campus)+' · ':''}${esc(x.cityDisp)}</span></span><span class="ck">✓</span></button>`).join('')
@@ -2713,7 +2714,7 @@ function renderSwitch(){
   const sh=$('#swsheet');
   sh.innerHTML=`<div class="gut pe-wrap" style="gap:10px">
     <div class="nhead"><h3>학교 둘러보기</h3><span><button class="x" type="button" data-swclose aria-label="닫기">×</button></span></div>
-    <p class="hint" style="margin:0;font-size:12.5px;color:var(--sub)">${S.guest?'고른 학교의 주변 맛집, 리뷰, 로그톡, 리뷰어 랭킹을 볼 수 있어요.':'관리자에게만 보이는 기능이에요. 고른 학교의 주변 맛집, 리뷰, 로그톡, 리뷰어 랭킹을 볼 수 있어요. 로그톡 글쓰기는 내 학교에서만 돼요.'}</p>
+    <p class="hint" style="margin:0;font-size:12.5px;color:var(--sub)">${S.guest?'고른 학교의 주변 맛집, 리뷰, 로그톡, 리뷰어 랭킹을 볼 수 있어요.':'고른 학교의 맛집을 보고 리뷰·로그톡도 쓸 수 있어요. 나만의 로그에도 담을 수 있어요.'}</p>
     
     <div class="fld" style="margin:0"><input id="swq" type="search" placeholder="학교 이름이나 지역 검색" value="${esc(swq)}" autocomplete="off" aria-label="학교 검색"></div>
     <div class="genre" role="group" aria-label="지역">${REGIONS.map(r=>`<button type="button" data-swr="${r}" aria-pressed="${swr===r}">${r}</button>`).join('')}</div>
