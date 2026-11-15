@@ -1,8 +1,9 @@
 -- =====================================================================
--- 유니로그 한 번에 실행 (12 + 13 + 14 + 15 + 16단계)
+-- 유니로그 한 번에 실행 (12 + 13 + 14 + 15 + 16 + 17단계)
 -- Supabase > SQL Editor > + (새 칸) 에 이 파일 내용을 전부 붙여넣고 Run 한 번만 누르세요.
 -- 여러 번 실행해도 괜찮아요. (12~15를 이미 실행했어도 그냥 이걸 실행하면 돼요)
 -- 16단계: 예시 데이터에서 모든 학교 프로필 + 로그톡 글·댓글까지 (파일 맨 끝)
+-- 17단계: 데모 프로필이 로그톡 글·댓글에 공감(도움돼요)까지 누를 수 있게 (그 아래)
 --   데모 프로필을 만들 때 학번(예: '24학번', '19학번 이전')과 재학생 인증 표시도 고를 수 있어요.
 -- 15단계의 예시 리뷰는 방문 인증 횟수·사진(5장)·태그·1인 가격대까지 넣을 수 있게 넓혔어요.
 -- =====================================================================
@@ -774,3 +775,335 @@ revoke execute on function public.ul_seed_post(uuid,text,text,text,text,text),
 grant execute on function public.ul_seed_post(uuid,text,text,text,text,text),
   public.ul_seed_comment(uuid,bigint,text,bigint),
   public.ul_seed_delete_post(bigint), public.ul_seed_delete_comment(bigint) to authenticated;
+
+-- =====================================================================
+-- 유니로그 17단계: 예시 데이터 — 로그톡 글·댓글 공감 (관리자 전용)
+-- Supabase > SQL Editor > + (새 칸) 에 이 파일 내용을 전부 붙여넣고 Run 하세요. 16번 다음에 실행해요.
+-- 여러 번 실행해도 괜찮아요.
+--
+-- · 데모 프로필이 로그톡 글에 "공감", 댓글에 "도움돼요"를 누른 것처럼 만들 수 있어요.
+--   한 사람씩 누르고 취소하기, 데모 프로필 N명이 한 번에 누르기 둘 다 돼요.
+-- · 실제 앱과 똑같은 테이블(ul_post_likes · ul_comment_likes)에 넣어요. 그래서 글·댓글의 공감 수
+--   (ul_posts.likes · ul_comments.likes)와 받은 도움돼요(ul_profiles.helpful)도 실제와 똑같이 올라가요.
+-- · 공감 테이블에 "작성자를 auth.uid()로 정하는" 트리거가 있어도 되도록, 넣는 동안만 그 데모 프로필이
+--   로그인한 것처럼 신분(request.jwt.claims)을 바꿔 두고 되돌려요. (16단계 글·댓글과 같은 방식)
+-- · 넣은 뒤에는 글·댓글의 공감 수를 실제 줄 수(count(*))로 다시 맞춰요.
+--   트리거가 공감 수를 더하는지와 상관없이 화면에 보이는 숫자가 실제와 똑같아져요.
+-- =====================================================================
+
+-- ---------- 공감 한 줄 넣기 / 빼기 (다른 함수에서만 부르는 내부용) ----------
+create or replace function public.ul_seed_like_toggle(p_what text, p_id bigint, p_user uuid, p_on boolean)
+returns int
+language plpgsql security definer set search_path = public as $$
+declare v_rows int := 0; v_uid uuid; c_claims text; c_sub text;
+begin
+  c_claims := current_setting('request.jwt.claims', true);
+  c_sub := current_setting('request.jwt.claim.sub', true);
+  perform set_config('request.jwt.claim.sub', p_user::text, true);
+  perform set_config('request.jwt.claims', jsonb_build_object('sub', p_user, 'role', 'authenticated')::text, true);
+
+  if p_on then
+    begin
+      if p_what = 'post' then
+        insert into public.ul_post_likes (post_id, user_id) values (p_id, p_user) returning user_id into v_uid;
+      else
+        insert into public.ul_comment_likes (comment_id, user_id) values (p_id, p_user) returning user_id into v_uid;
+      end if;
+      v_rows := 1;
+    exception when unique_violation then
+      v_rows := 0;   -- 이미 눌렀어요
+    end;
+
+    -- 작성자를 auth.uid()로 덮어쓰는 트리거가 있으면 관리자 줄로 들어가요 → 데모 프로필 줄로 바로잡기
+    if v_rows = 1 and v_uid is distinct from p_user then
+      begin
+        if p_what = 'post' then
+          update public.ul_post_likes set user_id = p_user where post_id = p_id and user_id = v_uid;
+        else
+          update public.ul_comment_likes set user_id = p_user where comment_id = p_id and user_id = v_uid;
+        end if;
+      exception when unique_violation then
+        -- 그 사이 이 사람 줄이 생겼으면, 관리자 줄은 지워요
+        if p_what = 'post' then
+          delete from public.ul_post_likes where post_id = p_id and user_id = v_uid;
+        else
+          delete from public.ul_comment_likes where comment_id = p_id and user_id = v_uid;
+        end if;
+      end;
+      if p_what = 'post' then
+        v_rows := case when exists (select 1 from public.ul_post_likes where post_id = p_id and user_id = p_user) then 1 else 0 end;
+      else
+        v_rows := case when exists (select 1 from public.ul_comment_likes where comment_id = p_id and user_id = p_user) then 1 else 0 end;
+      end if;
+    end if;
+  else
+    if p_what = 'post' then
+      delete from public.ul_post_likes where post_id = p_id and user_id = p_user;
+    else
+      delete from public.ul_comment_likes where comment_id = p_id and user_id = p_user;
+    end if;
+    get diagnostics v_rows = row_count;
+    v_rows := -v_rows;
+  end if;
+
+  perform set_config('request.jwt.claim.sub', coalesce(c_sub, ''), true);
+  perform set_config('request.jwt.claims', coalesce(c_claims, ''), true);
+  return v_rows;   -- 1: 새로 눌렀어요 · -1: 취소했어요 · 0: 달라진 게 없어요
+end $$;
+revoke execute on function public.ul_seed_like_toggle(text,bigint,uuid,boolean) from public, anon, authenticated;
+
+-- ---------- 글·댓글의 공감 수를 실제 줄 수로 다시 맞추기 (내부용) ----------
+create or replace function public.ul_seed_like_sync(p_what text, p_id bigint)
+returns int
+language plpgsql security definer set search_path = public as $$
+declare v_n int;
+begin
+  if p_what = 'post' then
+    select count(*) into v_n from public.ul_post_likes where post_id = p_id;
+    -- 이미 맞으면 건드리지 않아요 (트리거의 "수정됨" 표시 같은 부작용을 피하려고)
+    update public.ul_posts p set likes = v_n where p.id = p_id and p.likes is distinct from v_n;
+  else
+    select count(*) into v_n from public.ul_comment_likes where comment_id = p_id;
+    update public.ul_comments c set likes = v_n where c.id = p_id and c.likes is distinct from v_n;
+  end if;
+  return v_n;
+end $$;
+revoke execute on function public.ul_seed_like_sync(text,bigint) from public, anon, authenticated;
+
+-- ---------- 글 하나에 데모 프로필 한 명이 공감 (누르기/취소) ----------
+-- p_like: null이면 지금 상태를 뒤집어요. true면 공감, false면 취소.
+-- 돌려주는 값: {"liked": true/false, "likes": 지금 글의 공감 수}
+create or replace function public.ul_seed_post_like(p_user uuid, p_post bigint, p_like boolean default null)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_author uuid; v_have boolean; v_on boolean; v_delta int := 0; v_likes int;
+        v_hb int; v_ha int;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  if not exists (select 1 from public.ul_profiles where id = p_user and is_demo) then
+    raise exception '데모 프로필만 고를 수 있어요' using errcode = 'P0001';
+  end if;
+  select user_id into v_author from public.ul_posts where id = p_post;
+  if v_author is null then raise exception '공감할 글을 찾지 못했어요' using errcode = 'P0001'; end if;
+
+  v_have := exists (select 1 from public.ul_post_likes where post_id = p_post and user_id = p_user);
+  v_on := coalesce(p_like, not v_have);
+
+  if v_on is distinct from v_have then
+    select helpful into v_hb from public.ul_profiles where id = v_author;
+    v_delta := public.ul_seed_like_toggle('post', p_post, p_user, v_on);
+    if v_delta <> 0 then
+      -- 받은 도움돼요: 트리거가 올려 줬으면 그대로 두고, 안 올렸으면 여기서 한 번만 올려요
+      select helpful into v_ha from public.ul_profiles where id = v_author;
+      if v_ha is distinct from greatest(0, coalesce(v_hb, 0) + v_delta) then
+        update public.ul_profiles set helpful = greatest(0, coalesce(v_hb, 0) + v_delta) where id = v_author;
+      end if;
+    end if;
+  end if;
+
+  v_likes := public.ul_seed_like_sync('post', p_post);
+  return jsonb_build_object(
+    'liked', exists (select 1 from public.ul_post_likes where post_id = p_post and user_id = p_user),
+    'likes', v_likes);
+end $$;
+
+-- ---------- 댓글 하나에 데모 프로필 한 명이 공감("도움돼요") ----------
+create or replace function public.ul_seed_comment_like(p_user uuid, p_comment bigint, p_like boolean default null)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_author uuid; v_have boolean; v_on boolean; v_delta int := 0; v_likes int;
+        v_hb int; v_ha int;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  if not exists (select 1 from public.ul_profiles where id = p_user and is_demo) then
+    raise exception '데모 프로필만 고를 수 있어요' using errcode = 'P0001';
+  end if;
+  select user_id into v_author from public.ul_comments where id = p_comment;
+  if v_author is null then raise exception '공감할 댓글을 찾지 못했어요' using errcode = 'P0001'; end if;
+
+  v_have := exists (select 1 from public.ul_comment_likes where comment_id = p_comment and user_id = p_user);
+  v_on := coalesce(p_like, not v_have);
+
+  if v_on is distinct from v_have then
+    select helpful into v_hb from public.ul_profiles where id = v_author;
+    v_delta := public.ul_seed_like_toggle('comment', p_comment, p_user, v_on);
+    if v_delta <> 0 then
+      select helpful into v_ha from public.ul_profiles where id = v_author;
+      if v_ha is distinct from greatest(0, coalesce(v_hb, 0) + v_delta) then
+        update public.ul_profiles set helpful = greatest(0, coalesce(v_hb, 0) + v_delta) where id = v_author;
+      end if;
+    end if;
+  end if;
+
+  v_likes := public.ul_seed_like_sync('comment', p_comment);
+  return jsonb_build_object(
+    'liked', exists (select 1 from public.ul_comment_likes where comment_id = p_comment and user_id = p_user),
+    'likes', v_likes);
+end $$;
+
+-- ---------- 글 하나에 데모 프로필 N명이 한 번에 공감 ----------
+-- 아직 안 누른 데모 프로필 중에서 무작위로 골라요. (글쓴이 본인은 빼요)
+-- 돌려주는 값: {"added": 새로 눌린 수, "likes": 지금 글의 공감 수, "nicks": 새로 누른 프로필 닉네임}
+create or replace function public.ul_seed_post_like_many(p_post bigint, p_count int default 3, p_exclude uuid default null)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_author uuid; v_n int; v_delta int := 0; v_likes int; v_hb int; v_ha int;
+        v_nicks text[] := '{}'; r record;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  select user_id into v_author from public.ul_posts where id = p_post;
+  if v_author is null then raise exception '공감할 글을 찾지 못했어요' using errcode = 'P0001'; end if;
+  v_n := greatest(1, least(coalesce(p_count, 3), 50));
+
+  select helpful into v_hb from public.ul_profiles where id = v_author;
+  for r in
+    select p.id, p.nick
+      from public.ul_profiles p
+     where p.is_demo and p.id <> v_author
+       and (p_exclude is null or p.id <> p_exclude)
+       and not exists (select 1 from public.ul_post_likes l where l.post_id = p_post and l.user_id = p.id)
+     order by random()
+     limit v_n
+  loop
+    if public.ul_seed_like_toggle('post', p_post, r.id, true) = 1 then
+      v_delta := v_delta + 1;
+      v_nicks := v_nicks || r.nick;
+    end if;
+  end loop;
+
+  if v_delta <> 0 then
+    select helpful into v_ha from public.ul_profiles where id = v_author;
+    if v_ha is distinct from greatest(0, coalesce(v_hb, 0) + v_delta) then
+      update public.ul_profiles set helpful = greatest(0, coalesce(v_hb, 0) + v_delta) where id = v_author;
+    end if;
+  end if;
+
+  v_likes := public.ul_seed_like_sync('post', p_post);
+  return jsonb_build_object('added', v_delta, 'likes', v_likes, 'nicks', to_jsonb(v_nicks));
+end $$;
+
+-- ---------- 댓글 하나에 데모 프로필 N명이 한 번에 공감 ----------
+create or replace function public.ul_seed_comment_like_many(p_comment bigint, p_count int default 3, p_exclude uuid default null)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_author uuid; v_n int; v_delta int := 0; v_likes int; v_hb int; v_ha int;
+        v_nicks text[] := '{}'; r record;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  select user_id into v_author from public.ul_comments where id = p_comment;
+  if v_author is null then raise exception '공감할 댓글을 찾지 못했어요' using errcode = 'P0001'; end if;
+  v_n := greatest(1, least(coalesce(p_count, 3), 50));
+
+  select helpful into v_hb from public.ul_profiles where id = v_author;
+  for r in
+    select p.id, p.nick
+      from public.ul_profiles p
+     where p.is_demo and p.id <> v_author
+       and (p_exclude is null or p.id <> p_exclude)
+       and not exists (select 1 from public.ul_comment_likes l where l.comment_id = p_comment and l.user_id = p.id)
+     order by random()
+     limit v_n
+  loop
+    if public.ul_seed_like_toggle('comment', p_comment, r.id, true) = 1 then
+      v_delta := v_delta + 1;
+      v_nicks := v_nicks || r.nick;
+    end if;
+  end loop;
+
+  if v_delta <> 0 then
+    select helpful into v_ha from public.ul_profiles where id = v_author;
+    if v_ha is distinct from greatest(0, coalesce(v_hb, 0) + v_delta) then
+      update public.ul_profiles set helpful = greatest(0, coalesce(v_hb, 0) + v_delta) where id = v_author;
+    end if;
+  end if;
+
+  v_likes := public.ul_seed_like_sync('comment', p_comment);
+  return jsonb_build_object('added', v_delta, 'likes', v_likes, 'nicks', to_jsonb(v_nicks));
+end $$;
+
+-- ---------- /admin/seed 화면이 지금 공감 상태를 한 번에 읽어 가기 ----------
+-- 돌려주는 값: {"likes": 글 공감 수, "liked": 그 프로필이 눌렀는지,
+--              "comments": {"댓글 id": {"likes": n, "liked": true/false}, ...}}
+create or replace function public.ul_seed_talk_likes(p_post bigint, p_user uuid default null)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_id bigint; v_cmts jsonb;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  select id into v_id from public.ul_posts where id = p_post;
+  if v_id is null then raise exception '글을 찾지 못했어요' using errcode = 'P0001'; end if;
+
+  select coalesce(jsonb_object_agg(c.id::text, jsonb_build_object(
+           'likes', (select count(*) from public.ul_comment_likes l where l.comment_id = c.id),
+           'liked', coalesce(p_user is not null and exists (
+                      select 1 from public.ul_comment_likes l where l.comment_id = c.id and l.user_id = p_user), false))), '{}'::jsonb)
+    into v_cmts
+    from public.ul_comments c where c.post_id = p_post;
+
+  return jsonb_build_object(
+    'likes', (select count(*) from public.ul_post_likes l where l.post_id = p_post),
+    'liked', coalesce(p_user is not null and exists (
+               select 1 from public.ul_post_likes l where l.post_id = p_post and l.user_id = p_user), false),
+    'comments', v_cmts);
+end $$;
+
+revoke execute on function public.ul_seed_post_like(uuid,bigint,boolean),
+  public.ul_seed_comment_like(uuid,bigint,boolean),
+  public.ul_seed_post_like_many(bigint,int,uuid),
+  public.ul_seed_comment_like_many(bigint,int,uuid),
+  public.ul_seed_talk_likes(bigint,uuid) from public, anon;
+grant execute on function public.ul_seed_post_like(uuid,bigint,boolean),
+  public.ul_seed_comment_like(uuid,bigint,boolean),
+  public.ul_seed_post_like_many(bigint,int,uuid),
+  public.ul_seed_comment_like_many(bigint,int,uuid),
+  public.ul_seed_talk_likes(bigint,uuid) to authenticated;
+
+-- ---------- 데모 프로필을 지울 때: 그 프로필이 남긴 공감도 함께 정리 ----------
+-- (공감 줄이 남아 있으면 글·댓글의 공감 수가 실제보다 많아 보여요)
+create or replace function public.ul_seed_delete_profile(p_user uuid) returns void
+language plpgsql security definer set search_path = public, auth as $$
+declare v_posts bigint[]; v_cmts bigint[];
+        v_uids uuid[]; v_ns int[]; v_hbs int[]; v_ha int; i int;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  if not exists (select 1 from public.ul_profiles where id = p_user and is_demo) then
+    raise exception '데모 프로필만 지울 수 있어요' using errcode = 'P0001';
+  end if;
+
+  v_posts := array(select distinct post_id from public.ul_post_likes where user_id = p_user);
+  v_cmts  := array(select distinct comment_id from public.ul_comment_likes where user_id = p_user);
+
+  -- 지운 공감만큼 글·댓글 쓴 사람의 받은 도움돼요도 줄여요 (지우기 전에 지금 값을 적어 둡니다)
+  with got as (
+    select p.user_id as uid, count(*)::int as n
+      from public.ul_post_likes l join public.ul_posts p on p.id = l.post_id
+     where l.user_id = p_user group by p.user_id
+    union all
+    select c.user_id, count(*)::int
+      from public.ul_comment_likes l join public.ul_comments c on c.id = l.comment_id
+     where l.user_id = p_user group by c.user_id
+  ), per as (select uid, sum(n)::int as n from got group by uid)
+  select array_agg(per.uid), array_agg(per.n), array_agg(coalesce(pr.helpful, 0))
+    into v_uids, v_ns, v_hbs
+    from per left join public.ul_profiles pr on pr.id = per.uid;
+
+  delete from public.ul_post_likes where user_id = p_user;
+  delete from public.ul_comment_likes where user_id = p_user;
+
+  -- 트리거가 이미 도움돼요를 줄였으면 그대로 두고, 안 줄였으면 여기서 한 번만 줄여요
+  if v_uids is not null then
+    for i in 1 .. array_length(v_uids, 1) loop
+      select helpful into v_ha from public.ul_profiles where id = v_uids[i];
+      if v_ha is distinct from greatest(0, v_hbs[i] - v_ns[i]) then
+        update public.ul_profiles set helpful = greatest(0, v_hbs[i] - v_ns[i]) where id = v_uids[i];
+      end if;
+    end loop;
+  end if;
+
+  update public.ul_posts p set likes = (select count(*) from public.ul_post_likes l where l.post_id = p.id)
+   where p.id = any(v_posts) and p.likes is distinct from (select count(*) from public.ul_post_likes l where l.post_id = p.id);
+  update public.ul_comments c set likes = (select count(*) from public.ul_comment_likes l where l.comment_id = c.id)
+   where c.id = any(v_cmts) and c.likes is distinct from (select count(*) from public.ul_comment_likes l where l.comment_id = c.id);
+
+  delete from auth.users where id = p_user;   -- 프로필·예시 리뷰·글·댓글도 함께 지워져요
+end $$;
