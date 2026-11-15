@@ -3,6 +3,7 @@
 -- Supabase > SQL Editor > + (새 칸) 에 이 파일 내용을 전부 붙여넣고 Run 한 번만 누르세요.
 -- 여러 번 실행해도 괜찮아요. (12~15를 이미 실행했어도 그냥 이걸 실행하면 돼요)
 -- 16단계: 예시 데이터에서 모든 학교 프로필 + 로그톡 글·댓글까지 (파일 맨 끝)
+--   데모 프로필을 만들 때 학번(예: '24학번', '19학번 이전')과 재학생 인증 표시도 고를 수 있어요.
 -- 15단계의 예시 리뷰는 방문 인증 횟수·사진(5장)·태그·1인 가격대까지 넣을 수 있게 넓혔어요.
 -- =====================================================================
 
@@ -436,12 +437,20 @@ grant execute on function public.ul_ranking(text,text,int) to anon, authenticate
 
 -- ---------- 데모 프로필 만들기 (관리자만) ----------
 -- 16단계에서 학교를 직접 받도록 넓혔어요. 예전 두 칸짜리 호출(p_nick, p_campus='seoul'|'global')도 그대로 돼요.
+-- 학번(p_year)은 index.html 가입 화면과 같은 글자로 넣어요(예: '24학번', '19학번 이전'). 비우면 null이에요.
+-- 재학생 인증(p_verified): true면 인증 표시, false면 미인증, null이면 7:3 정도로 섞어요.
+--   칸이 또 늘어서 예전 시그니처는 먼저 지워요. (칸 수가 다르면 호출이 갈리지 않게 같이 지워야 깔끔해요)
 drop function if exists public.ul_seed_profile(text, text);
+drop function if exists public.ul_seed_profile(text, text, text);
+drop function if exists public.ul_seed_profile(text, text, text, text);
+drop function if exists public.ul_seed_profile(text, text, text, text, text);
+drop function if exists public.ul_seed_profile(text, text, text, text, text, text);
 create or replace function public.ul_seed_profile(p_nick text, p_school_id text default null,
-  p_school_name text default null, p_school_short text default null, p_campus text default null) returns uuid
+  p_school_name text default null, p_school_short text default null, p_campus text default null,
+  p_year text default null, p_verified boolean default null) returns uuid
 language plpgsql security definer set search_path = public, auth as $$
 declare v_id uuid := gen_random_uuid(); v_msg text;
-        v_sid text; v_name text; v_short text; v_campus text;
+        v_sid text; v_name text; v_short text; v_campus text; v_year text;
 begin
   if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
   p_nick := btrim(coalesce(p_nick, ''));
@@ -464,6 +473,8 @@ begin
                      case when v_sid in ('hufs-s', 'hufs-g') then '한국외국어대학교' else v_sid end);
   v_short := coalesce(nullif(btrim(coalesce(p_school_short, '')), ''),
                       case when v_sid in ('hufs-s', 'hufs-g') then '외대' else left(v_name, 8) end);
+  -- 학번: 빈 값은 null, 너무 길면 자르기 ('24학번'·'19학번 이전' 같은 글자를 그대로 넣어요)
+  v_year := left(nullif(btrim(coalesce(p_year, '')), ''), 20);
 
   -- 로그인할 수 없는 빈 계정 (프로필이 계정에 묶여 있어서 필요해요)
   insert into auth.users (instance_id, id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -471,8 +482,8 @@ begin
           'demo-' || replace(v_id::text, '-', '') || '@demo.uni1og.invalid',
           jsonb_build_object('provider', 'demo', 'providers', jsonb_build_array('demo')), '{}'::jsonb, now(), now());
   insert into public.ul_profiles (id, nick, school_id, school_name, school_short, campus, year, status, is_demo)
-  values (v_id, p_nick, v_sid, v_name, v_short, v_campus, null, 'approved', true);
-  update public.ul_profiles set verified = (random() < 0.7) where id = v_id;   -- 재학생 인증 표시: 7:3 정도로 섞이게
+  values (v_id, p_nick, v_sid, v_name, v_short, v_campus, v_year, 'approved', true);
+  update public.ul_profiles set verified = coalesce(p_verified, random() < 0.7) where id = v_id;   -- 재학생 인증 표시: 고른 값이 없으면 7:3 정도로 섞이게
   return v_id;
 end $$;
 
@@ -605,9 +616,9 @@ begin
   delete from auth.users where id = p_user;   -- 프로필·예시 리뷰도 함께 지워져요
 end $$;
 
-revoke execute on function public.ul_seed_profile(text,text,text,text,text), public.ul_seed_review(uuid,text,numeric,text,text,text,int,text[],int,text[]),
+revoke execute on function public.ul_seed_profile(text,text,text,text,text,text,boolean), public.ul_seed_review(uuid,text,numeric,text,text,text,int,text[],int,text[]),
   public.ul_seed_delete_review(bigint), public.ul_seed_delete_profile(uuid) from public, anon;
-grant execute on function public.ul_seed_profile(text,text,text,text,text), public.ul_seed_review(uuid,text,numeric,text,text,text,int,text[],int,text[]),
+grant execute on function public.ul_seed_profile(text,text,text,text,text,text,boolean), public.ul_seed_review(uuid,text,numeric,text,text,text,int,text[],int,text[]),
   public.ul_seed_delete_review(bigint), public.ul_seed_delete_profile(uuid) to authenticated;
 
 -- =====================================================================

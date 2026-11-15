@@ -98,10 +98,12 @@ textarea.field{min-height:110px;resize:vertical}
 
     <section class="card" aria-labelledby="h1">
       <h2 id="h1">1. 데모 프로필</h2>
-      <p class="sub">로그인할 수 없는 빈 계정이에요. 유니로그가 지원하는 131개 학교 어디든 만들 수 있고, 만들 때마다 재학생 인증 표시가 7:3 정도로 섞여요(학번은 비어 있어요).</p>
+      <p class="sub">로그인할 수 없는 빈 계정이에요. 유니로그가 지원하는 131개 학교 어디든 만들 수 있고, 학번·재학생 인증 표시는 고르거나 랜덤으로 섞을 수 있어요(인증은 그냥 두면 7:3 정도로 섞여요).</p>
       <form id="pForm" class="stack">
         <div class="row">
           <label>닉네임 <small>2~10자, 한글·영문·숫자</small><input class="field" id="pNick" maxlength="10" autocomplete="off" required></label>
+          <label>학번 <small>리뷰에 "외대 24학번"처럼 보여요</small><select class="field" id="pYear"></select></label>
+          <label>재학생 인증 <small>프로필에 인증 표시가 붙어요</small><select class="field" id="pVerified"></select></label>
           <label>학교 찾기 <small>이름 일부로 좁히기 (비우면 전체)</small><input class="field" id="pSearch" placeholder="예) 외대, 부산대, 용인" autocomplete="off"></label>
         </div>
         <label>학교<select class="field" id="pSchool"></select></label>
@@ -364,6 +366,9 @@ const FAV=["hufs-g","hufs-s"];   /* 한국외대 글캠·설캠은 맨 위 즐�
 const KIND={visit:"매장 방문",takeout:"포장",delivery:"배달"};
 const CATS=["질문","추천","정보"];
 const TAGS=["혼밥 가능","가성비","과모임","학생 할인","공부 가능","해장","야식","데이트"];   /* index.html과 같은 목록 */
+const YEARS=["26학번","25학번","24학번","23학번","22학번","21학번","20학번","19학번 이전"];   /* index.html 가입 화면의 학번 선택지와 같은 글자로 넣어요 */
+const YEAR_RANDOM="__random";   /* "랜덤으로 섞기"를 고르면 이 중 하나로 정해져요 */
+const VERIFY_RANDOM="";   /* 재학생 인증을 그냥 두면 서버가 7:3 정도로 정해요 */
 const PRICES=["~5천원","5천~1만원","1만~2만원","2만~3만원","3만원 이상"];   /* price_level은 이 배열의 순번(0부터) */
 /* 학교 좌표를 카카오에서 못 찾았을 때 쓰는 값 (한국외대 두 캠퍼스) */
 const KNOWN={"hufs-s":{name:"한국외국어대학교 서울캠퍼스",x:127.0590,y:37.5972},"hufs-g":{name:"한국외국어대학교 글로벌캠퍼스",x:127.2675,y:37.3367}};
@@ -436,7 +441,7 @@ $("#pSearch").oninput=e=>fillSchools("#pSchool",e.target.value.trim(),$("#pSchoo
 /* ===== 불러오기 ===== */
 async function loadAll(){await loadProfiles();await loadReviews();await loadWho();await loadMine();}
 async function loadProfiles(){
-  const {data,error}=await sb.from("ul_profiles").select("id,nick,school_id,school_name,school_short,campus,created_at,verified").eq("is_demo",true).order("created_at",{ascending:true});
+  const {data,error}=await sb.from("ul_profiles").select("id,nick,school_id,school_name,school_short,campus,year,created_at,verified").eq("is_demo",true).order("created_at",{ascending:true});
   if(error){$("#pList").innerHTML=`<p class="empty">${esc(errText(error))}</p>`;profiles=[];return;}
   profiles=data||[];renderProfiles();
 }
@@ -461,7 +466,7 @@ function renderProfiles(){
   $("#pList").innerHTML=profiles.map(p=>{const n=reviews.filter(r=>r.user_id===p.id).length;
     const nPo=minePosts.filter(x=>x.user_id===p.id).length,nCm=mineComments.filter(x=>x.user_id===p.id).length;
     return `<div class="item"><div class="t"><b>${esc(p.nick)}</b><span class="tag">예시</span>${p.verified?`<span class="tag">인증</span>`:""}<br>
-      <small>${esc(sFull(SCHOOL(p.school_id))||p.school_name||p.school_id)}${p.campus&&!SCHOOL(p.school_id)?" · "+esc(p.campus):""} · 예시 리뷰 ${n}개${nPo?" · 로그톡 글 "+nPo+"개":""}${nCm?" · 댓글 "+nCm+"개":""}</small></div>
+      <small>${esc(sFull(SCHOOL(p.school_id))||p.school_name||p.school_id)}${p.campus&&!SCHOOL(p.school_id)?" · "+esc(p.campus):""} · ${p.year?esc(p.year):"학번 비어 있음"} · 예시 리뷰 ${n}개${nPo?" · 로그톡 글 "+nPo+"개":""}${nCm?" · 댓글 "+nCm+"개":""}</small></div>
       <button class="btn del sm" type="button" data-delp="${p.id}">삭제</button></div>`;}).join("");
 }
 function renderReviews(){
@@ -477,7 +482,7 @@ function renderReviews(){
 /* ===== 지금 쓸 프로필 ===== */
 function renderWho(){
   const el=$("#who"),prev=el.value;
-  el.innerHTML=profiles.length?profiles.map(p=>`<option value="${p.id}">${esc(p.nick)} · ${esc(sFull(SCHOOL(p.school_id))||p.school_name||p.school_id||"")}</option>`).join(""):`<option value="">먼저 데모 프로필을 만들어 주세요</option>`;
+  el.innerHTML=profiles.length?profiles.map(p=>`<option value="${p.id}">${esc(p.nick)} · ${esc(sFull(SCHOOL(p.school_id))||p.school_name||p.school_id||"")}${p.year?" · "+esc(p.year):""}</option>`).join(""):`<option value="">먼저 데모 프로필을 만들어 주세요</option>`;
   if(profiles.some(p=>p.id===prev))el.value=prev;
 }
 const curWho=()=>profiles.find(p=>p.id===$("#who").value)||null;
@@ -489,7 +494,7 @@ async function loadWho(){
 }
 function syncWho(){
   const w=curWho();
-  $("#whoInfo").innerHTML=w?`<b>${esc(w.nick)}</b> · ${esc(sFull(SCHOOL(w.school_id))||w.school_name||w.school_id||"")}${w.verified?" · 재학생 인증 표시":""} · 학번 비어 있음`:"데모 프로필을 먼저 만들어 주세요.";
+  $("#whoInfo").innerHTML=w?`<b>${esc(w.nick)}</b> · ${esc(sFull(SCHOOL(w.school_id))||w.school_name||w.school_id||"")}${w.verified?" · 재학생 인증 표시":""} · ${w.year?esc(w.year):"학번 비어 있음"}`:"데모 프로필을 먼저 만들어 주세요.";
   const off=!w;
   $("#rSubmit").disabled=off;$("#tSubmit").disabled=off;$("#cSubmit").disabled=off||!cPicked;
 }
@@ -649,7 +654,22 @@ function syncVisit(){
   if(!on){if(+el.value>0)lastVC=+el.value;el.value="0";}
   else el.value=String(lastVC||1);
 }
+function renderVerified(){
+  const el=$("#pVerified");if(!el)return;
+  const keep=el.options.length?el.value:VERIFY_RANDOM;   /* 처음 열면 "랜덤"이 골라져 있어요 */
+  el.innerHTML=`<option value="${VERIFY_RANDOM}">랜덤 (인증 7 : 미인증 3)</option><option value="true">재학생 인증 (O)</option><option value="false">미인증 (X)</option>`;
+  el.value=[...el.options].some(o=>o.value===keep)?keep:VERIFY_RANDOM;
+}
+function renderYears(){
+  const el=$("#pYear");if(!el)return;
+  const keep=el.options.length?el.value:YEAR_RANDOM;   /* 처음 열면 "랜덤으로 섞기"가 골라져 있어요 */
+  el.innerHTML=`<option value="">학번 비워 두기</option><option value="${YEAR_RANDOM}">랜덤으로 섞기</option>`
+    +YEARS.map(y=>`<option value="${esc(y)}">${esc(y)}</option>`).join("");
+  el.value=[...el.options].some(o=>o.value===keep)?keep:YEAR_RANDOM;
+}
 function initForm(){
+  renderVerified();
+  renderYears();
   $("#rRating").innerHTML=[5,4.5,4,3.5,3,2.5,2,1.5,1].map(v=>`<option value="${v}" ${v===4?"selected":""}>★ ${v.toFixed(1)}</option>`).join("");
   $("#rKind").onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;kind=b.dataset.k;
     $("#rKind").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));syncVisit();};
@@ -677,11 +697,15 @@ $("#pForm").onsubmit=async e=>{e.preventDefault();
   const nick=$("#pNick").value.trim(),s=SCHOOL($("#pSchool").value);
   if(!/^[가-힣a-zA-Z0-9]{2,10}$/.test(nick)){toast("닉네임은 2~10자 한글·영문·숫자로 지어 주세요");return;}
   if(!s){toast("학교를 골라 주세요");return;}
+  const yv=$("#pYear")?$("#pYear").value:"";
+  const year=yv===YEAR_RANDOM?YEARS[Math.floor(Math.random()*YEARS.length)]:(yv||null);
+  const vv=$("#pVerified")?$("#pVerified").value:VERIFY_RANDOM;
+  const verified=vv===""?null:vv==="true";   /* null이면 서버가 7:3으로 섞어요 */
   $("#pSubmit").disabled=true;
-  const {data,error}=await sb.rpc("ul_seed_profile",{p_nick:nick,p_school_id:s[0],p_school_name:s[1],p_school_short:s[2],p_campus:s[5]||null});
+  const {data,error}=await sb.rpc("ul_seed_profile",{p_nick:nick,p_school_id:s[0],p_school_name:s[1],p_school_short:s[2],p_campus:s[5]||null,p_year:year,p_verified:verified});
   $("#pSubmit").disabled=false;
   if(error){toast(errText(error));return;}
-  $("#pNick").value="";toast(`${nick} · ${s[2]}${s[5]?" "+s[5]:""} 프로필을 만들었어요`);
+  $("#pNick").value="";toast(`${nick} · ${s[2]}${s[5]?" "+s[5]:""}${year?" "+year:""} 프로필을 만들었어요${verified===null?"":" · "+(verified?"재학생 인증":"미인증")}`);
   await loadAll();
   if(data)$("#who").value=data;syncWho();await updateCenter();
 };
