@@ -1,11 +1,12 @@
 -- =====================================================================
--- 유니로그 한 번에 실행 (12 + 13 + 14 + 15 + 16 + 17 + 18단계)
+-- 유니로그 한 번에 실행 (12 + 13 + 14 + 15 + 16 + 17 + 18 + 19단계)
 -- Supabase > SQL Editor > + (새 칸) 에 이 파일 내용을 전부 붙여넣고 Run 한 번만 누르세요.
 -- 여러 번 실행해도 괜찮아요. (12~15를 이미 실행했어도 그냥 이걸 실행하면 돼요)
 -- 16단계: 예시 데이터에서 모든 학교 프로필 + 로그톡 글·댓글까지 (파일 맨 끝)
 -- 17단계: 데모 프로필이 로그톡 글·댓글에 공감(도움돼요)까지 누를 수 있게 (그 아래)
--- 18단계: 데모 프로필이 가게 리뷰에 도움돼요까지 누를 수 있게 (맨 마지막)
+-- 18단계: 데모 프로필이 가게 리뷰에 도움돼요까지 누를 수 있게 (그 아래)
 --   데모 프로필을 만들 때 학번(예: '24학번', '19학번 이전')과 재학생 인증 표시도 고를 수 있어요.
+-- 19단계: 올린 예시 리뷰를 고칠 수 있게 (파일 맨 끝 · 수정해도 "수정됨" 표시는 안 남아요)
 -- 15단계의 예시 리뷰는 방문 인증 횟수·사진(5장)·태그·1인 가격대까지 넣을 수 있게 넓혔어요.
 -- =====================================================================
 
@@ -361,6 +362,13 @@ begin
     new.round := (select count(*) from public.ul_reviews where user_id = new.user_id and place_id = new.place_id) + 1;
   else
     new.is_demo := old.is_demo;
+    -- 관리자 예시 리뷰 수정 (/admin/seed 19단계): 예시 리뷰는 실제로 쓴 사람이 없으니
+    --   "수정됨"을 안 남기고, 방문 인증 검사도 건너뛰고, 방문 인증 횟수는 관리자가 넣은 값을 그대로 둬요
+    if current_setting('ul.seed', true) = 'on' and old.is_demo and public.ul_is_admin() then
+      new.edited := false; new.updated_at := now();
+      new.visit_count := case when new.kind = 'visit' then greatest(0, coalesce(new.visit_count, 0)) else 0 end;
+      return new;
+    end if;
     if (new.rating, new.body, new.menu, new.price_level, new.kind, new.tags, new.photos)
        is not distinct from (old.rating, old.body, old.menu, old.price_level, old.kind, old.tags, old.photos) then
       return new;   -- 도움돼요 수·숨김처럼 내부에서 바뀌는 경우
@@ -1375,3 +1383,142 @@ begin
 
   delete from auth.users where id = p_user;   -- 프로필·예시 리뷰·글·댓글도 함께 지워져요
 end $$;
+
+-- =====================================================================
+-- 유니로그 19단계: 예시 리뷰 고치기 — /admin/seed 의 [수정]
+-- Supabase > SQL Editor > + (새 칸) 에 전부 붙여넣고 Run 하세요. 18번 다음에 실행해요.
+-- 여러 번 실행해도 괜찮아요.
+--
+-- · 15단계에서 올린 예시 리뷰를 관리자가 고칠 수 있어요
+--   (별점 · 방문유형 · 방문 인증 횟수 · 먹은 메뉴 · 1인 가격대 · 태그 · 사진 · 리뷰 내용)
+-- · 가게와 작성자(데모 프로필)는 그대로예요. 도움돼요·받은 도움돼요도 그대로 둬요.
+-- · 고쳐도 리뷰에 "수정됨" 표시는 안 남아요. (예시 리뷰는 실제로 쓴 사람이 없어요)
+--   → 리뷰 쓰기 규칙(15단계 ul_reviews_before)에 UPDATE 예외를 넣어서 처리해요.
+-- · 방문 인증 횟수를 바꾸면, 함께 넣어 둔 방문 인증 기록도 그 횟수에 맞춰 정리해요.
+--   (리뷰에 보이는 "📍 방문 인증 N회"와 단골왕 집계가 같은 값을 가리키게)
+-- =====================================================================
+
+-- ---------- 예시 리뷰 고치기 (관리자만) ----------
+-- p_menu·p_visit_count·p_photos·p_price_level·p_tags는 올릴 때와 같은 규칙이에요.
+-- p_photos를 비우면(null) 사진은 그대로 두고, 빈 배열('{}')을 넣으면 사진을 모두 지워요. (태그도 같아요)
+drop function if exists public.ul_seed_update_review(bigint, numeric, text, text, text, int, text[], int, text[]);
+create or replace function public.ul_seed_update_review(p_id bigint, p_rating numeric, p_kind text, p_body text,
+                                                        p_menu text default null,
+                                                        p_visit_count int default 0,
+                                                        p_photos text[] default null,
+                                                        p_price_level int default null,
+                                                        p_tags text[] default null) returns bigint
+language plpgsql security definer set search_path = public as $$
+declare r public.ul_reviews;
+        v_kind text; v_vc int; v_price int; v_rating numeric;
+        v_photos text[]; v_tags text[];
+        v_ptype text; v_ttype text;
+        v_ids bigint[] := '{}'; v_visit bigint; v_try int; v_miss int; v_have int;
+        c_claims text; c_sub text;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  select * into r from public.ul_reviews where id = p_id and is_demo;
+  if not found then raise exception '예시 리뷰만 고칠 수 있어요' using errcode = 'P0001'; end if;
+  if coalesce(btrim(p_body), '') = '' then raise exception '리뷰 내용을 넣어 주세요' using errcode = 'P0001'; end if;
+
+  v_kind := coalesce(nullif(btrim(coalesce(p_kind, '')), ''), r.kind, 'visit');
+  v_vc := case when v_kind = 'visit' then greatest(0, least(coalesce(p_visit_count, 0), 999)) else 0 end;
+  v_price := case when p_price_level between 0 and 4 then p_price_level else null end;
+  -- 별점은 0.5점 단위 (0.5 ~ 5). 비워 두면 그대로 둬요
+  v_rating := case when p_rating is null then r.rating
+                   else round(least(5, greatest(0.5, p_rating)) * 2) / 2 end;
+
+  -- 사진 주소 정리: http(s) 주소만, 앞에서 5장까지 / 태그: 빈 값·중복 빼고 8개까지
+  if p_photos is not null then
+    select coalesce(array_agg(t.u order by t.ord), '{}') into v_photos
+      from unnest(p_photos) with ordinality as t(u, ord)
+     where t.ord <= 5 and t.u ~* '^https?://';
+  end if;
+  if p_tags is not null then
+    select coalesce(array_agg(distinct left(btrim(t.u), 20)), '{}') into v_tags
+      from unnest(p_tags[1:8]) as t(u)
+     where btrim(coalesce(t.u, '')) <> '';
+  end if;
+
+  -- 본문 컬럼들 (사진·태그는 컬럼 타입을 보고 따로 넣어요)
+  -- ul.seed='on' 이면 15단계 ul_reviews_before 가 "수정됨"을 안 남기고 방문 인증 검사도 건너뛰어요
+  perform set_config('ul.seed', 'on', true);
+  update public.ul_reviews
+     set rating = v_rating, body = btrim(p_body),
+         menu = nullif(btrim(coalesce(p_menu, '')), ''),
+         kind = v_kind, visit_count = v_vc, price_level = v_price,
+         updated_at = now()
+   where id = p_id and is_demo;
+  perform set_config('ul.seed', 'off', true);
+
+  if p_photos is not null then
+    select data_type into v_ptype from information_schema.columns
+     where table_schema = 'public' and table_name = 'ul_reviews' and column_name = 'photos';
+    if v_ptype = 'ARRAY' then
+      update public.ul_reviews set photos = coalesce(v_photos, '{}') where id = p_id;
+    elsif v_ptype is not null then
+      update public.ul_reviews set photos = coalesce(to_jsonb(v_photos), '[]'::jsonb) where id = p_id;
+    end if;
+  end if;
+  if p_tags is not null then
+    select data_type into v_ttype from information_schema.columns
+     where table_schema = 'public' and table_name = 'ul_reviews' and column_name = 'tags';
+    if v_ttype = 'ARRAY' then
+      update public.ul_reviews set tags = coalesce(v_tags, '{}') where id = p_id;
+    elsif v_ttype is not null then
+      update public.ul_reviews set tags = coalesce(to_jsonb(v_tags), '[]'::jsonb) where id = p_id;
+    end if;
+  end if;
+
+  -- 위 UPDATE들은 "내부에서 바뀌는 값"이라 edited 는 false 그대로 두고, 혹시 켜졌으면 한 번 더 꺼요
+  if (select edited from public.ul_reviews where id = p_id) then
+    update public.ul_reviews set edited = false where id = p_id;
+  end if;
+
+  -- 방문 인증 기록을 고친 횟수에 맞춰요 (예시 리뷰에 함께 넣어 둔 줄만)
+  if exists (select 1 from public.ul_profiles p where p.id = r.user_id and p.is_demo) then
+    c_claims := current_setting('request.jwt.claims', true);
+    c_sub := current_setting('request.jwt.claim.sub', true);
+    if v_vc > 0 then
+      -- ul_visits 쪽 트리거가 auth.uid()로 작성자를 덮어쓸 수 있어, 잠깐 데모 프로필이 로그인한 것처럼 맞춰 둡니다
+      perform set_config('request.jwt.claim.sub', r.user_id::text, true);
+      perform set_config('request.jwt.claims', jsonb_build_object('sub', r.user_id, 'role', 'authenticated')::text, true);
+    end if;
+
+    select count(*) into v_have from public.ul_visits where user_id = r.user_id and place_id = r.place_id;
+    if v_vc > v_have then
+      v_try := 0; v_miss := 0;
+      while v_miss < 7 and v_try < 400 loop
+        v_try := v_try + 1;
+        begin
+          insert into public.ul_visits (user_id, place_id, visit_day)
+          values (r.user_id, r.place_id, (now() at time zone 'Asia/Seoul')::date - (v_try - 1))
+          returning id into v_visit;
+          v_ids := v_ids || v_visit;
+          v_miss := 0;
+        exception when others then
+          v_miss := v_miss + 1;   -- 그 날짜가 이미 있거나 제약에 걸리면 그 줄만 건너뛰기
+        end;
+        exit when (select count(*) from public.ul_visits where user_id = r.user_id and place_id = r.place_id) >= v_vc;
+      end loop;
+      -- 작성자가 데모 프로필로 안 들어간 줄은 지워요 (관리자 계정에 가짜 방문이 남지 않게)
+      if array_length(v_ids, 1) is not null then
+        delete from public.ul_visits where id = any(v_ids) and user_id <> r.user_id;
+      end if;
+    elsif v_vc < v_have then
+      delete from public.ul_visits where id in (
+        select v.id from public.ul_visits v
+         where v.user_id = r.user_id and v.place_id = r.place_id
+         order by v.visit_day asc, v.id asc
+         limit (v_have - v_vc));
+    end if;
+
+    perform set_config('request.jwt.claim.sub', coalesce(c_sub, ''), true);
+    perform set_config('request.jwt.claims', coalesce(c_claims, ''), true);
+  end if;
+
+  return p_id;
+end $$;
+
+revoke execute on function public.ul_seed_update_review(bigint,numeric,text,text,text,int,text[],int,text[]) from public, anon;
+grant execute on function public.ul_seed_update_review(bigint,numeric,text,text,text,int,text[],int,text[]) to authenticated;
