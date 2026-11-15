@@ -477,7 +477,7 @@ begin
     v_campus := case v_campus when 'global' then '글로벌캠퍼스' else '서울캠퍼스' end;
   end if;
   if v_campus is null then
-    v_campus := case v_sid when 'hufs-g' then '글로벌캠퍼스' when 'hufs-s' then '서울캠퍼스' else null end;
+    v_campus := case v_sid when 'hufs-g' then '글로벌캠퍼스' when 'hufs-s' then '서울캠퍼스' else '' end;
   end if;
   v_name := coalesce(nullif(btrim(coalesce(p_school_name, '')), ''),
                      case when v_sid in ('hufs-s', 'hufs-g') then '한국외국어대학교' else v_sid end);
