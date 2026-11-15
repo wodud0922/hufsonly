@@ -80,6 +80,9 @@ textarea.field{min-height:110px;resize:vertical}
 .likebar .numin{width:72px;flex:none;text-align:center}
 .btn.on{background:var(--soft);border:1.5px solid var(--accent);color:var(--accent)}
 .acts{display:flex;gap:6px;flex:none;align-items:center}
+/* 4번 리뷰 카드: 글은 한 줄로 넓게, 도움돼요 버튼은 아래 줄에 오른쪽 정렬 */
+#rList .item{flex-wrap:wrap}
+#rList .item .acts{width:100%;max-width:none;justify-content:flex-end;flex-wrap:wrap;margin-top:6px}
 </style>
 </head>
 <body>
@@ -99,7 +102,7 @@ textarea.field{min-height:110px;resize:vertical}
   </section>
 
   <main id="main" hidden>
-    <p class="notice">여기서 올린 리뷰는 실제 유저 리뷰와 똑같이 <b>가게 평점·리뷰 수·리뷰 목록</b>에, 로그톡 글·댓글은 <b>그 학교 로그톡</b>에 그대로 들어가요. 글·댓글 <b>공감</b>도 실제와 똑같이 공감 수와 받은 도움돼요에 잡혀요. 데모 프로필도 <b>리뷰어 랭킹·개척자 배지</b>에 올라가요. 진짜 내용이 쌓이면 아래에서 지워 주세요.</p>
+    <p class="notice">여기서 올린 리뷰는 실제 유저 리뷰와 똑같이 <b>가게 평점·리뷰 수·리뷰 목록</b>에, 로그톡 글·댓글은 <b>그 학교 로그톡</b>에 그대로 들어가요. 글·댓글 <b>공감</b>과 리뷰 <b>도움돼요</b>도 실제와 똑같이 공감 수·도움돼요 수와 받은 도움돼요에 잡혀요. 데모 프로필도 <b>리뷰어 랭킹·개척자 배지</b>에 올라가요. 진짜 내용이 쌓이면 아래에서 지워 주세요.</p>
 
     <section class="card" aria-labelledby="h1">
       <h2 id="h1">1. 데모 프로필</h2>
@@ -165,6 +168,13 @@ textarea.field{min-height:110px;resize:vertical}
 
     <section class="card" aria-labelledby="h4">
       <h2 id="h4">4. 올린 예시 리뷰 <small class="num" id="rTotal" style="color:var(--muted);font-weight:500"></small></h2>
+      <div class="likebar" id="rLikeBar" style="margin:0 0 10px">
+        <span class="lk-t">도움돼요</span>
+        <span class="lk-t">한 번에</span>
+        <input class="field num numin" id="rLikeN" type="number" min="1" max="50" step="1" value="2" inputmode="numeric" aria-label="한 번에 도움돼요를 누를 데모 프로필 수">
+        <span class="lk-t">명</span>
+        <span class="mini" style="margin:0">리뷰마다 <b>+N명</b>을 누르면 아직 안 누른 데모 프로필 중에서 무작위로 눌러요. <b>♥ 도움돼요</b>는 지금 고른 데모 프로필로 누르고/취소해요.</span>
+      </div>
       <div class="list" id="rList"></div>
     </section>
 
@@ -401,6 +411,7 @@ let kakaoErr=null,kakaoFailNote=null;            /* 마지막 카카오 실패 �
 let mOpen=false,dbNear=null,dbNearKey=null,nearBusy=false;   /* 직접 추가 펼침 · 기준 위치 근처 DB 가게 */
 let talkCat="질문",tPlace=null,tResults=[];
 let cPicked=null,cComments=[],cPosts=[],cNicks={},cPostLike={likes:0,liked:false},cCmtLikes={};
+let rLikes={};   /* 예시 리뷰별 도움돼요: {리뷰 id: {likes, liked}} */
 let minePosts=[],mineComments=[],mineTab="post";
 let pics=[],ADMIN_ID=null;
 let tags=new Set(),price=null;
@@ -409,7 +420,7 @@ const PHOTO_BUCKET="ul-photos";   /* 리뷰 사진 버킷 (index.html과 같음)
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800);}
 function gate(title,text,showLogin){$("#gate").hidden=false;$("#main").hidden=true;$("#gateTitle").textContent=title;$("#gateText").textContent=text;$("#login").hidden=!showLogin;}
 const errText=e=>{const m=(e&&e.message)||String(e||"");
-  if(/ul_seed_(post|comment|talk|like|delete_post|delete_comment)|PGRST202|schema cache/i.test(m))return "한번에_실행_12_13_14_15.sql(16·17단계 들어간 새 파일)을 Supabase에서 먼저 실행해 주세요";
+  if(/ul_seed_(post|comment|talk|like|delete_post|delete_comment)|PGRST202|schema cache/i.test(m))return "한번에_실행_12_13_14_15.sql(16·17·18단계 들어간 새 파일)을 Supabase에서 먼저 실행해 주세요";
   if(/ul_seed_|is_demo|function .* does not exist/i.test(m))return "한번에_실행_12_13_14_15.sql을 Supabase에서 먼저 실행해 주세요";
   if(/auth\.users|permission denied for (table|schema) (users|auth)/.test(m))return "Supabase가 데모 계정 만들기를 막았어요 ("+m+")";
   return m;};
@@ -462,9 +473,9 @@ async function loadProfiles(){
   profiles=data||[];renderProfiles();
 }
 async function loadReviews(){
-  const {data,error}=await sb.from("ul_reviews").select("id,user_id,place_id,rating,kind,menu,body,visit_count,photos,tags,price_level,created_at,ul_places(name,road_address,address)").eq("is_demo",true).order("created_at",{ascending:false}).limit(500);
+  const {data,error}=await sb.from("ul_reviews").select("id,user_id,place_id,rating,kind,menu,body,visit_count,photos,tags,price_level,likes,created_at,ul_places(name,road_address,address)").eq("is_demo",true).order("created_at",{ascending:false}).limit(500);
   if(error){$("#rList").innerHTML=`<p class="empty">${esc(errText(error))}</p>`;reviews=[];return;}
-  reviews=data||[];renderReviews();renderProfiles();
+  reviews=data||[];renderProfiles();await refreshReviewLikes();
 }
 async function nicks(ids){
   const need=[...new Set((ids||[]).filter(Boolean))];const m={};
@@ -487,12 +498,50 @@ function renderProfiles(){
 }
 function renderReviews(){
   $("#rTotal").textContent=reviews.length?`${reviews.length}개`:"";
+  const bar=$("#rLikeBar");if(bar)bar.hidden=!reviews.length;   /* 리뷰가 없으면 도움돼요 줄은 접어 둬요 */
   if(!reviews.length){$("#rList").innerHTML=`<p class="empty">아직 올린 예시 리뷰가 없어요.</p>`;return;}
+  const w=curWho(),n=revLikeN();
   $("#rList").innerHTML=reviews.map(r=>{const ph=Array.isArray(r.photos)?r.photos:[];const tg=Array.isArray(r.tags)?r.tags:[];
+    const st=rLikes[String(r.id)]||{likes:+(r.likes||0),liked:false};   /* 구 SQL이면 r.likes 숫자만 보여요 */
+    const mine=!!(w&&r.user_id===w.id);
     return `<div class="item"><div class="t"><b>${esc(r.ul_places?.name||r.place_id)}</b> <small>★ ${(+r.rating).toFixed(1)} · ${KIND[r.kind]||r.kind}${r.kind==="visit"&&r.visit_count?` · 📍 방문 인증 ${r.visit_count}회`:''}${r.price_level!=null?` · 1인 ${PRICES[r.price_level]||r.price_level}`:''}${tg.length?` · ${tg.map(esc).join(", ")}`:''} · ${esc(nickOf(r.user_id))}</small>
       ${r.menu?`<p><small>먹은 메뉴 · ${esc(r.menu)}</small></p>`:""}<p>${esc(r.body)}</p>
       ${ph.length?`<div class="thumbs">${ph.map(u=>`<i style="background-image:url('${esc(u)}')"></i>`).join("")}</div>`:""}</div>
-      <button class="btn del sm" type="button" data-delr="${r.id}">삭제</button></div>`;}).join("");
+      <div class="acts">
+        <button class="btn line sm${st.liked?" on":""}" type="button" data-rlk="${r.id}" aria-pressed="${st.liked}" ${w&&!mine?"":"disabled"} title="${mine?"내가 쓴 리뷰에는 누를 수 없어요":"지금 고른 데모 프로필로 누르기/취소"}">♥ 도움돼요 ${st.likes}</button>
+        <button class="btn line sm" type="button" data-rmany="${r.id}" ${w?"":"disabled"} title="아직 안 누른 데모 프로필 ${n}명이 한 번에 눌러요">+${n}명</button>
+        <button class="btn del sm" type="button" data-delr="${r.id}">삭제</button>
+      </div></div>`;}).join("");
+}
+
+/* ===== 4) 예시 리뷰 도움돼요 ===== */
+const revLikeN=()=>Math.max(1,Math.min(50,parseInt($("#rLikeN")?$("#rLikeN").value:"",10)||2));
+async function refreshReviewLikes(){
+  rLikes={};
+  const ids=reviews.map(r=>r.id),w=curWho();
+  if(ids.length&&w){
+    const {data,error}=await sb.rpc("ul_seed_review_likes",{p_reviews:ids,p_user:w.id});
+    /* 구 SQL(18단계 전)이면 그냥 리뷰에 적힌 숫자만 보여요 — 누를 때 안내가 나와요 */
+    if(!error){const d=data||{};Object.keys(d).forEach(k=>{rLikes[k]={likes:+d[k].likes||0,liked:!!d[k].liked};});}
+  }
+  renderReviews();
+}
+async function actRevLike(id,many){
+  const w=curWho();
+  if(!w){toast("데모 프로필을 먼저 골라 주세요");return;}
+  const n=revLikeN();
+  const call=many?["ul_seed_review_like_many",{p_review:id,p_count:n,p_exclude:w.id}]
+                :["ul_seed_review_like",{p_user:w.id,p_review:id,p_like:null}];
+  const {data,error}=await sb.rpc(call[0],call[1]);
+  if(error){toast(errText(error));return;}
+  const d=data||{};
+  const cur=rLikes[String(id)]||{likes:0,liked:false};
+  rLikes[String(id)]={likes:+d.likes||0,liked:many?cur.liked:!!d.liked};
+  const rv=reviews.find(x=>String(x.id)===String(id));if(rv)rv.likes=rLikes[String(id)].likes;
+  renderReviews();
+  if(many)toast(d.added>0?`데모 ${d.added}명이 도움돼요를 눌렀어요 · 지금 ${d.likes}개`:"더 누를 데모 프로필이 없어요");
+  else toast(d.liked?`도움돼요를 눌렀어요 · 지금 ${d.likes}개`:`도움돼요를 취소했어요 · 지금 ${d.likes}개`);
+  await loadProfiles();   /* 리뷰 쓴 사람의 받은 도움돼요 숫자 갱신 */
 }
 
 /* ===== 지금 쓸 프로필 ===== */
@@ -513,9 +562,9 @@ function syncWho(){
   $("#whoInfo").innerHTML=w?`<b>${esc(w.nick)}</b> · ${esc(sFull(SCHOOL(w.school_id))||w.school_name||w.school_id||"")}${w.verified?" · 재학생 인증 표시":""} · ${w.year?esc(w.year):"학번 비어 있음"}`:"데모 프로필을 먼저 만들어 주세요.";
   const off=!w;
   $("#rSubmit").disabled=off;$("#tSubmit").disabled=off;$("#cSubmit").disabled=off||!cPicked;
-  renderCLikes();
+  renderCLikes();renderReviews();   /* 프로필을 바꾸면 리뷰 도움돼요 버튼 상태도 같이 바뀌어요 */
 }
-$("#who").onchange=async()=>{const w=curWho();if(w&&w.school_id){$("#tSchool").value=w.school_id;$("#cSchool").value=w.school_id;}syncWho();await updateCenter();if(cPicked)await refreshLikes();};
+$("#who").onchange=async()=>{const w=curWho();if(w&&w.school_id){$("#tSchool").value=w.school_id;$("#cSchool").value=w.school_id;}syncWho();await updateCenter();if(cPicked)await refreshLikes();await refreshReviewLikes();};
 
 /* ===== 카카오 ===== */
 /* 실패 이유는 네 가지로 남겨요: NO_KEY(키 없음) · SCRIPT_ERROR(스크립트 오류) · LOAD_ERR(차단·네트워크) · TIMEOUT(8초) */
@@ -817,6 +866,9 @@ function initForm(){
   /* "데모 N명"의 N을 바꾸면 버튼 글자도 바로 바뀌게, Enter로 댓글 폼이 제출되지 않게 */
   $("#cLikeN").oninput=()=>{if(cPicked)renderCLikes();};
   $("#cLikeN").onkeydown=e=>{if(e.key==="Enter")e.preventDefault();};
+  /* 4번: 한 번에 누를 데모 프로필 수를 바꾸면 +N명 글자도 바로 바뀌게 */
+  $("#rLikeN").oninput=()=>renderReviews();
+  $("#rLikeN").onkeydown=e=>{if(e.key==="Enter")e.preventDefault();};
   $("#rPicBtn").onclick=()=>$("#rPicIn").click();
   $("#rPicIn").onchange=e=>{
     const all=[...e.target.files],room=Math.max(0,5-pics.length);
@@ -1040,10 +1092,13 @@ document.addEventListener("click",async e=>{
   const dp=e.target.closest("[data-delp]"),dr=e.target.closest("[data-delr]"),
         dpo=e.target.closest("[data-delpost]"),dc=e.target.closest("[data-delcmt]"),
         cl=e.target.closest("[data-clk]"),cm=e.target.closest("[data-cmany]"),
+        rl=e.target.closest("[data-rlk]"),rm=e.target.closest("[data-rmany]"),
         nr=e.target.closest("[data-near]");
   if(nr){const p=dbNear&&dbNear[+nr.dataset.near];if(p){place=p;results=[];mOpen=false;renderPlaceBox();}return;}
   if(cl){await actLike("comment",+cl.dataset.clk,false);return;}
   if(cm){await actLike("comment",+cm.dataset.cmany,true);return;}
+  if(rl){await actRevLike(+rl.dataset.rlk,false);return;}
+  if(rm){await actRevLike(+rm.dataset.rmany,true);return;}
   if(dp){const p=profiles.find(x=>x.id===dp.dataset.delp);
     const n=reviews.filter(r=>r.user_id===dp.dataset.delp).length;
     const np=minePosts.filter(x=>x.user_id===dp.dataset.delp).length,nc=mineComments.filter(x=>x.user_id===dp.dataset.delp).length;
