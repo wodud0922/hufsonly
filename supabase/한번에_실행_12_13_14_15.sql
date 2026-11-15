@@ -1,7 +1,9 @@
 -- =====================================================================
--- 유니로그 한 번에 실행 (12 + 13 + 14 + 15단계)
+-- 유니로그 한 번에 실행 (12 + 13 + 14 + 15 + 16단계)
 -- Supabase > SQL Editor > + (새 칸) 에 이 파일 내용을 전부 붙여넣고 Run 한 번만 누르세요.
--- 여러 번 실행해도 괜찮아요. (12~14를 이미 실행했어도 그냥 이걸 실행하면 돼요)
+-- 여러 번 실행해도 괜찮아요. (12~15를 이미 실행했어도 그냥 이걸 실행하면 돼요)
+-- 16단계: 예시 데이터에서 모든 학교 프로필 + 로그톡 글·댓글까지 (파일 맨 끝)
+-- 15단계의 예시 리뷰는 방문 인증 횟수·사진(5장)·태그·1인 가격대까지 넣을 수 있게 넓혔어요.
 -- =====================================================================
 
 -- =====================================================================
@@ -343,8 +345,10 @@ language plpgsql security definer set search_path = public as $$
 declare v_visits int;
 begin
   -- 관리자 예시 리뷰 (/admin/seed 에서만): 작성자는 데모 프로필, 방문 인증 검사 없음
+  -- 방문 인증 횟수는 관리자가 넣은 값을 그대로 둬요 (0 이상)
   if tg_op = 'INSERT' and current_setting('ul.seed', true) = 'on' and public.ul_is_admin() then
-    new.likes := 0; new.hidden := false; new.edited := false; new.visit_count := 0; new.is_demo := true;
+    new.likes := 0; new.hidden := false; new.edited := false;
+    new.visit_count := greatest(0, coalesce(new.visit_count, 0)); new.is_demo := true;
     new.round := (select count(*) from public.ul_reviews where user_id = new.user_id and place_id = new.place_id) + 1;
     return new;
   end if;
@@ -431,32 +435,69 @@ $$;
 grant execute on function public.ul_ranking(text,text,int) to anon, authenticated;
 
 -- ---------- 데모 프로필 만들기 (관리자만) ----------
-create or replace function public.ul_seed_profile(p_nick text, p_campus text) returns uuid
+-- 16단계에서 학교를 직접 받도록 넓혔어요. 예전 두 칸짜리 호출(p_nick, p_campus='seoul'|'global')도 그대로 돼요.
+drop function if exists public.ul_seed_profile(text, text);
+create or replace function public.ul_seed_profile(p_nick text, p_school_id text default null,
+  p_school_name text default null, p_school_short text default null, p_campus text default null) returns uuid
 language plpgsql security definer set search_path = public, auth as $$
-declare v_id uuid := gen_random_uuid(); v_msg text; v_sid text; v_campus text;
+declare v_id uuid := gen_random_uuid(); v_msg text;
+        v_sid text; v_name text; v_short text; v_campus text;
 begin
   if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
   p_nick := btrim(coalesce(p_nick, ''));
   v_msg := public.ul_nick_ok(p_nick);
   if v_msg <> 'ok' then raise exception '%', v_msg using errcode = 'P0001'; end if;
-  if p_campus = 'global' then v_sid := 'hufs-g'; v_campus := '글로벌캠퍼스';
-  else v_sid := 'hufs-s'; v_campus := '서울캠퍼스'; end if;
+
+  v_sid := nullif(btrim(coalesce(p_school_id, '')), '');
+  v_campus := nullif(btrim(coalesce(p_campus, '')), '');
+  -- 학교를 안 넘기면 예전처럼 캠퍼스로만 고르기 (기본: 한국외대)
+  if v_sid is null then
+    if v_campus = 'global' then v_sid := 'hufs-g'; else v_sid := 'hufs-s'; end if;
+  end if;
+  if v_campus in ('seoul', 'global') then
+    v_campus := case v_campus when 'global' then '글로벌캠퍼스' else '서울캠퍼스' end;
+  end if;
+  if v_campus is null then
+    v_campus := case v_sid when 'hufs-g' then '글로벌캠퍼스' when 'hufs-s' then '서울캠퍼스' else null end;
+  end if;
+  v_name := coalesce(nullif(btrim(coalesce(p_school_name, '')), ''),
+                     case when v_sid in ('hufs-s', 'hufs-g') then '한국외국어대학교' else v_sid end);
+  v_short := coalesce(nullif(btrim(coalesce(p_school_short, '')), ''),
+                      case when v_sid in ('hufs-s', 'hufs-g') then '외대' else left(v_name, 8) end);
+
   -- 로그인할 수 없는 빈 계정 (프로필이 계정에 묶여 있어서 필요해요)
   insert into auth.users (instance_id, id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
   values ('00000000-0000-0000-0000-000000000000', v_id, 'authenticated', 'authenticated',
           'demo-' || replace(v_id::text, '-', '') || '@demo.uni1og.invalid',
           jsonb_build_object('provider', 'demo', 'providers', jsonb_build_array('demo')), '{}'::jsonb, now(), now());
   insert into public.ul_profiles (id, nick, school_id, school_name, school_short, campus, year, status, is_demo)
-  values (v_id, p_nick, v_sid, '한국외국어대학교', '외대', v_campus, null, 'approved', true);
+  values (v_id, p_nick, v_sid, v_name, v_short, v_campus, null, 'approved', true);
   update public.ul_profiles set verified = (random() < 0.7) where id = v_id;   -- 재학생 인증 표시: 7:3 정도로 섞이게
   return v_id;
 end $$;
 
 -- ---------- 예시 리뷰 올리기 (관리자만, 데모 프로필로만) ----------
+-- p_visit_count: "📍 방문 인증 N회"로 보일 횟수 (매장 방문일 때만, 0 이상)
+--   ul_reviews.visit_count에 그대로 넣고, 단골왕(최근 30일 방문 인증)까지 맞도록 ul_visits에도 그만큼 넣어요.
+--   (ul_visits에 이미 있는 날짜·제약이면 그 줄만 건너뛰고 실패하지 않아요)
+-- p_photos: 사진 주소 배열(최대 5장). /admin/seed 에서 ul-photos 버킷에 올린 공개 주소를 그대로 넣어요.
+-- p_price_level: 1인 가격대. index.html의 PRICES 배열 순번(0=~5천원 … 4=3만원 이상), 모르면 null
+-- p_tags: "이런 곳이에요" 태그 배열 (혼밥 가능·가성비 …). 최대 8개
+--   ul_reviews.photos / tags 컬럼 타입(text[] 또는 jsonb)을 보고 맞춰 넣습니다.
+drop function if exists public.ul_seed_review(uuid, text, numeric, text, text, text);
+drop function if exists public.ul_seed_review(uuid, text, numeric, text, text, text, int);
+drop function if exists public.ul_seed_review(uuid, text, numeric, text, text, text, int, text[]);
 create or replace function public.ul_seed_review(p_user uuid, p_place text, p_rating numeric, p_kind text,
-                                                 p_body text, p_menu text default null) returns bigint
+                                                 p_body text, p_menu text default null,
+                                                 p_visit_count int default 0,
+                                                 p_photos text[] default null,
+                                                 p_price_level int default null,
+                                                 p_tags text[] default null) returns bigint
 language plpgsql security definer set search_path = public as $$
-declare v_id bigint;
+declare v_id bigint; v_kind text; v_vc int; v_ids bigint[] := '{}'; v_visit bigint;
+        v_photos text[] := '{}'; v_tags text[] := '{}'; v_ptype text; v_ttype text; v_changed boolean := false;
+        v_price int;
+        c_claims text; c_sub text;
 begin
   if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
   if not exists (select 1 from public.ul_profiles where id = p_user and is_demo) then
@@ -465,21 +506,93 @@ begin
   if not exists (select 1 from public.ul_places where id = p_place) then
     raise exception '가게를 먼저 골라 주세요' using errcode = 'P0001';
   end if;
+  v_kind := coalesce(nullif(btrim(coalesce(p_kind, '')), ''), 'visit');
+  v_vc := case when v_kind = 'visit' then greatest(0, least(coalesce(p_visit_count, 0), 999)) else 0 end;
+  v_price := case when p_price_level between 0 and 4 then p_price_level else null end;
+
+  -- 사진 주소 정리: http(s) 주소만, 앞에서 5장까지 / 태그: 빈 값·중복 빼고 8개까지
+  if p_photos is not null then
+    select coalesce(array_agg(t.u order by t.ord), '{}') into v_photos
+      from unnest(p_photos) with ordinality as t(u, ord)
+     where t.ord <= 5 and t.u ~* '^https?://';
+  end if;
+  if p_tags is not null then
+    select coalesce(array_agg(distinct left(btrim(t.u), 20)), '{}') into v_tags
+      from unnest(p_tags[1:8]) as t(u)
+     where btrim(coalesce(t.u, '')) <> '';
+  end if;
+
   perform set_config('ul.seed', 'on', true);
-  insert into public.ul_reviews (place_id, user_id, rating, body, menu, kind)
+  insert into public.ul_reviews (place_id, user_id, rating, body, menu, kind, visit_count, price_level)
   values (p_place, p_user, round(p_rating * 2) / 2, btrim(p_body), nullif(btrim(coalesce(p_menu, '')), ''),
-          coalesce(nullif(p_kind, ''), 'visit'))
+          v_kind, v_vc, v_price)
   returning id into v_id;
   perform set_config('ul.seed', 'off', true);
+
+  -- 사진·태그: ul_reviews 컬럼 타입을 보고 맞춰 넣어요 (없는 컬럼이면 그냥 건너뜀)
+  if coalesce(array_length(v_photos, 1), 0) > 0 then
+    select data_type into v_ptype from information_schema.columns
+     where table_schema = 'public' and table_name = 'ul_reviews' and column_name = 'photos';
+    if v_ptype = 'ARRAY' then
+      update public.ul_reviews set photos = v_photos where id = v_id; v_changed := true;
+    elsif v_ptype is not null then
+      update public.ul_reviews set photos = to_jsonb(v_photos) where id = v_id; v_changed := true;
+    end if;
+  end if;
+  if coalesce(array_length(v_tags, 1), 0) > 0 then
+    select data_type into v_ttype from information_schema.columns
+     where table_schema = 'public' and table_name = 'ul_reviews' and column_name = 'tags';
+    if v_ttype = 'ARRAY' then
+      update public.ul_reviews set tags = v_tags where id = v_id; v_changed := true;
+    elsif v_ttype is not null then
+      update public.ul_reviews set tags = to_jsonb(v_tags) where id = v_id; v_changed := true;
+    end if;
+  end if;
+  if v_changed then
+    -- 사진·태그를 넣은 걸 리뷰 화면에서 "수정됨"으로 안 남기기
+    update public.ul_reviews set edited = false where id = v_id;
+  end if;
+
+  -- 방문 인증 기록도 같은 횟수만큼 (오늘부터 하루씩 뒤로) — 단골왕·방문 인증 횟수 표시를 맞춰요
+  if v_vc > 0 then
+    -- ul_visits 쪽 트리거가 auth.uid()로 작성자를 덮어쓸 수 있어, 잠깐 데모 프로필이 로그인한 것처럼 맞춰 둡니다
+    c_claims := current_setting('request.jwt.claims', true);
+    c_sub := current_setting('request.jwt.claim.sub', true);
+    perform set_config('request.jwt.claim.sub', p_user::text, true);
+    perform set_config('request.jwt.claims', jsonb_build_object('sub', p_user, 'role', 'authenticated')::text, true);
+    for i in 0 .. v_vc - 1 loop
+      begin
+        insert into public.ul_visits (user_id, place_id, visit_day)
+        values (p_user, p_place, (now() at time zone 'Asia/Seoul')::date - i)
+        returning id into v_visit;
+        v_ids := v_ids || v_visit;
+      exception when others then null;   -- 이미 있는 날·제약에 걸리면 그 줄만 건너뛰기
+      end;
+    end loop;
+    -- 작성자가 데모 프로필로 안 들어간 줄은 지워요 (관리자 계정에 가짜 방문이 남지 않게)
+    if array_length(v_ids, 1) is not null then
+      delete from public.ul_visits where id = any(v_ids) and user_id <> p_user;
+    end if;
+    perform set_config('request.jwt.claim.sub', coalesce(c_sub, ''), true);
+    perform set_config('request.jwt.claims', coalesce(c_claims, ''), true);
+  end if;
   return v_id;
 end $$;
 
 -- ---------- 지우기 (관리자만) ----------
 create or replace function public.ul_seed_delete_review(p_id bigint) returns void
 language plpgsql security definer set search_path = public as $$
+declare v_user uuid; v_place text;
 begin
   if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  select user_id, place_id into v_user, v_place from public.ul_reviews where id = p_id and is_demo;
   delete from public.ul_reviews where id = p_id and is_demo;
+  -- 예시 리뷰와 함께 넣어 둔 방문 인증 기록도 같이 지워요 (데모 프로필 것만)
+  if v_user is not null and v_place is not null then
+    delete from public.ul_visits v
+     where v.user_id = v_user and v.place_id = v_place
+       and exists (select 1 from public.ul_profiles p where p.id = v_user and p.is_demo);
+  end if;
 end $$;
 
 create or replace function public.ul_seed_delete_profile(p_user uuid) returns void
@@ -492,8 +605,161 @@ begin
   delete from auth.users where id = p_user;   -- 프로필·예시 리뷰도 함께 지워져요
 end $$;
 
-revoke execute on function public.ul_seed_profile(text,text), public.ul_seed_review(uuid,text,numeric,text,text,text),
+revoke execute on function public.ul_seed_profile(text,text,text,text,text), public.ul_seed_review(uuid,text,numeric,text,text,text,int,text[],int,text[]),
   public.ul_seed_delete_review(bigint), public.ul_seed_delete_profile(uuid) from public, anon;
-grant execute on function public.ul_seed_profile(text,text), public.ul_seed_review(uuid,text,numeric,text,text,text),
+grant execute on function public.ul_seed_profile(text,text,text,text,text), public.ul_seed_review(uuid,text,numeric,text,text,text,int,text[],int,text[]),
   public.ul_seed_delete_review(bigint), public.ul_seed_delete_profile(uuid) to authenticated;
 
+-- =====================================================================
+-- 유니로그 16단계: 예시 데이터 — 로그톡 글·댓글 (관리자 전용)
+-- Supabase > SQL Editor > + (새 칸) 에 이 파일 내용을 전부 붙여넣고 Run 하세요. 15번 다음에 실행해요.
+-- 여러 번 실행해도 괜찮아요.
+--
+-- · 데모 프로필이 그 학교 로그톡에 직접 쓴 것처럼 글·댓글을 올려요 (말머리·제목·내용 그대로)
+-- · 실제 회원이 쓴 글에도 댓글을 달 수 있어요
+-- · 지우기는 데모 프로필이 쓴 글·댓글만 돼요 (실제 회원 글은 안 지워져요)
+-- · ul_posts의 작성자(ul_posts_before)는 auth.uid()로 정해져서, 올리는 동안만
+--   "데모 프로필이 로그인한 것처럼" 신분(request.jwt.claims)을 잠깐 바꿔 두고 되돌려요.
+--   ul_comments 쪽 트리거는 이 파일에 정의가 없어서, 넣은 뒤 작성자를 확인하고
+--   데모 프로필로 안 들어갔으면 에러로 되돌려요(엉뚱한 계정 이름으로 남지 않아요).
+--
+-- (참고) ul_comments에 어떤 트리거가 붙어 있는지 보려면:
+--   select tgname, pg_get_triggerdef(oid) from pg_trigger
+--    where tgrelid = 'public.ul_comments'::regclass and not tgisinternal;
+-- =====================================================================
+
+-- ---------- 로그톡 글 올리기 (관리자만, 데모 프로필로만) ----------
+create or replace function public.ul_seed_post(p_user uuid, p_school_id text, p_cat text,
+                                               p_title text, p_body text, p_place text default null)
+returns bigint
+language plpgsql security definer set search_path = public as $$
+declare v_row public.ul_posts; v_cat text; c_claims text; c_sub text;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  if not exists (select 1 from public.ul_profiles where id = p_user and is_demo) then
+    raise exception '데모 프로필만 고를 수 있어요' using errcode = 'P0001';
+  end if;
+  v_cat := coalesce(nullif(btrim(coalesce(p_cat, '')), ''), '질문');
+  if v_cat not in ('질문', '추천', '정보') then
+    raise exception '말머리는 질문·추천·정보 중 하나예요' using errcode = 'P0001';
+  end if;
+  if char_length(btrim(coalesce(p_title, ''))) < 2 then
+    raise exception '제목을 2자 이상 적어 주세요' using errcode = 'P0001';
+  end if;
+  if char_length(btrim(coalesce(p_body, ''))) < 5 then
+    raise exception '내용을 5자 이상 적어 주세요' using errcode = 'P0001';
+  end if;
+  if p_place is not null and not exists (select 1 from public.ul_places where id = p_place) then
+    raise exception '가게를 먼저 등록해 주세요' using errcode = 'P0001';
+  end if;
+
+  -- ul_posts_before 가 new.user_id := auth.uid() 로 정해서, 잠깐 데모 프로필로 맞춰 둡니다
+  c_claims := current_setting('request.jwt.claims', true);
+  c_sub := current_setting('request.jwt.claim.sub', true);
+  perform set_config('request.jwt.claim.sub', p_user::text, true);
+  perform set_config('request.jwt.claims', jsonb_build_object('sub', p_user, 'role', 'authenticated')::text, true);
+
+  insert into public.ul_posts (user_id, school_id, cat, title, body, place_id)
+  values (p_user, nullif(btrim(coalesce(p_school_id, '')), ''), v_cat, btrim(p_title), btrim(p_body),
+          nullif(btrim(coalesce(p_place, '')), ''))
+  returning * into v_row;
+
+  perform set_config('request.jwt.claim.sub', coalesce(c_sub, ''), true);
+  perform set_config('request.jwt.claims', coalesce(c_claims, ''), true);
+
+  if v_row.user_id <> p_user then
+    update public.ul_posts set user_id = p_user where id = v_row.id;
+    select * into v_row from public.ul_posts where id = v_row.id;
+  end if;
+  if v_row.user_id <> p_user then
+    raise exception '데모 프로필 이름으로 글이 안 들어갔어요 (ul_posts 작성자 트리거를 확인해 주세요)' using errcode = 'P0001';
+  end if;
+  return v_row.id;
+end $$;
+
+-- ---------- 로그톡 댓글·답글 달기 (관리자만, 데모 프로필로만) ----------
+create or replace function public.ul_seed_comment(p_user uuid, p_post bigint, p_body text,
+                                                  p_parent bigint default null)
+returns bigint
+language plpgsql security definer set search_path = public as $$
+declare v_row public.ul_comments; c_claims text; c_sub text;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  if not exists (select 1 from public.ul_profiles where id = p_user and is_demo) then
+    raise exception '데모 프로필만 고를 수 있어요' using errcode = 'P0001';
+  end if;
+  if not exists (select 1 from public.ul_posts where id = p_post) then
+    raise exception '댓글을 달 글을 찾지 못했어요' using errcode = 'P0001';
+  end if;
+  if char_length(btrim(coalesce(p_body, ''))) < 1 then
+    raise exception '댓글 내용을 적어 주세요' using errcode = 'P0001';
+  end if;
+  if p_parent is not null and not exists (select 1 from public.ul_comments where id = p_parent and post_id = p_post) then
+    raise exception '답글을 달 댓글을 찾지 못했어요' using errcode = 'P0001';
+  end if;
+
+  c_claims := current_setting('request.jwt.claims', true);
+  c_sub := current_setting('request.jwt.claim.sub', true);
+  perform set_config('request.jwt.claim.sub', p_user::text, true);
+  perform set_config('request.jwt.claims', jsonb_build_object('sub', p_user, 'role', 'authenticated')::text, true);
+
+  insert into public.ul_comments (post_id, parent_id, body)
+  values (p_post, p_parent, btrim(p_body))
+  returning * into v_row;
+
+  perform set_config('request.jwt.claim.sub', coalesce(c_sub, ''), true);
+  perform set_config('request.jwt.claims', coalesce(c_claims, ''), true);
+
+  -- 작성자가 데모 프로필로 안 들어갔으면 한 번 더 바로잡아 보고, 그래도 안 되면 되돌려요
+  if v_row.user_id <> p_user then
+    update public.ul_comments set user_id = p_user where id = v_row.id;
+    select * into v_row from public.ul_comments where id = v_row.id;
+  end if;
+  if v_row.user_id <> p_user then
+    raise exception '데모 프로필 이름으로 댓글이 안 들어갔어요 (ul_comments 작성자 트리거를 확인해 주세요)' using errcode = 'P0001';
+  end if;
+
+  -- 글의 댓글 수를 실제 개수로 맞춰 둡니다 (댓글 수를 세는 트리거가 있든 없든 맞게)
+  update public.ul_posts p
+     set comment_count = (select count(*) from public.ul_comments c where c.post_id = p.id)
+   where p.id = p_post;
+  return v_row.id;
+end $$;
+
+-- ---------- 지우기 (관리자만, 데모 프로필이 쓴 것만) ----------
+create or replace function public.ul_seed_delete_post(p_id bigint) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  if not exists (select 1 from public.ul_posts p join public.ul_profiles u on u.id = p.user_id
+                  where p.id = p_id and u.is_demo) then
+    raise exception '데모 프로필이 쓴 글만 지울 수 있어요' using errcode = 'P0001';
+  end if;
+  delete from public.ul_comments where post_id = p_id;   -- 달린 댓글 먼저
+  delete from public.ul_posts where id = p_id;
+end $$;
+
+create or replace function public.ul_seed_delete_comment(p_id bigint) returns void
+language plpgsql security definer set search_path = public as $$
+declare v_post bigint;
+begin
+  if not public.ul_is_admin() then raise exception '관리자만 할 수 있어요' using errcode = 'P0001'; end if;
+  if not exists (select 1 from public.ul_comments c join public.ul_profiles u on u.id = c.user_id
+                  where c.id = p_id and u.is_demo) then
+    raise exception '데모 프로필이 쓴 댓글만 지울 수 있어요' using errcode = 'P0001';
+  end if;
+  select post_id into v_post from public.ul_comments where id = p_id;
+  delete from public.ul_comments where id = p_id;
+  if v_post is not null then
+    update public.ul_posts p
+       set comment_count = (select count(*) from public.ul_comments c where c.post_id = p.id)
+     where p.id = v_post;
+  end if;
+end $$;
+
+revoke execute on function public.ul_seed_post(uuid,text,text,text,text,text),
+  public.ul_seed_comment(uuid,bigint,text,bigint),
+  public.ul_seed_delete_post(bigint), public.ul_seed_delete_comment(bigint) from public, anon;
+grant execute on function public.ul_seed_post(uuid,text,text,text,text,text),
+  public.ul_seed_comment(uuid,bigint,text,bigint),
+  public.ul_seed_delete_post(bigint), public.ul_seed_delete_comment(bigint) to authenticated;

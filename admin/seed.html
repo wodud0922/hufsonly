@@ -36,6 +36,7 @@ a{color:inherit}
 .notice b{color:var(--accent)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
 .card h2{margin:0 0 4px;font-size:17px}
+.card h2 small{vertical-align:2px}
 .card .sub{margin:0 0 14px;color:var(--muted);font-size:13px}
 .row{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));align-items:end}
 label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:700;color:var(--muted)}
@@ -50,10 +51,12 @@ textarea.field{min-height:110px;resize:vertical}
 .res{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow:auto;margin-top:8px}
 .res button{appearance:none;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:9px 11px;font:14px var(--body);cursor:pointer}
 .res button small{display:block;color:var(--muted);font-size:12px}
+.res button[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
 .picked{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1.5px solid var(--accent);background:var(--soft);border-radius:8px;padding:9px 11px}
 .picked small{display:block;color:var(--muted);font-size:12px}
 .cnt{font-weight:500;font-size:12px;color:var(--muted);text-align:right}
 .cnt.bad{color:var(--bad)}
+.mini{margin:8px 0 0;font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}.mini b{color:var(--ink)}
 .list{display:flex;flex-direction:column}
 .item{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
 .item:first-child{border-top:0}
@@ -67,6 +70,11 @@ textarea.field{min-height:110px;resize:vertical}
 .gate h1{margin:0;color:var(--ink);font-size:20px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;z-index:30;max-width:calc(100% - 32px);text-align:center}
 .num{font-variant-numeric:tabular-nums}
+.pics{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}
+.pic{position:relative;width:76px;height:76px;border-radius:10px;background:center/cover no-repeat;border:1px solid var(--line)}
+.pic button{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);font:700 13px/1 var(--body);cursor:pointer;padding:0}
+.thumbs{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.thumbs i{display:block;width:38px;height:38px;border-radius:6px;background:center/cover no-repeat;border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -86,24 +94,38 @@ textarea.field{min-height:110px;resize:vertical}
   </section>
 
   <main id="main" hidden>
-    <p class="notice">여기서 올린 리뷰는 실제 유저 리뷰와 똑같이 <b>가게 평점·리뷰 수·리뷰 목록</b>에 들어가고, 데모 프로필도 <b>리뷰어 랭킹·개척자 배지</b>에 그대로 올라가요. 진짜 리뷰가 쌓이면 아래에서 지워 주세요.</p>
+    <p class="notice">여기서 올린 리뷰는 실제 유저 리뷰와 똑같이 <b>가게 평점·리뷰 수·리뷰 목록</b>에, 로그톡 글·댓글은 <b>그 학교 로그톡</b>에 그대로 들어가요. 데모 프로필도 <b>리뷰어 랭킹·개척자 배지</b>에 올라가요. 진짜 내용이 쌓이면 아래에서 지워 주세요.</p>
 
     <section class="card" aria-labelledby="h1">
       <h2 id="h1">1. 데모 프로필</h2>
-      <p class="sub">로그인할 수 없는 빈 계정이에요. 만들 때마다 재학생 인증 표시가 7:3 정도로 섞이고(10명 중 7명) 학번은 비어 있어요.</p>
-      <form id="pForm" class="row">
-        <label>닉네임 <small>2~10자, 한글·영문·숫자</small><input class="field" id="pNick" maxlength="10" autocomplete="off" required></label>
-        <label>소속 캠퍼스<select class="field" id="pCampus"><option value="seoul">한국외대 서울캠퍼스</option><option value="global">한국외대 글로벌캠퍼스</option></select></label>
+      <p class="sub">로그인할 수 없는 빈 계정이에요. 유니로그가 지원하는 131개 학교 어디든 만들 수 있고, 만들 때마다 재학생 인증 표시가 7:3 정도로 섞여요(학번은 비어 있어요).</p>
+      <form id="pForm" class="stack">
+        <div class="row">
+          <label>닉네임 <small>2~10자, 한글·영문·숫자</small><input class="field" id="pNick" maxlength="10" autocomplete="off" required></label>
+          <label>학교 찾기 <small>이름 일부로 좁히기 (비우면 전체)</small><input class="field" id="pSearch" placeholder="예) 외대, 부산대, 용인" autocomplete="off"></label>
+        </div>
+        <label>학교<select class="field" id="pSchool"></select></label>
         <button class="btn" type="submit" id="pSubmit">프로필 추가</button>
       </form>
       <div class="list" id="pList" style="margin-top:14px"></div>
     </section>
 
     <section class="card" aria-labelledby="h2">
-      <h2 id="h2">2. 예시 리뷰 등록</h2>
-      <p class="sub">데모 프로필을 고르고 가게·별점·방문유형·내용을 넣으면 바로 올라가요.</p>
-      <form id="rForm" class="stack">
-        <label>데모 프로필<select class="field" id="rUser" required></select></label>
+      <h2 id="h2">2. 지금 쓸 데모 프로필</h2>
+      <p class="sub">3~7번에서 올리는 리뷰·로그톡 글·댓글은 모두 이 프로필 이름으로 올라가요.</p>
+      <label>데모 프로필<select class="field" id="who"></select></label>
+      <p class="mini" id="whoInfo">데모 프로필을 먼저 만들어 주세요.</p>
+    </section>
+
+    <section class="card" aria-labelledby="h3">
+      <h2 id="h3">3. 예시 리뷰 등록</h2>
+      <p class="sub">가게는 고른 프로필의 학교 주변 3km에서 찾아요. 별점·방문유형·내용을 넣으면 바로 올라가요.</p>
+      <p class="mini" id="rCenter">학교 위치를 확인하는 중…</p>
+      <div class="row" style="margin-top:8px">
+        <label>기준 위치 직접 찾기 <small>선택 · 학교 위치가 틀렸을 때</small><input class="field" id="locQ" placeholder="예) 모현읍, 외대 글로벌캠퍼스" autocomplete="off"></label>
+        <button class="btn line" type="button" id="locBtn">기준 위치 바꾸기</button>
+      </div>
+      <form id="rForm" class="stack" style="margin-top:14px">
         <div>
           <label for="rQ">식당</label>
           <div id="placeBox"></div>
@@ -112,16 +134,78 @@ textarea.field{min-height:110px;resize:vertical}
           <label>별점<select class="field" id="rRating"></select></label>
           <div><label style="margin-bottom:5px">방문유형</label><div class="seg" id="rKind" role="group" aria-label="방문유형">
             <button type="button" data-k="visit" aria-pressed="true">매장 방문</button><button type="button" data-k="takeout" aria-pressed="false">포장</button><button type="button" data-k="delivery" aria-pressed="false">배달</button></div></div>
+          <label>방문 인증 횟수 <small>매장 방문일 때 📍 방문 인증 N회로 보여요</small><input class="field num" id="rVisit" type="number" min="0" max="99" step="1" value="1" inputmode="numeric"></label>
         </div>
         <label>먹은 메뉴 <small>(선택, 40자까지)</small><input class="field" id="rMenu" maxlength="40" autocomplete="off"></label>
         <label>리뷰 내용<textarea class="field" id="rBody" maxlength="1000" required></textarea><span class="cnt num" id="rCnt">0 / 1000 (10자 이상)</span></label>
+        <div>
+          <label style="margin-bottom:5px">이런 곳이에요 <small>(선택, 여러 개 가능)</small></label>
+          <div class="seg" id="rTags" role="group" aria-label="이런 곳이에요"></div>
+        </div>
+        <div>
+          <label style="margin-bottom:5px">1인 가격대 <small>(선택 · 가게 대표 가격대로 보여요)</small></label>
+          <div class="seg" id="rPrice" role="group" aria-label="1인 가격대"></div>
+        </div>
+        <div>
+          <label style="margin-bottom:5px">사진 <small>(선택, 최대 5장 · 올릴 때 줄여서 저장해요)</small></label>
+          <div class="pics" id="rPics"></div>
+          <button class="btn line sm" type="button" id="rPicBtn">사진 고르기</button>
+          <input type="file" id="rPicIn" accept="image/jpeg,image/png,image/webp" multiple hidden>
+        </div>
         <button class="btn" type="submit" id="rSubmit">예시 리뷰 올리기</button>
       </form>
     </section>
 
-    <section class="card" aria-labelledby="h3">
-      <h2 id="h3">3. 올린 예시 리뷰 <small class="num" id="rTotal" style="color:var(--muted);font-weight:500"></small></h2>
+    <section class="card" aria-labelledby="h4">
+      <h2 id="h4">4. 올린 예시 리뷰 <small class="num" id="rTotal" style="color:var(--muted);font-weight:500"></small></h2>
       <div class="list" id="rList"></div>
+    </section>
+
+    <section class="card" aria-labelledby="h5">
+      <h2 id="h5">5. 로그톡 글 올리기</h2>
+      <p class="sub">고른 데모 프로필이 그 학교 로그톡에 직접 쓴 것처럼 올라가요. 그 학교 학생들에게는 새 글 알림도 가요.</p>
+      <form id="tForm" class="stack">
+        <label>학교 로그톡 <small>프로필 학교와 달라도 돼요</small><select class="field" id="tSchool"></select></label>
+        <div>
+          <label style="margin-bottom:5px">말머리</label>
+          <div class="seg" id="tCat" role="group" aria-label="말머리">
+            <button type="button" data-c="질문" aria-pressed="true">질문</button><button type="button" data-c="추천" aria-pressed="false">추천</button><button type="button" data-c="정보" aria-pressed="false">정보</button>
+          </div>
+        </div>
+        <label>제목 <small>2~60자</small><input class="field" id="tTitle" maxlength="60" autocomplete="off"></label>
+        <label>내용 <small>5자 이상</small><textarea class="field" id="tBody" maxlength="3000" style="min-height:120px"></textarea><span class="cnt num" id="tCnt">0 / 3000 (5자 이상)</span></label>
+        <div>
+          <label for="tQ">가게 태그 <small>(선택)</small></label>
+          <div id="tPlaceBox"></div>
+        </div>
+        <button class="btn" type="submit" id="tSubmit">로그톡 글 올리기</button>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="h6">
+      <h2 id="h6">6. 로그톡 댓글 달기</h2>
+      <p class="sub">학교를 고르고 글을 하나 집으면 그 글에 댓글·답글을 달아요. 실제 회원이 쓴 글에도 달 수 있어요.</p>
+      <form id="cForm" class="stack">
+        <div class="row">
+          <label>학교<select class="field" id="cSchool"></select></label>
+          <div><label style="margin-bottom:5px">글 목록 <small id="cCount"></small></label><button class="btn line" type="button" id="cLoad" style="width:100%">최근 글 불러오기</button></div>
+        </div>
+        <div class="res" id="cPosts" style="max-height:240px"></div>
+        <div id="cPickedBox"></div>
+        <label>어느 댓글에 답글? <small>(비우면 새 댓글)</small><select class="field" id="cParent" disabled><option value="">새 댓글</option></select></label>
+        <label>댓글 내용 <small>1000자까지</small><textarea class="field" id="cBody" maxlength="1000" style="min-height:80px"></textarea></label>
+        <button class="btn" type="submit" id="cSubmit" disabled>댓글 달기</button>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="h7">
+      <h2 id="h7">7. 올린 로그톡 글·댓글</h2>
+      <p class="sub">데모 프로필이 쓴 것만 모아 보여줘요. 지우면 실제 화면에서도 바로 사라져요.</p>
+      <div class="seg" role="group" aria-label="보기">
+        <button type="button" data-tab="post" aria-pressed="true">글 <span class="num" id="mPostN"></span></button>
+        <button type="button" data-tab="comment" aria-pressed="false">댓글 <span class="num" id="mCmtN"></span></button>
+      </div>
+      <div class="list" id="talkMine" style="margin-top:12px"></div>
     </section>
   </main>
 </div>
@@ -130,21 +214,186 @@ textarea.field{min-height:110px;resize:vertical}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/config.js"></script>
 <script>
+/* 학교 목록: index.html의 SCHOOLS와 같아요 (id, 이름, 짧은이름, 지역, 시·구, 캠퍼스) */
+const SCHOOLS=[
+ // 서울
+ ["snu","서울대학교","서울대","서울","관악구",""],
+ ["yonsei","연세대학교","연세대","서울","서대문구","신촌캠퍼스"],
+ ["korea","고려대학교","고려대","서울","성북구",""],
+ ["sogang","서강대학교","서강대","서울","마포구",""],
+ ["skku-h","성균관대학교","성균관대","서울","종로구","인문사회과학캠퍼스"],
+ ["hanyang-s","한양대학교","한양대","서울","성동구","서울캠퍼스"],
+ ["cau-s","중앙대학교","중앙대","서울","동작구","서울캠퍼스"],
+ ["khu-s","경희대학교","경희대","서울","동대문구","서울캠퍼스"],
+ ["hufs-s","한국외국어대학교","외대","서울","동대문구","서울캠퍼스"],
+ ["uos","서울시립대학교","시립대","서울","동대문구",""],
+ ["konkuk","건국대학교","건국대","서울","광진구",""],
+ ["dongguk-s","동국대학교","동국대","서울","중구","서울캠퍼스"],
+ ["hongik","홍익대학교","홍익대","서울","마포구",""],
+ ["kookmin","국민대학교","국민대","서울","성북구",""],
+ ["ssu","숭실대학교","숭실대","서울","동작구",""],
+ ["sejong","세종대학교","세종대","서울","광진구",""],
+ ["kw","광운대학교","광운대","서울","노원구",""],
+ ["seoultech","서울과학기술대학교","서울과기대","서울","노원구",""],
+ ["ewha","이화여자대학교","이화여대","서울","서대문구",""],
+ ["sookmyung","숙명여자대학교","숙명여대","서울","용산구",""],
+ ["sungshin","성신여자대학교","성신여대","서울","성북구",""],
+ ["duksung","덕성여자대학교","덕성여대","서울","도봉구",""],
+ ["dongduk","동덕여자대학교","동덕여대","서울","성북구",""],
+ ["swu","서울여자대학교","서울여대","서울","노원구",""],
+ ["mju-h","명지대학교","명지대","서울","서대문구","인문캠퍼스"],
+ ["smu","상명대학교","상명대","서울","종로구","서울캠퍼스"],
+ ["hansung","한성대학교","한성대","서울","성북구",""],
+ ["skuniv","서경대학교","서경대","서울","성북구",""],
+ ["syu","삼육대학교","삼육대","서울","노원구",""],
+ ["skhu","성공회대학교","성공회대","서울","구로구",""],
+ ["knsu","한국체육대학교","한체대","서울","송파구",""],
+ ["snue","서울교육대학교","서울교대","서울","서초구",""],
+ ["kgu-s","경기대학교","경기대","서울","서대문구","서울캠퍼스"],
+ ["mtu","감리교신학대학교","감신대","서울","서대문구",""],
+ ["puts","장로회신학대학교","장신대","서울","광진구",""],
+ ["csu","총신대학교","총신대","서울","동작구",""],
+ ["chugye","추계예술대학교","추계예대","서울","서대문구",""],
+ ["karts","한국예술종합학교","한예종","서울","성북구",""],
+ ["bible","한국성서대학교","성서대","서울","노원구",""],
+ ["kcu","KC대학교","KC대","서울","강서구",""],
+ ["scu","서울기독대학교","서울기독대","서울","은평구",""],
+ ["hytu","서울한영대학교","한영대","서울","구로구",""],
+ // 경기
+ ["hufs-g","한국외국어대학교","외대","경기","용인시","글로벌캠퍼스"],
+ ["khu-g","경희대학교","경희대","경기","용인시","국제캠퍼스"],
+ ["hanyang-e","한양대학교","한양대","경기","안산시","ERICA캠퍼스"],
+ ["cau-d","중앙대학교","중앙대","경기","안성시","다빈치캠퍼스"],
+ ["skku-n","성균관대학교","성균관대","경기","수원시","자연과학캠퍼스"],
+ ["mju-n","명지대학교","명지대","경기","용인시","자연캠퍼스"],
+ ["dongguk-b","동국대학교","동국대","경기","고양시","바이오메디캠퍼스"],
+ ["ajou","아주대학교","아주대","경기","수원시",""],
+ ["kgu","경기대학교","경기대","경기","수원시","수원캠퍼스"],
+ ["gachon","가천대학교","가천대","경기","성남시","글로벌캠퍼스"],
+ ["dankook","단국대학교","단국대","경기","용인시","죽전캠퍼스"],
+ ["kau","한국항공대학교","항공대","경기","고양시",""],
+ ["tukorea","한국공학대학교","한국공대","경기","시흥시",""],
+ ["hknu","한경국립대학교","한경대","경기","안성시",""],
+ ["catholic","가톨릭대학교","가톨릭대","경기","부천시","성심교정"],
+ ["kangnam","강남대학교","강남대","경기","용인시",""],
+ ["yongin","용인대학교","용인대","경기","용인시",""],
+ ["luther","루터대학교","루터대","경기","용인시",""],
+ ["calvin","칼빈대학교","칼빈대","경기","용인시",""],
+ ["suwon","수원대학교","수원대","경기","화성시",""],
+ ["hyupsung","협성대학교","협성대","경기","화성시",""],
+ ["suwoncath","수원가톨릭대학교","수원가톨릭대","경기","화성시",""],
+ ["hanshin","한신대학교","한신대","경기","오산시",""],
+ ["anyang","안양대학교","안양대","경기","안양시",""],
+ ["sungkyul","성결대학교","성결대","경기","안양시",""],
+ ["hansei","한세대학교","한세대","경기","군포시",""],
+ ["daejin","대진대학교","대진대","경기","포천시",""],
+ ["cha","차의과학대학교","차의과학대","경기","포천시",""],
+ ["shinhan","신한대학교","신한대","경기","의정부시",""],
+ ["ptu","평택대학교","평택대","경기","평택시",""],
+ ["stu","서울신학대학교","서울신대","경기","부천시",""],
+ ["eulji-s","을지대학교","을지대","경기","성남시","성남캠퍼스"],
+ ["sjs","서울장신대학교","서울장신대","경기","광주시",""],
+ ["sangha","중앙승가대학교","중앙승가대","경기","김포시",""],
+ ["kduniv","경동대학교","경동대","경기","양주시","메트로폴캠퍼스"],
+ // 인천
+ ["inha","인하대학교","인하대","인천","미추홀구",""],
+ ["inu","인천대학교","인천대","인천","연수구","송도캠퍼스"],
+ ["ginue","경인교육대학교","경인교대","인천","계양구","인천캠퍼스"],
+ ["yonsei-i","연세대학교","연세대","인천","연수구","국제캠퍼스"],
+ ["gachon-m","가천대학교","가천대","인천","연수구","메디컬캠퍼스"],
+ ["icu","인천가톨릭대학교","인천가톨릭대","인천","연수구",""],
+ // 부산
+ ["pnu","부산대학교","부산대","부산","금정구",""],
+ ["pknu","국립부경대학교","부경대","부산","남구",""],
+ ["kmou","국립한국해양대학교","해양대","부산","영도구",""],
+ ["donga","동아대학교","동아대","부산","사하구",""],
+ ["deu","동의대학교","동의대","부산","부산진구",""],
+ ["ks","경성대학교","경성대","부산","남구",""],
+ ["silla","신라대학교","신라대","부산","사상구",""],
+ ["dongseo","동서대학교","동서대","부산","사상구",""],
+ ["bufs","부산외국어대학교","부산외대","부산","금정구",""],
+ ["kosin","고신대학교","고신대","부산","영도구",""],
+ ["cup","부산가톨릭대학교","부산가톨릭대","부산","금정구",""],
+ ["bnue","부산교육대학교","부산교대","부산","연제구",""],
+ ["tu","동명대학교","동명대","부산","남구",""],
+ ["ysu","영산대학교","영산대","부산","해운대구","해운대캠퍼스"],
+ // 대구
+ ["knu","경북대학교","경북대","대구","북구",""],
+ ["kmu","계명대학교","계명대","대구","달서구",""],
+ ["dnue","대구교육대학교","대구교대","대구","남구",""],
+ ["dgist","DGIST","디지스트","대구","달성군",""],
+ ["yu","영남대학교","영남대","대구","경북 경산시",""],
+ ["daegu","대구대학교","대구대","대구","경북 경산시",""],
+ ["dcu","대구가톨릭대학교","대구가톨릭대","대구","경북 경산시",""],
+ ["dhu","대구한의대학교","대구한의대","대구","경북 경산시",""],
+ ["kiu","경일대학교","경일대","대구","경북 경산시",""],
+ // 광주
+ ["jnu","전남대학교","전남대","광주","북구",""],
+ ["chosun","조선대학교","조선대","광주","동구",""],
+ ["gist","GIST","지스트","광주","북구",""],
+ ["gnue","광주교육대학교","광주교대","광주","북구",""],
+ ["honam","호남대학교","호남대","광주","광산구",""],
+ ["gwangju","광주대학교","광주대","광주","남구",""],
+ ["kwu","광주여자대학교","광주여대","광주","광산구",""],
+ ["nambu","남부대학교","남부대","광주","광산구",""],
+ ["songwon","송원대학교","송원대","광주","남구",""],
+ ["htus","호남신학대학교","호남신대","광주","남구",""],
+ ["kwangshin","광신대학교","광신대","광주","북구",""],
+ // 대전
+ ["cnu","충남대학교","충남대","대전","유성구",""],
+ ["hnu","한남대학교","한남대","대전","대덕구",""],
+ ["kaist","KAIST","카이스트","대전","유성구",""],
+ ["hanbat","국립한밭대학교","한밭대","대전","유성구",""],
+ ["dju","대전대학교","대전대","대전","동구",""],
+ ["mokwon","목원대학교","목원대","대전","서구",""],
+ ["pcu","배재대학교","배재대","대전","서구",""],
+ ["wsu","우송대학교","우송대","대전","동구",""],
+ ["eulji-d","을지대학교","을지대","대전","중구","대전캠퍼스"],
+ ["kbtus","한국침례신학대학교","침신대","대전","유성구",""],
+ ["dtu","대전신학대학교","대전신대","대전","대덕구",""],
+ ["konyang-m","건양대학교","건양대","대전","서구","메디컬캠퍼스"],
+ // 울산
+ ["ulsan","울산대학교","울산대","울산","남구",""],
+ ["unist","UNIST","유니스트","울산","울주군",""],
+ // 제주
+ ["jejunu","제주대학교","제주대","제주","제주시",""],
+ ["jeju-intl","제주국제대학교","제주국제대","제주","제주시",""],
+];
+const REGIONS=["서울","경기","인천","부산","대구","광주","대전","울산","제주"];
+const FAV=["hufs-g","hufs-s"];   /* 한국외대 글캠·설캠은 맨 위 즐겨찾기 */
+const KIND={visit:"매장 방문",takeout:"포장",delivery:"배달"};
+const CATS=["질문","추천","정보"];
+const TAGS=["혼밥 가능","가성비","과모임","학생 할인","공부 가능","해장","야식","데이트"];   /* index.html과 같은 목록 */
+const PRICES=["~5천원","5천~1만원","1만~2만원","2만~3만원","3만원 이상"];   /* price_level은 이 배열의 순번(0부터) */
+/* 학교 좌표를 카카오에서 못 찾았을 때 쓰는 값 (한국외대 두 캠퍼스) */
+const KNOWN={"hufs-s":{name:"한국외국어대학교 서울캠퍼스",x:127.0590,y:37.5972},"hufs-g":{name:"한국외국어대학교 글로벌캠퍼스",x:127.2675,y:37.3367}};
+
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const CFG=window.UNILOG_CONFIG||{};
 const sb=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_KEY);
-const CAMPUS={"hufs-s":{name:"서울캠퍼스",x:127.0590,y:37.5972},"hufs-g":{name:"글로벌캠퍼스",x:127.2675,y:37.3367}};
-const KIND={visit:"매장 방문",takeout:"포장",delivery:"배달"};
-let profiles=[],reviews=[],place=null,kind="visit",results=[],kakaoReady=null;
+const SCHOOL=id=>SCHOOLS.find(s=>s[0]===id)||null;
+const sFull=s=>s?s[1]+(s[5]?" "+s[5]:""):"";
+const sLabel=id=>{const s=SCHOOL(id);return s?(s[2]+(s[5]?" "+s[5]:"")):String(id||"");};
+const rel=t=>{const m=Math.round((Date.now()-new Date(t))/60000);if(m<1)return"방금";if(m<60)return m+"분 전";const h=Math.round(m/60);if(h<24)return h+"시간 전";return Math.round(h/24)+"일 전";};
+
+let profiles=[],reviews=[],place=null,kind="visit",results=[],kakaoReady=null,center=null;
+let talkCat="질문",tPlace=null,tResults=[];
+let cPicked=null,cComments=[],cPosts=[];
+let minePosts=[],mineComments=[],mineTab="post";
+let pics=[],ADMIN_ID=null;
+let tags=new Set(),price=null;
+const PHOTO_BUCKET="ul-photos";   /* 리뷰 사진 버킷 (index.html과 같음) */
 
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800);}
 function gate(title,text,showLogin){$("#gate").hidden=false;$("#main").hidden=true;$("#gateTitle").textContent=title;$("#gateText").textContent=text;$("#login").hidden=!showLogin;}
-const errText=e=>{const m=(e&&e.message)||String(e);
-  if(/ul_seed_|is_demo|function .* does not exist|schema cache/.test(m))return "한번에_실행_12_13_14_15.sql을 Supabase에서 먼저 실행해 주세요";
+const errText=e=>{const m=(e&&e.message)||String(e||"");
+  if(/ul_seed_(post|comment|delete_post|delete_comment)|PGRST202|schema cache/i.test(m))return "한번에_실행_12_13_14_15.sql(16단계 들어간 새 파일)을 Supabase에서 먼저 실행해 주세요";
+  if(/ul_seed_|is_demo|function .* does not exist/i.test(m))return "한번에_실행_12_13_14_15.sql을 Supabase에서 먼저 실행해 주세요";
   if(/auth\.users|permission denied for (table|schema) (users|auth)/.test(m))return "Supabase가 데모 계정 만들기를 막았어요 ("+m+")";
   return m;};
 
+/* ===== 로그인 ===== */
 $("#login").onclick=()=>sb.auth.signInWithOAuth({provider:"kakao",options:{redirectTo:location.origin+location.pathname}});
 $("#logout").onclick=async()=>{await sb.auth.signOut();location.replace(location.pathname);};
 
@@ -152,100 +401,101 @@ async function boot(){
   const {data:{session}}=await sb.auth.getSession();
   if(location.hash.includes("access_token")||location.search.includes("code="))history.replaceState(null,"",location.pathname);
   if(!session)return gate("관리자 로그인","운영자 카카오 계정으로 로그인해 주세요.",true);
+  ADMIN_ID=session.user.id;
   $("#logout").hidden=false;
   const {data,error}=await sb.from("admins").select("id").eq("id",session.user.id).maybeSingle();
   if(error)return gate("설정이 필요해요","1_unilog_schema.sql을 Supabase에서 실행했는지 확인해 주세요.",false);
   if(!data)return gate("관리자가 아니에요","이 페이지는 관리자 계정으로만 쓸 수 있어요.",false);
   $("#gate").hidden=true;$("#main").hidden=false;
-  initForm();await loadAll();
+  initForm();
+  fillSchools("#pSchool","");
+  fillSchools("#tSchool","");
+  fillSchools("#cSchool","");
+  await loadAll();
 }
 
+/* ===== 학교 고르기 ===== */
+function fillSchools(sel,q,keep){
+  const el=$(sel);if(!el)return;
+  const prev=keep!==undefined?!keep:el.value;
+  const m=s=>!q||[s[1],s[2],s[4],s[5]].some(v=>v&&v.includes(q));
+  const o=s=>`<option value="${s[0]}">${esc(s[1])}${s[5]?" "+esc(s[5]):""}</option>`;
+  let h="";
+  const fav=FAV.map(SCHOOL).filter(Boolean).filter(m);
+  if(fav.length)h+=`<optgroup label="즐겨찾기">${fav.map(o).join("")}</optgroup>`;
+  REGIONS.forEach(r=>{
+    const L=SCHOOLS.filter(s=>s[3]===r&&!FAV.includes(s[0])&&m(s));
+    if(L.length)h+=`<optgroup label="${r}">${L.map(o).join("")}</optgroup>`;
+  });
+  if(!h)h=`<optgroup label="검색 결과 없음"><option value="">다른 이름으로 찾아보세요</option></optgroup>`;
+  el.innerHTML=h;
+  if(prev&&[...el.options].some(x=>x.value===prev))el.value=prev;
+}
+$("#pSearch").oninput=e=>fillSchools("#pSchool",e.target.value.trim(),$("#pSchool").value);
+
 /* ===== 불러오기 ===== */
-async function loadAll(){await loadProfiles();await loadReviews();}
+async function loadAll(){await loadProfiles();await loadReviews();await loadWho();await loadMine();}
 async function loadProfiles(){
-  const {data,error}=await sb.from("ul_profiles").select("id,nick,school_id,campus,created_at,verified").eq("is_demo",true).order("created_at",{ascending:true});
-  if(error){$("#pList").innerHTML=`<p class="empty">${esc(errText(error))}</p>`;profiles=[];renderUserSel();return;}
-  profiles=data||[];renderProfiles();renderUserSel();
+  const {data,error}=await sb.from("ul_profiles").select("id,nick,school_id,school_name,school_short,campus,created_at,verified").eq("is_demo",true).order("created_at",{ascending:true});
+  if(error){$("#pList").innerHTML=`<p class="empty">${esc(errText(error))}</p>`;profiles=[];return;}
+  profiles=data||[];renderProfiles();
 }
 async function loadReviews(){
-  const {data,error}=await sb.from("ul_reviews").select("id,user_id,place_id,rating,kind,menu,body,created_at,ul_places(name,road_address,address)").eq("is_demo",true).order("created_at",{ascending:false}).limit(500);
+  const {data,error}=await sb.from("ul_reviews").select("id,user_id,place_id,rating,kind,menu,body,visit_count,photos,tags,price_level,created_at,ul_places(name,road_address,address)").eq("is_demo",true).order("created_at",{ascending:false}).limit(500);
   if(error){$("#rList").innerHTML=`<p class="empty">${esc(errText(error))}</p>`;reviews=[];return;}
   reviews=data||[];renderReviews();renderProfiles();
 }
+async function nicks(ids){
+  const need=[...new Set((ids||[]).filter(Boolean))];const m={};
+  if(!need.length)return m;
+  for(let i=0;i<need.length;i+=150){
+    const {data}=await sb.from("ul_profiles").select("id,nick").in("id",need.slice(i,i+150));
+    (data||[]).forEach(x=>m[x.id]=x.nick);
+  }
+  return m;
+}
 const nickOf=id=>(profiles.find(p=>p.id===id)||{}).nick||"(지운 프로필)";
-const campusOf=sid=>(CAMPUS[sid]||{}).name||sid;
 
 function renderProfiles(){
   if(!profiles.length){$("#pList").innerHTML=`<p class="empty">아직 데모 프로필이 없어요.</p>`;return;}
   $("#pList").innerHTML=profiles.map(p=>{const n=reviews.filter(r=>r.user_id===p.id).length;
-    return `<div class="item"><div class="t"><b>${esc(p.nick)}</b><span class="tag">예시</span>${p.verified?`<span class="tag">인증</span>`:''}<br><small>한국외대 ${esc(campusOf(p.school_id))} · 예시 리뷰 ${n}개</small></div>
+    const nPo=minePosts.filter(x=>x.user_id===p.id).length,nCm=mineComments.filter(x=>x.user_id===p.id).length;
+    return `<div class="item"><div class="t"><b>${esc(p.nick)}</b><span class="tag">예시</span>${p.verified?`<span class="tag">인증</span>`:""}<br>
+      <small>${esc(sFull(SCHOOL(p.school_id))||p.school_name||p.school_id)}${p.campus&&!SCHOOL(p.school_id)?" · "+esc(p.campus):""} · 예시 리뷰 ${n}개${nPo?" · 로그톡 글 "+nPo+"개":""}${nCm?" · 댓글 "+nCm+"개":""}</small></div>
       <button class="btn del sm" type="button" data-delp="${p.id}">삭제</button></div>`;}).join("");
-}
-function renderUserSel(){
-  const sel=$("#rUser"),cur=sel.value;
-  sel.innerHTML=profiles.length?profiles.map(p=>`<option value="${p.id}">${esc(p.nick)} · ${esc(campusOf(p.school_id))}</option>`).join(""):`<option value="">먼저 데모 프로필을 만들어 주세요</option>`;
-  if(profiles.some(p=>p.id===cur))sel.value=cur;
-  $("#rSubmit").disabled=!profiles.length;
 }
 function renderReviews(){
   $("#rTotal").textContent=reviews.length?`${reviews.length}개`:"";
   if(!reviews.length){$("#rList").innerHTML=`<p class="empty">아직 올린 예시 리뷰가 없어요.</p>`;return;}
-  $("#rList").innerHTML=reviews.map(r=>`<div class="item"><div class="t"><b>${esc(r.ul_places?.name||r.place_id)}</b> <small>★ ${(+r.rating).toFixed(1)} · ${KIND[r.kind]||r.kind} · ${esc(nickOf(r.user_id))}</small>
-      ${r.menu?`<p><small>먹은 메뉴 · ${esc(r.menu)}</small></p>`:""}<p>${esc(r.body)}</p></div>
-      <button class="btn del sm" type="button" data-delr="${r.id}">삭제</button></div>`).join("");
+  $("#rList").innerHTML=reviews.map(r=>{const ph=Array.isArray(r.photos)?r.photos:[];const tg=Array.isArray(r.tags)?r.tags:[];
+    return `<div class="item"><div class="t"><b>${esc(r.ul_places?.name||r.place_id)}</b> <small>★ ${(+r.rating).toFixed(1)} · ${KIND[r.kind]||r.kind}${r.kind==="visit"&&r.visit_count?` · 📍 방문 인증 ${r.visit_count}회`:''}${r.price_level!=null?` · 1인 ${PRICES[r.price_level]||r.price_level}`:''}${tg.length?` · ${tg.map(esc).join(", ")}`:''} · ${esc(nickOf(r.user_id))}</small>
+      ${r.menu?`<p><small>먹은 메뉴 · ${esc(r.menu)}</small></p>`:""}<p>${esc(r.body)}</p>
+      ${ph.length?`<div class="thumbs">${ph.map(u=>`<i style="background-image:url('${esc(u)}')"></i>`).join("")}</div>`:""}</div>
+      <button class="btn del sm" type="button" data-delr="${r.id}">삭제</button></div>`;}).join("");
 }
 
-/* ===== 1) 데모 프로필 ===== */
-$("#pForm").onsubmit=async e=>{e.preventDefault();
-  const nick=$("#pNick").value.trim(),campus=$("#pCampus").value;
-  if(!/^[가-힣a-zA-Z0-9]{2,10}$/.test(nick)){toast("닉네임은 2~10자 한글·영문·숫자로 지어 주세요");return;}
-  $("#pSubmit").disabled=true;
-  const {data,error}=await sb.rpc("ul_seed_profile",{p_nick:nick,p_campus:campus});
-  $("#pSubmit").disabled=false;
-  if(error){toast(errText(error));return;}
-  $("#pNick").value="";toast(`데모 프로필 "${nick}"을(를) 만들었어요`);
-  await loadProfiles();$("#rUser").value=data;onUserChange();
-};
-document.addEventListener("click",async e=>{
-  const dp=e.target.closest("[data-delp]"),dr=e.target.closest("[data-delr]");
-  if(dp){const p=profiles.find(x=>x.id===dp.dataset.delp);const n=reviews.filter(r=>r.user_id===dp.dataset.delp).length;
-    if(!confirm(`데모 프로필 "${p?p.nick:""}"을(를) 지울까요?${n?`\n이 프로필의 예시 리뷰 ${n}개도 함께 지워져요.`:""}`))return;
-    dp.disabled=true;const {error}=await sb.rpc("ul_seed_delete_profile",{p_user:dp.dataset.delp});
-    if(error){dp.disabled=false;toast(errText(error));return;}toast("지웠어요");await loadAll();}
-  if(dr){if(!confirm("이 예시 리뷰를 지울까요?"))return;
-    dr.disabled=true;const {error}=await sb.rpc("ul_seed_delete_review",{p_id:+dr.dataset.delr});
-    if(error){dr.disabled=false;toast(errText(error));return;}toast("지웠어요");await loadReviews();}
-});
+/* ===== 지금 쓸 프로필 ===== */
+function renderWho(){
+  const el=$("#who"),prev=el.value;
+  el.innerHTML=profiles.length?profiles.map(p=>`<option value="${p.id}">${esc(p.nick)} · ${esc(sFull(SCHOOL(p.school_id))||p.school_name||p.school_id||"")}</option>`).join(""):`<option value="">먼저 데모 프로필을 만들어 주세요</option>`;
+  if(profiles.some(p=>p.id===prev))el.value=prev;
+}
+const curWho=()=>profiles.find(p=>p.id===$("#who").value)||null;
+async function loadWho(){
+  renderWho();syncWho();
+  const w=curWho();
+  if(w&&w.school_id){$("#tSchool").value=w.school_id;$("#cSchool").value=w.school_id;}
+  await updateCenter();
+}
+function syncWho(){
+  const w=curWho();
+  $("#whoInfo").innerHTML=w?`<b>${esc(w.nick)}</b> · ${esc(sFull(SCHOOL(w.school_id))||w.school_name||w.school_id||"")}${w.verified?" · 재학생 인증 표시":""} · 학번 비어 있음`:"데모 프로필을 먼저 만들어 주세요.";
+  const off=!w;
+  $("#rSubmit").disabled=off;$("#tSubmit").disabled=off;$("#cSubmit").disabled=off||!cPicked;
+}
+$("#who").onchange=async()=>{const w=curWho();if(w&&w.school_id){$("#tSchool").value=w.school_id;$("#cSchool").value=w.school_id;}syncWho();await updateCenter();};
 
-/* ===== 2) 예시 리뷰 ===== */
-function initForm(){
-  $("#rRating").innerHTML=[5,4.5,4,3.5,3,2.5,2,1.5,1].map(v=>`<option value="${v}" ${v===4?"selected":""}>★ ${v.toFixed(1)}</option>`).join("");
-  $("#rKind").onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;kind=b.dataset.k;
-    $("#rKind").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));};
-  $("#rBody").oninput=()=>{const n=$("#rBody").value.trim().length;$("#rCnt").textContent=`${n} / 1000 (10자 이상)`;$("#rCnt").classList.toggle("bad",n>0&&n<10);};
-  $("#rUser").onchange=onUserChange;
-  renderPlaceBox();
-}
-function curCampus(){const p=profiles.find(x=>x.id===$("#rUser").value);return CAMPUS[p?.school_id]||CAMPUS["hufs-s"];}
-function onUserChange(){if(!place)renderPlaceBox();}
-
-function renderPlaceBox(){
-  const box=$("#placeBox");
-  if(place){box.innerHTML=`<div class="picked"><div><b>${esc(place.name)}</b><small>${esc(place.road_address||place.address||"")}</small></div><button class="btn line sm" type="button" id="unpick">바꾸기</button></div>`;
-    $("#unpick").onclick=()=>{place=null;renderPlaceBox();$("#rQ").focus();};return;}
-  box.innerHTML=`<div style="display:flex;gap:8px"><input class="field" id="rQ" placeholder="가게 이름 (예: 순대국, 마라탕)" autocomplete="off"><button class="btn line" type="button" id="rQBtn">찾기</button></div>
-    <div class="res" id="rRes"></div>`;
-  const go=()=>searchPlace($("#rQ").value.trim());
-  $("#rQBtn").onclick=go;$("#rQ").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go();}};
-  renderResults();
-}
-function renderResults(){
-  const el=$("#rRes");if(!el)return;
-  if(results===null){el.innerHTML=`<p class="empty">찾는 중…</p>`;return;}
-  if(!results.length){el.innerHTML="";return;}
-  el.innerHTML=results.map((r,i)=>`<button type="button" data-pick="${i}"><b>${esc(r.name)}</b><small>${esc(r.category||"")}${r.road_address||r.address?" · "+esc(r.road_address||r.address):""}${r._db?" · 유니로그에 있음":""}</small></button>`).join("");
-  el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{place=results[+b.dataset.pick];results=[];renderPlaceBox();});
-}
+/* ===== 카카오 ===== */
 function loadKakao(){
   if(kakaoReady)return kakaoReady;
   kakaoReady=new Promise(res=>{if(window.kakao&&window.kakao.maps&&window.kakao.maps.services)return res(true);if(!CFG.KAKAO_JS_KEY)return res(false);
@@ -255,47 +505,340 @@ function loadKakao(){
     setTimeout(()=>res(false),8000);});
   return kakaoReady;
 }
-async function searchPlace(q){
-  if(q.length<1){toast("가게 이름을 넣어 주세요");return;}
-  results=null;renderResults();
-  const c=curCampus(),out=[],seen=new Set();
-  // 1) 유니로그에 이미 있는 가게
+function kw(ps,q,opt){return new Promise(res=>ps.keywordSearch(q,(d,st)=>res(st===kakao.maps.services.Status.OK?d:[]),opt||{}));}
+const coordCache={};
+async function schoolCoord(sid){
+  const s=SCHOOL(sid);if(!s)return null;
+  if(coordCache[sid])return coordCache[sid];
+  try{const c=JSON.parse(localStorage.getItem("ul_seed_coord_v1_"+sid)||"null");if(c&&c.x&&c.y){coordCache[sid]=c;return c;}}catch(e){}
+  if(!(await loadKakao()))return KNOWN[sid]||null;
+  const ps=new kakao.maps.services.Places();
+  const name=`${s[1]} ${s[5]}`.trim();
+  let r=await kw(ps,name,{category_group_code:"SC4"});
+  if(!r.length)r=await kw(ps,s[1],{category_group_code:"SC4"});
+  if(!r.length)r=await kw(ps,name);
+  if(!r.length)return KNOWN[sid]||null;
+  const v={name:r[0].place_name,x:+r[0].x,y:+r[0].y};
+  coordCache[sid]=v;
+  try{localStorage.setItem("ul_seed_coord_v1_"+sid,JSON.stringify(v));}catch(e){}
+  return v;
+}
+async function updateCenter(){
+  const w=curWho();
+  if(!w){$("#rCenter").textContent="데모 프로필을 먼저 골라 주세요.";center=null;return;}
+  $("#rCenter").textContent="학교 위치를 확인하는 중…";
+  const c=await schoolCoord(w.school_id);
+  center=c;
+  $("#rCenter").innerHTML=c?`기준 위치: <b>${esc(c.name)}</b> 주변 3km에서 가게를 찾아요.`:`학교 위치를 찾지 못했어요. <b>기준 위치 직접 찾기</b>로 한 번만 잡아 주세요.`;
+  place=null;results=[];renderPlaceBox();
+}
+$("#locBtn").onclick=async()=>{
+  const q=$("#locQ").value.trim();if(!q){toast("동네나 장소 이름을 넣어 주세요");return;}
+  if(!(await loadKakao())){toast("카카오 지도를 불러오지 못했어요");return;}
+  const d=await kw(new kakao.maps.services.Places(),q);
+  if(!d.length){toast("그 이름으로는 위치를 못 찾았어요");return;}
+  center={name:d[0].place_name,x:+d[0].x,y:+d[0].y};
+  $("#rCenter").innerHTML=`기준 위치: <b>${esc(center.name)}</b> 주변 3km (직접 지정)`;
+  $("#locQ").value="";place=null;results=[];renderPlaceBox();
+};
+
+/* ===== 가게 찾기 (리뷰용·글 태그용 공용) ===== */
+async function searchPlaces(q){
+  if(q.length<1){toast("가게 이름을 넣어 주세요");return null;}
+  if(!center){toast("기준 위치를 먼저 잡아 주세요");return null;}
+  const out=[],seen=new Set();
   const {data:db}=await sb.from("ul_places").select("*").ilike("name",`%${q.replace(/[%_]/g,"")}%`).limit(15);
   (db||[]).forEach(r=>{seen.add(r.id);out.push({...r,_db:true});});
-  // 2) 카카오 지도 검색 (학교 근처 3km)
   if(await loadKakao()){
     const ps=new kakao.maps.services.Places();
-    const d=await new Promise(res=>ps.keywordSearch(q,(d,st)=>res(st===kakao.maps.services.Status.OK?d:[]),
-      {location:new kakao.maps.LatLng(c.y,c.x),radius:3000,sort:kakao.maps.services.SortBy.DISTANCE}));
+    const d=await kw(ps,q,{location:new kakao.maps.LatLng(center.y,center.x),radius:3000,sort:kakao.maps.services.SortBy.DISTANCE});
     d.filter(x=>["FD6","CE7"].includes(x.category_group_code)&&!seen.has(x.id)).forEach(x=>out.push({
       id:x.id,name:x.place_name,category:x.category_name,phone:x.phone||null,address:x.address_name||null,
       road_address:x.road_address_name||null,x:+x.x,y:+x.y,place_url:x.place_url||null}));
   }
-  results=out;
-  if(!out.length){toast("가게를 찾지 못했어요");}
+  return out;
+}
+async function ensurePlaceRow(p){
+  if(p._db)return;
+  const {error}=await sb.from("ul_places").upsert({id:p.id,name:p.name,category:p.category||p.catFull||null,phone:p.phone||null,
+    address:p.address||null,road_address:p.road_address||null,x:p.x,y:p.y,place_url:p.place_url||null},{onConflict:"id",ignoreDuplicates:true});
+  if(error)throw error;
+  p._db=true;
+}
+const placeMeta=r=>`${esc(r.category||"")}${r.road_address||r.address?" · "+esc(r.road_address||r.address):""}${r._db?" · 유니로그에 있음":""}`;
+
+/* 리뷰용 */
+function renderPlaceBox(){
+  const box=$("#placeBox");
+  if(place){box.innerHTML=`<div class="picked"><div><b>${esc(place.name)}</b><small>${esc(place.road_address||place.address||"")}</small></div><button class="btn line sm" type="button" id="unpick">바꾸기</button></div>`;
+    $("#unpick").onclick=()=>{place=null;renderPlaceBox();$("#rQ").focus();};return;}
+  box.innerHTML=`<div style="display:flex;gap:8px"><input class="field" id="rQ" placeholder="가게 이름 (예: 순대국, 마라탕)" autocomplete="off"><button class="btn line" type="button" id="rQBtn">찾기</button></div>
+    <div class="res" id="rRes"></div>`;
+  const go=async()=>{const q=$("#rQ").value.trim();if(!q)return;results=null;renderResults();
+    const out=await searchPlaces(q);results=out||[];if(!results.length)toast("가게를 찾지 못했어요");renderResults();};
+  $("#rQBtn").onclick=go;$("#rQ").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go();}};
   renderResults();
 }
+function renderResults(){
+  const el=$("#rRes");if(!el)return;
+  if(results===null){el.innerHTML=`<p class="empty">찾는 중…</p>`;return;}
+  if(!results.length){el.innerHTML="";return;}
+  el.innerHTML=results.map((r,i)=>`<button type="button" data-pick="${i}"><b>${esc(r.name)}</b><small>${placeMeta(r)}</small></button>`).join("");
+  el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{place=results[+b.dataset.pick];results=[];renderPlaceBox();});
+}
 
+/* 글 태그용 */
+function renderTPlaceBox(){
+  const box=$("#tPlaceBox");
+  if(tPlace){box.innerHTML=`<div class="picked"><div><b>${esc(tPlace.name)}</b><small>${esc(tPlace.road_address||tPlace.address||"")}</small></div><button class="btn line sm" type="button" id="tUnpick">빼기</button></div>`;
+    $("#tUnpick").onclick=()=>{tPlace=null;renderTPlaceBox();};return;}
+  box.innerHTML=`<div style="display:flex;gap:8px"><input class="field" id="tQ" placeholder="가게 이름 (선택)" autocomplete="off"><button class="btn line" type="button" id="tQBtn">찾기</button></div>
+    <div class="res" id="tRes"></div>`;
+  const go=async()=>{const q=$("#tQ").value.trim();if(!q)return;tResults=null;renderTResults();
+    const out=await searchPlaces(q);tResults=out||[];if(!tResults.length)toast("가게를 찾지 못했어요");renderTResults();};
+  $("#tQBtn").onclick=go;$("#tQ").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go();}};
+  renderTResults();
+}
+function renderTResults(){
+  const el=$("#tRes");if(!el)return;
+  if(tResults===null){el.innerHTML=`<p class="empty">찾는 중…</p>`;return;}
+  if(!tResults.length){el.innerHTML="";return;}
+  el.innerHTML=tResults.map((r,i)=>`<button type="button" data-tpick="${i}"><b>${esc(r.name)}</b><small>${placeMeta(r)}</small></button>`).join("");
+  el.querySelectorAll("[data-tpick]").forEach(b=>b.onclick=()=>{tPlace=tResults[+b.dataset.tpick];tResults=[];renderTPlaceBox();});
+}
+
+/* ===== 사진 (index.html과 같은 방식: 1200px JPEG로 줄여 ul-photos 버킷에) ===== */
+function compress(file,max=1200,q=.82){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);
+  img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(url);b?res(b):rej(new Error("사진을 처리하지 못했어요"));},"image/jpeg",q);};
+  img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("사진을 열지 못했어요. JPG나 PNG로 올려 주세요"));};img.src=url;});}
+async function uploadPhoto(file){
+  const blob=await compress(file,1200);
+  /* 경로는 관리자 본인 uid 폴더 아래 — index.html과 같은 규칙(내 uid 폴더)이라 Storage 규칙을 그대로 통과해요 */
+  const path=`${ADMIN_ID}/seed-${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`;
+  const {error}=await sb.storage.from(PHOTO_BUCKET).upload(path,blob,{contentType:"image/jpeg",upsert:false});
+  if(error)throw error;
+  return sb.storage.from(PHOTO_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+function renderPics(){
+  const box=$("#rPics");if(!box)return;
+  box.innerHTML=pics.map((p,i)=>`<span class="pic" style="background-image:url('${esc(p.url)}')"><button type="button" data-pdel="${i}" aria-label="사진 ${i+1} 빼기">×</button></span>`).join("");
+  box.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>{pics.splice(+b.dataset.pdel,1);renderPics();});
+}
+
+function renderChips(){
+  const t=$("#rTags"),p=$("#rPrice");
+  if(t)t.innerHTML=TAGS.map(x=>`<button type="button" data-tag="${esc(x)}" aria-pressed="${tags.has(x)}">${esc(x)}</button>`).join("");
+  if(p)p.innerHTML=PRICES.map((x,i)=>`<button type="button" data-price="${i}" aria-pressed="${price===i}">${esc(x)}</button>`).join("");
+}
+function bindChips(){
+  const t=$("#rTags"),p=$("#rPrice");
+  if(t)t.onclick=e=>{const b=e.target.closest("[data-tag]");if(!b)return;
+    const v=b.dataset.tag;tags.has(v)?tags.delete(v):tags.add(v);renderChips();};
+  if(p)p.onclick=e=>{const b=e.target.closest("[data-price]");if(!b)return;
+    const v=+b.dataset.price;price=price===v?null:v;renderChips();};
+}
+
+/* ===== 폼 초기화 ===== */
+let lastVC=1;
+function syncVisit(){
+  const el=$("#rVisit");if(!el)return;
+  const on=kind==="visit";
+  el.disabled=!on;
+  el.style.opacity=on?"1":".45";
+  if(!on){if(+el.value>0)lastVC=+el.value;el.value="0";}
+  else el.value=String(lastVC||1);
+}
+function initForm(){
+  $("#rRating").innerHTML=[5,4.5,4,3.5,3,2.5,2,1.5,1].map(v=>`<option value="${v}" ${v===4?"selected":""}>★ ${v.toFixed(1)}</option>`).join("");
+  $("#rKind").onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;kind=b.dataset.k;
+    $("#rKind").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));syncVisit();};
+  $("#rVisit").oninput=()=>{const v=parseInt($("#rVisit").value,10);if(!isNaN(v))lastVC=Math.max(0,Math.min(99,v));};
+  $("#rBody").oninput=()=>{const n=$("#rBody").value.trim().length;$("#rCnt").textContent=`${n} / 1000 (10자 이상)`;$("#rCnt").classList.toggle("bad",n>0&&n<10);};
+  $("#tCat").onclick=e=>{const b=e.target.closest("[data-c]");if(!b)return;talkCat=b.dataset.c;
+    $("#tCat").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));};
+  $("#tBody").oninput=()=>{const n=$("#tBody").value.trim().length;$("#tCnt").textContent=`${n} / 3000 (5자 이상)`;$("#tCnt").classList.toggle("bad",n>0&&n<5);};
+  $("#cLoad").onclick=loadCPosts;
+  $("#rPicBtn").onclick=()=>$("#rPicIn").click();
+  $("#rPicIn").onchange=e=>{
+    const all=[...e.target.files],room=Math.max(0,5-pics.length);
+    all.slice(0,room).forEach(f=>pics.push({url:URL.createObjectURL(f),file:f}));
+    e.target.value="";
+    renderPics();
+    if(all.length>room)toast("사진은 5장까지 넣을 수 있어요");
+  };
+  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{mineTab=b.dataset.tab;
+    document.querySelectorAll("[data-tab]").forEach(x=>x.setAttribute("aria-pressed",x===b));renderMine();});
+  renderPlaceBox();renderTPlaceBox();renderPics();renderChips();bindChips();syncVisit();syncWho();
+}
+
+/* ===== 1) 데모 프로필 ===== */
+$("#pForm").onsubmit=async e=>{e.preventDefault();
+  const nick=$("#pNick").value.trim(),s=SCHOOL($("#pSchool").value);
+  if(!/^[가-힣a-zA-Z0-9]{2,10}$/.test(nick)){toast("닉네임은 2~10자 한글·영문·숫자로 지어 주세요");return;}
+  if(!s){toast("학교를 골라 주세요");return;}
+  $("#pSubmit").disabled=true;
+  const {data,error}=await sb.rpc("ul_seed_profile",{p_nick:nick,p_school_id:s[0],p_school_name:s[1],p_school_short:s[2],p_campus:s[5]||null});
+  $("#pSubmit").disabled=false;
+  if(error){toast(errText(error));return;}
+  $("#pNick").value="";toast(`${nick} · ${s[2]}${s[5]?" "+s[5]:""} 프로필을 만들었어요`);
+  await loadAll();
+  if(data)$("#who").value=data;syncWho();await updateCenter();
+};
+
+/* ===== 3) 예시 리뷰 ===== */
 $("#rForm").onsubmit=async e=>{e.preventDefault();
-  const user=$("#rUser").value,body=$("#rBody").value.trim(),menu=$("#rMenu").value.trim(),rating=+$("#rRating").value;
-  if(!user){toast("데모 프로필을 먼저 만들어 주세요");return;}
+  const w=curWho();
+  if(!w){toast("데모 프로필을 먼저 만들어 주세요");return;}
+  const body=$("#rBody").value.trim(),menu=$("#rMenu").value.trim(),rating=+$("#rRating").value;
+  const vc=kind==="visit"?Math.max(0,Math.min(99,parseInt($("#rVisit").value,10)||0)):0;
   if(!place){toast("식당을 골라 주세요");return;}
   if(body.length<10){toast("리뷰 내용을 10자 이상 써 주세요");return;}
   $("#rSubmit").disabled=true;
   try{
-    if(!place._db){
-      const {error}=await sb.from("ul_places").upsert({id:place.id,name:place.name,category:place.category,phone:place.phone,address:place.address,
-        road_address:place.road_address,x:place.x,y:place.y,place_url:place.place_url},{onConflict:"id",ignoreDuplicates:true});
-      if(error)throw error;
-    }
-    const {error}=await sb.rpc("ul_seed_review",{p_user:user,p_place:place.id,p_rating:rating,p_kind:kind,p_body:body,p_menu:menu||null});
+    await ensurePlaceRow(place);
+    const urls=[];
+    for(const p of pics)urls.push(p.file?await uploadPhoto(p.file):p.url);
+    const {error}=await sb.rpc("ul_seed_review",{p_user:w.id,p_place:place.id,p_rating:rating,p_kind:kind,p_body:body,p_menu:menu||null,p_visit_count:vc,p_photos:urls.length?urls:null,p_price_level:price,p_tags:tags.size?[...tags]:null});
     if(error)throw error;
-    toast(`"${place.name}"에 예시 리뷰를 올렸어요`);
+    toast(`"${place.name}"에 예시 리뷰를 올렸어요${vc?` · 방문 인증 ${vc}회`:''}${urls.length?` · 사진 ${urls.length}장`:''}`);
+    pics.forEach(p=>{try{URL.revokeObjectURL(p.url);}catch(e){}});pics=[];renderPics();
+    tags=new Set();price=null;renderChips();
     $("#rBody").value="";$("#rMenu").value="";$("#rBody").oninput();place=null;results=[];renderPlaceBox();
     await loadReviews();
   }catch(err){toast("올리지 못했어요: "+errText(err));}
-  finally{$("#rSubmit").disabled=!profiles.length;}
+  finally{$("#rSubmit").disabled=!curWho();}
 };
+
+/* ===== 5) 로그톡 글 ===== */
+$("#tForm").onsubmit=async e=>{e.preventDefault();
+  const w=curWho();
+  if(!w){toast("데모 프로필을 먼저 골라 주세요");return;}
+  const sid=$("#tSchool").value,title=$("#tTitle").value.trim(),body=$("#tBody").value.trim();
+  if(!sid){toast("올릴 학교를 골라 주세요");return;}
+  if(title.length<2){toast("제목을 2자 이상 적어 주세요");return;}
+  if(body.length<5){toast("내용을 5자 이상 적어 주세요");return;}
+  $("#tSubmit").disabled=true;
+  try{
+    if(tPlace)await ensurePlaceRow(tPlace);
+    const {error}=await sb.rpc("ul_seed_post",{p_user:w.id,p_school_id:sid,p_cat:talkCat,p_title:title,p_body:body,p_place:tPlace?tPlace.id:null});
+    if(error)throw error;
+    toast(`${sLabel(sid)} 로그톡에 글을 올렸어요`);
+    $("#tTitle").value="";$("#tBody").value="";$("#tBody").oninput();tPlace=null;tResults=[];renderTPlaceBox();
+    await loadMine();
+  }catch(err){toast("올리지 못했어요: "+errText(err));}
+  finally{$("#tSubmit").disabled=!curWho();}
+};
+
+/* ===== 6) 로그톡 댓글 ===== */
+async function loadCPosts(){
+  const sid=$("#cSchool").value;
+  $("#cPosts").innerHTML=`<p class="empty">불러오는 중…</p>`;
+  const {data,error}=await sb.from("ul_posts").select("id,cat,title,body,comment_count,created_at,user_id").eq("school_id",sid).order("created_at",{ascending:false}).limit(30);
+  if(error){$("#cPosts").innerHTML=`<p class="empty">${esc(errText(error))}</p>`;return;}
+  cPosts=data||[];
+  $("#cCount").textContent=cPosts.length?`최근 ${cPosts.length}개`:"";
+  if(!cPosts.length){$("#cPosts").innerHTML=`<p class="empty">이 학교에는 아직 로그톡 글이 없어요. 5번에서 먼저 올려 주세요.</p>`;return;}
+  const nk=await nicks(cPosts.map(x=>x.user_id));
+  $("#cPosts").innerHTML=cPosts.map(p=>`<button type="button" data-post="${p.id}" aria-pressed="${!!(cPicked&&cPicked.id===p.id)}"><b>[${esc(p.cat)}] ${esc(p.title)}</b><small>${esc(nk[p.user_id]||"알 수 없음")} · 댓글 ${p.comment_count} · ${rel(p.created_at)}</small></button>`).join("");
+  $("#cPosts").querySelectorAll("[data-post]").forEach(b=>b.onclick=()=>pickPost(cPosts.find(x=>String(x.id)===b.dataset.post)));
+}
+async function pickPost(p){
+  if(!p)return;
+  cPicked=p;
+  $("#cBody").value="";
+  $("#cParent").innerHTML=`<option value="">새 댓글</option>`;$("#cParent").disabled=true;
+  $("#cPickedBox").innerHTML=`<div class="picked"><div><b>[${esc(p.cat)}] ${esc(p.title)}</b><small>댓글 ${p.comment_count} · ${rel(p.created_at)}</small></div><button class="btn line sm" type="button" id="cUnpick">바꾸기</button></div>`;
+  $("#cUnpick").onclick=()=>{cPicked=null;cComments=[];$("#cPickedBox").innerHTML="";$("#cParent").innerHTML=`<option value="">새 댓글</option>`;$("#cParent").disabled=true;$("#cSubmit").disabled=true;loadCPosts();};
+  $("#cSubmit").disabled=!curWho();
+  const {data}=await sb.from("ul_comments").select("id,parent_id,body,user_id,created_at").eq("post_id",p.id).order("created_at",{ascending:true}).limit(300);
+  cComments=data||[];
+  if(cComments.length){
+    const nk=await nicks(cComments.map(c=>c.user_id));
+    $("#cParent").innerHTML=`<option value="">새 댓글</option>`+cComments.map(c=>`<option value="${c.id}">${c.parent_id?"↳ ":""}${esc(nk[c.user_id]||"알 수 없음")}: ${esc(String(c.body).slice(0,40))}</option>`).join("");
+    $("#cParent").disabled=false;
+  }
+  const rows=$("#cPosts").querySelectorAll("[data-post]");
+  rows.forEach(b=>b.setAttribute("aria-pressed",b.dataset.post===String(p.id)));
+}
+$("#cForm").onsubmit=async e=>{e.preventDefault();
+  const w=curWho();
+  if(!w){toast("데모 프로필을 먼저 골라 주세요");return;}
+  if(!cPicked){toast("댓글을 달 글을 골라 주세요");return;}
+  const body=$("#cBody").value.trim();
+  if(!body){toast("댓글 내용을 적어 주세요");return;}
+  const parent=$("#cParent").value;
+  $("#cSubmit").disabled=true;
+  try{
+    const {error}=await sb.rpc("ul_seed_comment",{p_user:w.id,p_post:cPicked.id,p_body:body,p_parent:parent?+parent:null});
+    if(error)throw error;
+    toast(parent?"답글을 달았어요":"댓글을 달았어요");
+    const id=cPicked.id;
+    $("#cBody").value="";
+    await loadMine();
+    const {data}=await sb.from("ul_posts").select("id,cat,title,comment_count,created_at,user_id").eq("id",id).maybeSingle();
+    if(data)await pickPost(data);
+    loadCPosts();
+  }catch(err){toast("달지 못했어요: "+errText(err));}
+  finally{$("#cSubmit").disabled=!curWho()||!cPicked;}
+};
+
+/* ===== 7) 올린 글·댓글 ===== */
+async function loadMine(){
+  const ids=profiles.map(p=>p.id);
+  if(!ids.length){minePosts=[];mineComments=[];renderMine();return;}
+  const [a,b]=await Promise.all([
+    sb.from("ul_posts").select("id,cat,title,body,comment_count,created_at,school_id,user_id").in("user_id",ids).order("created_at",{ascending:false}).limit(300),
+    sb.from("ul_comments").select("id,post_id,body,created_at,parent_id,user_id,ul_posts(title,school_id)").in("user_id",ids).order("created_at",{ascending:false}).limit(300)]);
+  if(a.error||b.error){$("#talkMine").innerHTML=`<p class="empty">${esc(errText(a.error||b.error))}</p>`;return;}
+  minePosts=a.data||[];mineComments=b.data||[];renderMine();renderProfiles();
+}
+function renderMine(){
+  $("#mPostN").textContent=minePosts.length?`(${minePosts.length})`:"";
+  $("#mCmtN").textContent=mineComments.length?`(${mineComments.length})`:"";
+  const el=$("#talkMine");
+  if(!profiles.length){el.innerHTML=`<p class="empty">데모 프로필을 먼저 만들어 주세요.</p>`;return;}
+  if(mineTab==="post"){
+    el.innerHTML=minePosts.length?minePosts.map(p=>`<div class="item"><div class="t">
+        <b><span style="color:var(--muted);font-weight:700">[${esc(p.cat)}]</span> ${esc(p.title)}</b><br>
+        <small>${esc(sLabel(p.school_id))} · ${esc(nickOf(p.user_id))} · 댓글 ${p.comment_count} · ${rel(p.created_at)}</small>
+        <p>${esc(p.body)}</p></div>
+        <button class="btn del sm" type="button" data-delpost="${p.id}">삭제</button></div>`).join("")
+      :`<p class="empty">아직 데모 프로필이 쓴 로그톡 글이 없어요.</p>`;
+  }else{
+    el.innerHTML=mineComments.length?mineComments.map(c=>`<div class="item"><div class="t">
+        <b>${c.parent_id?"↳ 답글":"댓글"} · 「${esc(c.ul_posts?.title||"지운 글")}」</b><br>
+        <small>${esc(c.ul_posts?.school_id?sLabel(c.ul_posts.school_id):"")} · ${esc(nickOf(c.user_id))} · ${rel(c.created_at)}</small>
+        <p>${esc(c.body)}</p></div>
+        <button class="btn del sm" type="button" data-delcmt="${c.id}">삭제</button></div>`).join("")
+      :`<p class="empty">아직 데모 프로필이 쓴 로그톡 댓글이 없어요.</p>`;
+  }
+}
+
+/* ===== 삭제 ===== */
+document.addEventListener("click",async e=>{
+  const dp=e.target.closest("[data-delp]"),dr=e.target.closest("[data-delr]"),
+        dpo=e.target.closest("[data-delpost]"),dc=e.target.closest("[data-delcmt]");
+  if(dp){const p=profiles.find(x=>x.id===dp.dataset.delp);
+    const n=reviews.filter(r=>r.user_id===dp.dataset.delp).length;
+    const np=minePosts.filter(x=>x.user_id===dp.dataset.delp).length,nc=mineComments.filter(x=>x.user_id===dp.dataset.delp).length;
+    const extra=[n?`예시 리뷰 ${n}개`:"",np?`로그톡 글 ${np}개`:"",nc?`댓글 ${nc}개`:""].filter(Boolean).join(" · ");
+    if(!confirm(`데모 프로필 "${p?p.nick:""}"을(를) 지울까요?${extra?`\n이 프로필의 ${extra}도 함께 지워져요`:""}`))return;
+    dp.disabled=true;const {error}=await sb.rpc("ul_seed_delete_profile",{p_user:dp.dataset.delp});
+    if(error){dp.disabled=false;toast(errText(error));return;}toast("지웠어요");await loadAll();return;}
+  if(dr){if(!confirm("이 예시 리뷰를 지울까요?"))return;
+    dr.disabled=true;const {error}=await sb.rpc("ul_seed_delete_review",{p_id:+dr.dataset.delr});
+    if(error){dr.disabled=false;toast(errText(error));return;}toast("지웠어요");await loadReviews();return;}
+  if(dpo){if(!confirm("이 로그톡 글을 지울까요? 달린 댓글도 함께 사라져요."))return;
+    dpo.disabled=true;const {error}=await sb.rpc("ul_seed_delete_post",{p_id:+dpo.dataset.delpost});
+    if(error){dpo.disabled=false;toast(errText(error));return;}
+    toast("글을 지웠어요");
+    if(cPicked&&cPicked.id===+dpo.dataset.delpost){cPicked=null;cComments=[];$("#cPickedBox").innerHTML="";$("#cSubmit").disabled=true;}
+    await loadMine();return;}
+  if(dc){if(!confirm("이 댓글을 지울까요?"))return;
+    dc.disabled=true;const {error}=await sb.rpc("ul_seed_delete_comment",{p_id:+dc.dataset.delcmt});
+    if(error){dc.disabled=false;toast(errText(error));return;}toast("댓글을 지웠어요");await loadMine();return;}
+});
 
 boot();
 </script>
