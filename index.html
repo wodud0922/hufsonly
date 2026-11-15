@@ -1358,7 +1358,11 @@ const fdTitle=u=>`${u.school_short||''} 개척자 · 재학생 중 ${u.founder}�
 NICON.founder=FD(24);
 const fdB=u=>u&&u.founder?`<span class="fd" role="img" aria-label="${esc(fdTitle(u))}" title="${esc(fdTitle(u))}">${FD(20)}</span>`:'';
 function needApproved(what='이용'){if(!S.me){askLogin(what);return false;}if(approved())return true;toast('이용이 정지된 계정이에요');return false;}
-const userD=u=>u?`${u.school_short} ${u.year}`:'';
+/* 학교·학번: 값이 없는 항목은 빼고 이어 붙여요 (학번이 없으면 "외대"만) */
+const uDesc=(s,y)=>[s,y].filter(v=>v!=null&&String(v).trim()!=='').join(' ');
+const userD=u=>u?uDesc(u.school_short,u.year):'';
+/* 빈 값은 빼고 " · "로 이어 붙이기 */
+const dotsOf=(...a)=>a.filter(x=>x!=null&&String(x).trim()!=='').join(' · ');
 const nameOf=id=>U[id]?.nick||'알 수 없음';
 const initialOf=id=>{const n=(U[id]?.nick||'?').replace(/[0-9]/g,'');return n.slice(0,1)||'?';};
 const av=(id,cls='')=>U[id]&&U[id].photo_url?`<span class="av ${cls}" style="background:url('${esc(U[id].photo_url)}') center/cover"></span>`:`<span class="av ${cls}">${esc(initialOf(id))}</span>`;
@@ -1479,7 +1483,7 @@ async function loadReviewsFor(ids){
     const {data,error}=await sb.from('ul_reviews').select('*').in('place_id',ids.slice(i,i+60)).order('created_at',{ascending:false}).limit(3000);
     if(error)throw error;rows.push(...(data||[]));
   }
-  rows.forEach(r=>{const p=S.placeMap[r.place_id];if(p){p.reviews.push(r);p._inDb=true;}});
+  rows.forEach(r=>{const p=S.placeMap[r.place_id];if(p){p.reviews.push(r);p._inDb=true;}});   /* 예시 리뷰도 실제 리뷰와 똑같이 합산해요 */
   await ensureUsers(rows.map(r=>r.user_id));
   // 리뷰마다 "이 가게 방문 인증 횟수" (사람별 횟수만 받아와요)
   for(let i=0;i<ids.length;i+=150){const {data:vc,error:ve}=await sb.rpc('ul_visit_counts',{p_places:ids.slice(i,i+150)});if(ve)break;
@@ -1664,7 +1668,7 @@ const firstCall=()=>`우리 학교 첫 리뷰어가 되어 보세요`;
 // 가게에 가장 먼저 올라온 리뷰 (1호 뱃지)
 const firstOf=p=>p.reviews.reduce((a,r)=>!a||new Date(r.created_at)<new Date(a.created_at)?r:a,null);
 function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{},no1=firstOf(p)===rv,vcnt=Math.max((p._vc&&p._vc[rv.user_id])||0,rv.kind==='visit'?(rv.visit_count||0):0);
-  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(nameOf(rv.user_id))}</b>${fdB(u)}${me?'<span class="mytag">내 리뷰</span>':''}${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${lvBadge(u.review_count)}${certB(u)}<span class="d">${esc(userD(u))} · 받은 도움돼요 ${u.helpful||0}</span></div></div>
+  return `<article class="rv"><div class="who">${av(rv.user_id)}<div><b>${esc(nameOf(rv.user_id))}</b>${fdB(u)}${me?'<span class="mytag">내 리뷰</span>':''}${no1?'<span class="no1" title="이 가게에 처음 리뷰를 남긴 사람이에요">1호</span>':''}${lvBadge(u.review_count)}${certB(u)}<span class="d">${dotsOf(esc(userD(u)),'받은 도움돼요 '+(u.helpful||0))}</span></div></div>
     <div class="meta">${starsHTML(+rv.rating)}<span class="val num">${(+rv.rating).toFixed(1)}</span>${rv.round>1?`<span class="kind">${rv.round}번째 리뷰</span>`:''}${!isLatest(p,rv)?'<span class="kind old">이전 리뷰 · 점수 미반영</span>':''}${rv.kind==='visit'?'':`<span class="kind">${rv.kind==='delivery'?'배달':'포장'}</span>`}${vcnt?`<span class="visit num" title="이 사람이 이 가게에 방문 인증한 횟수">📍 방문 인증 ${vcnt}회</span>`:''}</div>
     ${rv.menu||rv.price_level!=null?`<div class="menu">${rv.menu?`<span>먹은 메뉴 · </span>${menuShow(rv.menu)}`:''}${rv.menu&&rv.price_level!=null?' · ':''}${rv.price_level!=null?`<span>1인 </span>${PRICES[rv.price_level]}`:''}</div>`:''}
     <p>${esc(rv.body)}</p>
@@ -1936,7 +1940,7 @@ function renderPost(){
     const cs=[...po.comments].sort((a,b)=>b.best-a.best),word=po.cat==='질문'?'답변':'댓글';
     const cname=id=>esc(nameOf(id)),optag=id=>id===po.user_id?'<span class="optag">글쓴이</span>':'';
     sh.innerHTML=`<div class="dhead"><div class="gut" style="padding-bottom:12px"><div class="t"><div><span class="area">${esc(label)} 로그톡</span><h3><span class="pcat">${po.cat}</span> ${esc(po.title)}</h3></div><button class="x" type="button" data-pclose aria-label="닫기">×</button></div>
-        <div class="pline">${av(po.user_id,'sm')}<b>${cname(po.user_id)}</b>${fdB(U[po.user_id])}${lvBadge(U[po.user_id]?.review_count)}${certB(U[po.user_id])}<span>· ${esc(userD(U[po.user_id]))} · ${rel(po.created_at)}${po.edited?' · 수정됨':''}</span>${mine?'<span class="mine-act" style="margin-left:auto"><button type="button" data-pedit-post>수정</button><button type="button" data-pdel>삭제</button></span>':''}</div>
+        <div class="pline">${av(po.user_id,'sm')}<b>${cname(po.user_id)}</b>${fdB(U[po.user_id])}${lvBadge(U[po.user_id]?.review_count)}${certB(U[po.user_id])}<span>${dotsOf(esc(userD(U[po.user_id])),rel(po.created_at))}${po.edited?' · 수정됨':''}</span>${mine?'<span class="mine-act" style="margin-left:auto"><button type="button" data-pedit-post>수정</button><button type="button" data-pdel>삭제</button></span>':''}</div>
         ${mine&&delPost?`<div class="delask" style="margin-top:10px"><span>이 글을 삭제할까요? ${word} ${po.comment_count}개도 함께 사라져요.</span><span class="btns"><button type="button" data-pdelno>취소</button><button type="button" class="danger" data-pdelyes>삭제</button></span></div>`:''}</div></div>
       <div class="dbody">
         <div class="postmain gut"><p class="ptext">${esc(po.body)}</p>
@@ -2072,7 +2076,7 @@ function renderPeople(){
   if(!S.rank.loaded){$('#peopleList').innerHTML='<div class="empty"><span class="spin"></span></div>';return;}
   const all=S.rank.list,show=all.slice(0,S.rank.show),meIdx=all.findIndex(r=>r.user_id===S.uid);
   const row=(r,rank)=>`<div class="row2 ${r.user_id===S.uid?'is-me':''}"><span class="n ${rank&&rank<=3?'top':''} num">${rank||'-'}</span>${av(r.user_id)}
-      <span class="who"><span class="nm"><b>${esc(r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.reviews)}</span><span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
+      <span class="who"><span class="nm"><b>${esc(r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.reviews)}</span><span class="d">${dotsOf(esc(uDesc(r.school_short,r.year)),'리뷰 '+r.reviews,'댓글 '+r.comments)}</span></span>
       <span class="v num">${r.score}<small>도움돼요</small></span></div>`;
   $('#peopleList').innerHTML=(all.length?show.map((r,i)=>row(r,i+1)).join(''):'<div class="empty">아직 랭킹에 오른 학생이 없어요. 첫 리뷰를 남겨 1위가 되어 보세요.</div>')
     +(meIdx>=S.rank.show?row(all[meIdx],meIdx+1):'')
@@ -2092,7 +2096,7 @@ async function loadCounts(){
 }
 function renderMe(){
   if(!S.me){if(S.entered)renderMeGuest();return;}const me=S.me,likes=me.review_count||0,li=lvOf(likes),next=LV[li+1],pct=next?((likes-LV[li].min)/(next.min-LV[li].min))*100:100,un=unread();
-  $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><div class="nm"><b>${esc(me.nick||'')}</b>${fdB(me)}${lvBadge(likes)}</div><span class="d pd"><span>${esc(userD(me))}</span>${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?'<span>· 재학생 인증 확인 중</span>':''}</span></div>
+  $('#profile').innerHTML=`<div class="hd">${av(S.uid)}<div style="flex:1;min-width:0"><div class="nm"><b>${esc(me.nick||'')}</b>${fdB(me)}${lvBadge(likes)}</div><span class="d pd">${userD(me)?`<span>${esc(userD(me))}</span>`:''}${me.status==='approved'?'<span class="cert">✓ 재학생 인증</span>':me.status==='pending'?`<span>${userD(me)?'· ':''}재학생 인증 확인 중</span>`:''}</span></div>
       <span class="hd-btns"><button class="bell" type="button" data-noti aria-label="알림 ${un}개">${BELL}${un?`<span class="nbadge num">${un>99?'99+':un}</span>`:''}</button><button class="wbtn" type="button" data-pedit>프로필 수정</button></span></div>
     <div class="gauge"><div class="lbl"><b>${next?`${next.name}까지 리뷰 ${next.min-likes}개`:'최고 등급이에요'}</b><span>내 평가 반영 ×${LV[li].w}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
     ${false&&me.founder&&!S.fdCardHide?`<div class="fdcard">${FD(46)}<span><b>${esc(me.school_short)} 개척자 · ${me.founder}번째</b><small>선착순 3명 · 재학생 인증</small></span><button class="x" type="button" data-fdcx aria-label="닫기">×</button></div>`:''}
@@ -2186,7 +2190,7 @@ function renderPE(){
     <div class="nhead"><h3>프로필 수정</h3><button class="x" type="button" data-peclose aria-label="닫기">×</button></div>
     <div class="pe-photo">${pic}<div class="pe-btns"><label class="wbtn" style="cursor:pointer;position:relative">사진 변경<input type="file" id="peFile" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0"></label>${src?'<button class="report" type="button" data-pereset>기본 이미지로</button>':''}</div></div>
     <div class="fld"><label for="peNick">닉네임</label><input id="peNick" maxlength="10" value="${esc(pe.nick)}" autocomplete="off"><span class="msg ${pe.ok?'ok':'bad'}" id="peMsg">${esc(pe.msg)}</span></div>
-    <table class="facts" style="margin:0"><tr><th>표시 정보</th><td>${esc(userD(S.me))}</td></tr><tr><th>학과</th><td>${esc(S.priv?.dept||'인증할 때 입력한 학과')} <small style="color:var(--sub)">(비공개)</small></td></tr></table>
+    <table class="facts" style="margin:0"><tr><th>표시 정보</th><td>${esc(userD(S.me))||'—'}</td></tr><tr><th>학과</th><td>${esc(S.priv?.dept||'인증할 때 입력한 학과')} <small style="color:var(--sub)">(비공개)</small></td></tr></table>
     <p class="hint" style="margin:0;font-size:12px;color:var(--sub)">학교·학과·학번은 재학생 인증 정보라 바꿀 수 없어요. 닉네임은 30일에 한 번 바꿀 수 있어요.</p>
     <div class="two"><button class="btn line" type="button" data-peclose>취소</button><button class="btn" type="button" id="peSave" ${pe.ok&&!pe.busy?'':'disabled'}>${pe.busy?'저장하는 중…':'저장'}</button></div>
     <button class="report" type="button" data-logout style="align-self:center">로그아웃</button></div>`;
@@ -2903,7 +2907,7 @@ function renderListView(){
   else{
     const l=v.l,u=U[l.user_id]||{},mine=!!S.uid&&l.user_id===S.uid;
     body=`<div class="lhead">${lcover(v.items.map(x=>x.p),'big')}<h2>${esc(l.title)}</h2>${l.intro?`<p>${esc(l.intro)}</p>`:''}
-        <div class="lby">${av(l.user_id)}<span><span class="nm"><b>${esc(u.nick||'')}</b>${fdB(u)}${lvBadge(u.review_count)}</span><small>${esc(userD(u))} · 가게 <span class="num">${v.items.length}</span>곳${l.copies?` · <span class="num">${l.copies}</span>명이 복사했어요`:''}${l.is_public?'':' · 나만 보기'}</small></span></div></div>
+        <div class="lby">${av(l.user_id)}<span><span class="nm"><b>${esc(u.nick||'')}</b>${fdB(u)}${lvBadge(u.review_count)}</span><small>${dotsOf(esc(userD(u)),`가게 <span class="num">${v.items.length}</span>곳`,l.copies?`<span class="num">${l.copies}</span>명이 복사했어요`:'',l.is_public?'':'나만 보기')}</small></span></div></div>
       <div class="lacts">${mine?'<button class="btn" type="button" data-ladd>＋ 가게 추가·빼기</button>':'<button class="btn" type="button" data-lcopy>내 로그로 복사</button>'}<button class="btn line ic" type="button" data-lshare aria-label="공유">${shareSVG}</button>${mine?`<button class="btn line ic" type="button" data-ledit aria-label="이름·공개 설정"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>`:''}</div>
       <div class="litems">${v.items.length?v.items.map(({p,note},i)=>{const s=scoreOf(p);return `<div class="litem"><span class="lno num">${i+1}</span><button class="lrow" type="button" data-openplace="${esc(p.id)}">${miniThumb(p)}<span class="who"><b>${esc(p.name)}</b><span class="d">${esc(p.cat)}${p.dist&&p.dist<3000?` · 도보 ${walk(p.dist)}분`:''}${s.n?` · <span class="sc num">★ ${s.w.toFixed(2)}</span> <span class="num">(${p.reviews.length})</span>`:' · 아직 리뷰 없음'}</span>${note?`<span class="note">${esc(note)}</span>`:''}</span><span class="go">›</span></button></div>`;}).join('')
         :`<div class="empty">${mine?'아직 담은 가게가 없어요.<br><small>"＋ 가게 추가"를 눌러 채워 보세요</small>':'아직 담긴 가게가 없어요.'}</div>`}</div>`;

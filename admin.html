@@ -114,6 +114,7 @@ i.v,.bar .v{background:var(--accent)} i.m,.bar .m{background:var(--ok)} i.r,.bar
   <header>
     <div class="logo">유니<span>로그</span><small>관리자</small></div>
     <div style="display:flex;gap:8px">
+      <a class="btn line" id="seedLink" href="/admin/seed" hidden style="text-decoration:none">예시 데이터</a>
       <button class="btn line" id="reload" hidden>새로고침</button>
       <button class="btn line" id="logout" hidden>로그아웃</button>
     </div>
@@ -192,7 +193,7 @@ async function boot(){
   const {data,error}=await sb.from("admins").select("id").eq("id",session.user.id).maybeSingle();
   if(error)return gate("설정이 필요해요","1_unilog_schema.sql을 Supabase에서 실행했는지 확인해 주세요. ("+error.message+")",false);
   if(!data)return gate("관리자가 아니에요","이 계정은 관리자 권한이 없어요. 운영자 계정으로 다시 로그인해 주세요.",false);
-  $("#gate").hidden=true;$("#main").hidden=false;$("#reload").hidden=false;
+  $("#gate").hidden=true;$("#main").hidden=false;$("#reload").hidden=false;$("#seedLink").hidden=false;
   load();watchLive();setInterval(()=>{if(!document.hidden){loadStats();loadSchools();}},60000);
 }
 
@@ -244,7 +245,7 @@ async function load(){
     sb.from("ul_private").select("*").limit(2000),
     sb.from("ul_reports").select("*").order("created_at",{ascending:false}).limit(300)]);
   if(p1.error){toast("불러오지 못했어요: "+p1.error.message);return;}
-  rows=p1.data||[];priv={};(p2.data||[]).forEach(x=>priv[x.id]=x);reports=p3.data||[];
+  rows=(p1.data||[]).filter(x=>!x.is_demo);priv={};(p2.data||[]).forEach(x=>priv[x.id]=x);reports=p3.data||[];
   urls={};
   const paths=Object.values(priv).filter(x=>x.verify_path).map(x=>x.verify_path);
   if(paths.length){const {data:s}=await sb.storage.from("verify").createSignedUrls(paths,3600);(s||[]).forEach(x=>{if(x.signedUrl)urls[x.path]=x.signedUrl;});}
