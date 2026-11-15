@@ -129,13 +129,14 @@ textarea.field{min-height:110px;resize:vertical}
 
     <section class="card" aria-labelledby="h3">
       <h2 id="h3">3. 예시 리뷰 등록</h2>
-      <p class="sub">가게는 고른 프로필의 학교 주변 3km에서 찾아요. 별점·방문유형·내용을 넣으면 바로 올라가요.</p>
+      <p class="sub" id="h3sub">가게는 고른 프로필의 학교 주변 3km에서 찾아요. 별점·방문유형·내용을 넣으면 바로 올라가요.</p>
       <p class="mini" id="rCenter">학교 위치를 확인하는 중…</p>
       <div class="row" style="margin-top:8px">
         <label>기준 위치 직접 찾기 <small>선택 · 학교 위치가 틀렸을 때</small><input class="field" id="locQ" placeholder="예) 모현읍, 외대 글로벌캠퍼스" autocomplete="off"></label>
         <button class="btn line" type="button" id="locBtn">기준 위치 바꾸기</button>
       </div>
       <form id="rForm" class="stack" style="margin-top:14px">
+        <div class="notice" id="rEditNote" hidden style="margin:0"></div>
         <div>
           <label for="rQ">식당</label>
           <div id="placeBox"></div>
@@ -162,7 +163,10 @@ textarea.field{min-height:110px;resize:vertical}
           <button class="btn line sm" type="button" id="rPicBtn">사진 고르기</button>
           <input type="file" id="rPicIn" accept="image/jpeg,image/png,image/webp" multiple hidden>
         </div>
-        <button class="btn" type="submit" id="rSubmit">예시 리뷰 올리기</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" type="submit" id="rSubmit">예시 리뷰 올리기</button>
+          <button class="btn line" type="button" id="rCancel" hidden>수정 취소</button>
+        </div>
       </form>
     </section>
 
@@ -173,7 +177,7 @@ textarea.field{min-height:110px;resize:vertical}
         <span class="lk-t">한 번에</span>
         <input class="field num numin" id="rLikeN" type="number" min="1" max="50" step="1" value="2" inputmode="numeric" aria-label="한 번에 도움돼요를 누를 데모 프로필 수">
         <span class="lk-t">명</span>
-        <span class="mini" style="margin:0">리뷰마다 <b>+N명</b>을 누르면 아직 안 누른 데모 프로필 중에서 무작위로 눌러요. <b>♥ 도움돼요</b>는 지금 고른 데모 프로필로 누르고/취소해요.</span>
+        <span class="mini" style="margin:0">리뷰마다 <b>+N명</b>을 누르면 아직 안 누른 데모 프로필 중에서 무작위로 눌러요. <b>♥ 도움돼요</b>는 지금 고른 데모 프로필로 누르고/취소해요. <b>[수정]</b>은 그 리뷰를 위 「3」에서 다시 고쳐요.</span>
       </div>
       <div class="list" id="rList"></div>
     </section>
@@ -415,6 +419,8 @@ let rLikes={};   /* 예시 리뷰별 도움돼요: {리뷰 id: {likes, liked}} *
 let minePosts=[],mineComments=[],mineTab="post";
 let pics=[],ADMIN_ID=null;
 let tags=new Set(),price=null;
+let editRev=null;   /* 4번에서 [수정]을 누른 예시 리뷰 (없으면 새로 올리는 중) */
+const H3_SUB="가게는 고른 프로필의 학교 주변 3km에서 찾아요. 별점·방문유형·내용을 넣으면 바로 올라가요.";
 const PHOTO_BUCKET="ul-photos";   /* 리뷰 사진 버킷 (index.html과 같음) */
 
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800);}
@@ -504,12 +510,14 @@ function renderReviews(){
   $("#rList").innerHTML=reviews.map(r=>{const ph=Array.isArray(r.photos)?r.photos:[];const tg=Array.isArray(r.tags)?r.tags:[];
     const st=rLikes[String(r.id)]||{likes:+(r.likes||0),liked:false};   /* 구 SQL이면 r.likes 숫자만 보여요 */
     const mine=!!(w&&r.user_id===w.id);
+    const ed=!!editRev&&String(editRev.id)===String(r.id);   /* 지금 고치는 중인 리뷰 */
     return `<div class="item"><div class="t"><b>${esc(r.ul_places?.name||r.place_id)}</b> <small>★ ${(+r.rating).toFixed(1)} · ${KIND[r.kind]||r.kind}${r.kind==="visit"&&r.visit_count?` · 📍 방문 인증 ${r.visit_count}회`:''}${r.price_level!=null?` · 1인 ${PRICES[r.price_level]||r.price_level}`:''}${tg.length?` · ${tg.map(esc).join(", ")}`:''} · ${esc(nickOf(r.user_id))}</small>
       ${r.menu?`<p><small>먹은 메뉴 · ${esc(r.menu)}</small></p>`:""}<p>${esc(r.body)}</p>
       ${ph.length?`<div class="thumbs">${ph.map(u=>`<i style="background-image:url('${esc(u)}')"></i>`).join("")}</div>`:""}</div>
       <div class="acts">
         <button class="btn line sm${st.liked?" on":""}" type="button" data-rlk="${r.id}" aria-pressed="${st.liked}" ${w&&!mine?"":"disabled"} title="${mine?"내가 쓴 리뷰에는 누를 수 없어요":"지금 고른 데모 프로필로 누르기/취소"}">♥ 도움돼요 ${st.likes}</button>
         <button class="btn line sm" type="button" data-rmany="${r.id}" ${w?"":"disabled"} title="아직 안 누른 데모 프로필 ${n}명이 한 번에 눌러요">+${n}명</button>
+        <button class="btn line sm${ed?" on":""}" type="button" data-redit="${r.id}" aria-pressed="${ed}" title="이 예시 리뷰의 별점·내용·사진 등을 고치기">${ed?"수정 중":"수정"}</button>
         <button class="btn del sm" type="button" data-delr="${r.id}">삭제</button>
       </div></div>`;}).join("");
 }
@@ -542,6 +550,68 @@ async function actRevLike(id,many){
   if(many)toast(d.added>0?`데모 ${d.added}명이 도움돼요를 눌렀어요 · 지금 ${d.likes}개`:"더 누를 데모 프로필이 없어요");
   else toast(d.liked?`도움돼요를 눌렀어요 · 지금 ${d.likes}개`:`도움돼요를 취소했어요 · 지금 ${d.likes}개`);
   await loadProfiles();   /* 리뷰 쓴 사람의 받은 도움돼요 숫자 갱신 */
+}
+
+/* ===== 4) 예시 리뷰 수정 ===== */
+/* [수정]을 누르면 위 「3」 폼이 수정 모드로 바뀌어요. 가게·작성자는 그대로 두고 나머지를 고칩니다. */
+const reviewPlace=r=>{const p=r.ul_places||{};
+  return {id:r.place_id,name:p.name||String(r.place_id),road_address:p.road_address||"",address:p.address||"",_db:true,_lock:true};};
+function startEditReview(r){
+  if(!r){toast("고칠 리뷰를 찾지 못했어요");return;}
+  editRev=r;
+  place=reviewPlace(r);results=[];mOpen=false;
+  kind=r.kind||"visit";
+  const vc=Math.max(0,Math.min(99,+r.visit_count||0));
+  lastVC=vc||1;
+  $("#rKind").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(!!b.dataset&&b.dataset.k===kind)));
+  syncVisit();
+  $("#rVisit").value=String(kind==="visit"?vc:0);
+  const rt=+r.rating||0,opts=[...$("#rRating").options].map(o=>+o.value);
+  $("#rRating").value=String(opts.length?opts.reduce((a,b)=>Math.abs(b-rt)<Math.abs(a-rt)?b:a,opts[0]):rt);
+  $("#rMenu").value=r.menu||"";
+  $("#rBody").value=r.body||"";
+  $("#rBody").oninput();
+  tags=new Set((Array.isArray(r.tags)?r.tags:[]).map(x=>String(x)));
+  price=(r.price_level!=null&&+r.price_level>=0&&+r.price_level<=4)?+r.price_level:null;
+  pics=(Array.isArray(r.photos)?r.photos:[]).filter(u=>typeof u==="string").map(u=>({url:u}));
+  renderPics();renderChips();renderPlaceBox();
+  const note=$("#rEditNote");
+  if(note){
+    note.innerHTML=`<b>${esc(place.name)}</b> 예시 리뷰를 고치는 중이에요 · 쓴 사람 <b>${esc(nickOf(r.user_id))}</b><br>고친 뒤 <b>수정 완료</b>를 누르면 그대로 저장돼요. 도움돼요 숫자는 그대로 남아요.`;
+    note.hidden=false;
+  }
+  $("#h3").textContent="3. 예시 리뷰 수정";
+  $("#h3sub").textContent="가게와 쓴 사람은 그대로 두고, 별점·방문유형·방문 인증 횟수·먹은 메뉴·가격대·태그·사진·내용만 고쳐요.";
+  $("#rSubmit").textContent="수정 완료";
+  $("#rCancel").hidden=false;
+  renderReviews();
+  if($("#h3").scrollIntoView)$("#h3").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function resetReviewForm(){
+  place=null;results=[];mOpen=false;
+  kind="visit";lastVC=1;
+  $("#rKind").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(!!b.dataset&&b.dataset.k==="visit")));
+  syncVisit();
+  $("#rRating").value="4";
+  $("#rVisit").value="1";
+  $("#rMenu").value="";
+  $("#rBody").value="";
+  $("#rBody").oninput();
+  tags=new Set();price=null;
+  pics.forEach(p=>{if(p.file)try{URL.revokeObjectURL(p.url);}catch(e){}});
+  pics=[];
+  renderPics();renderChips();renderPlaceBox();
+}
+function endEdit(clear){
+  editRev=null;
+  $("#h3").textContent="3. 예시 리뷰 등록";
+  $("#h3sub").textContent=H3_SUB;
+  const note=$("#rEditNote");
+  if(note){note.hidden=true;note.innerHTML="";}
+  $("#rSubmit").textContent="예시 리뷰 올리기";
+  $("#rCancel").hidden=true;
+  if(clear)resetReviewForm();
+  renderReviews();
 }
 
 /* ===== 지금 쓸 프로필 ===== */
@@ -628,6 +698,7 @@ async function updateCenter(){
   center=c;
   $("#rCenter").innerHTML=c?`기준 위치: <b>${esc(c.name)}</b> 주변 3km에서 가게를 찾아요.${kakaoErr?` <b>카카오 지도 연결 실패(${esc(kakaoWhy())})</b>`:""}`
     :`학교 위치를 찾지 못했어요${kakaoErr?` (카카오 지도 연결 실패 ${esc(kakaoWhy())})`:""}. <b>기준 위치 직접 찾기</b>로 한 번만 잡아 주세요. 아래에서 <b>가게 이름·주소 직접 입력</b>으로 넣어도 리뷰는 올라가요.`;
+  if(editRev)return;   /* 리뷰를 고치는 중이면 골라 둔 가게는 그대로 둬요 */
   place=null;results=[];renderPlaceBox();
 }
 $("#locBtn").onclick=async()=>{
@@ -746,7 +817,10 @@ const placeMeta=r=>{const a=[];if(r.category)a.push(esc(r.category));const ad=r.
 function renderPlaceBox(){
   const box=$("#placeBox");
   if(place){const sub=[place.road_address||place.address||"",place._manual?"직접 추가":""].filter(Boolean).join(" · ");
-    box.innerHTML=`<div class="picked"><div><b>${esc(place.name)}</b><small>${esc(sub)}</small></div><button class="btn line sm" type="button" id="unpick">바꾸기</button></div>`;
+    const lock=!!place._lock;   /* 리뷰를 고치는 중이면 가게는 그대로 */
+    const note=lock?(sub?sub+" · ":"")+"고치는 동안에는 가게를 바꿀 수 없어요":sub;
+    box.innerHTML=`<div class="picked"><div><b>${esc(place.name)}</b><small>${esc(note)}</small></div>${lock?"":`<button class="btn line sm" type="button" id="unpick">바꾸기</button>`}</div>`;
+    if(lock)return;
     $("#unpick").onclick=()=>{place=null;mOpen=false;renderPlaceBox();$("#rQ").focus();};return;}
   box.innerHTML=`<div style="display:flex;gap:8px"><input class="field" id="rQ" placeholder="가게 이름 (예: 순대국, 마라탕)" autocomplete="off"><button class="btn line" type="button" id="rQBtn">찾기</button></div>
     <div class="res" id="rRes"></div>
@@ -870,6 +944,7 @@ function initForm(){
   $("#rLikeN").oninput=()=>renderReviews();
   $("#rLikeN").onkeydown=e=>{if(e.key==="Enter")e.preventDefault();};
   $("#rPicBtn").onclick=()=>$("#rPicIn").click();
+  $("#rCancel").onclick=()=>{endEdit(true);toast("수정을 취소했어요");};
   $("#rPicIn").onchange=e=>{
     const all=[...e.target.files],room=Math.max(0,5-pics.length);
     all.slice(0,room).forEach(f=>pics.push({url:URL.createObjectURL(f),file:f}));
@@ -900,19 +975,30 @@ $("#pForm").onsubmit=async e=>{e.preventDefault();
   if(data)$("#who").value=data;syncWho();await updateCenter();
 };
 
-/* ===== 3) 예시 리뷰 ===== */
+/* ===== 3) 예시 리뷰 올리기 / 고치기 ===== */
 $("#rForm").onsubmit=async e=>{e.preventDefault();
   const w=curWho();
   if(!w){toast("데모 프로필을 먼저 만들어 주세요");return;}
   const body=$("#rBody").value.trim(),menu=$("#rMenu").value.trim(),rating=+$("#rRating").value;
   const vc=kind==="visit"?Math.max(0,Math.min(99,parseInt($("#rVisit").value,10)||0)):0;
-  if(!place){toast("식당을 골라 주세요");return;}
+  const editing=editRev;   /* [수정]으로 들어왔으면 새로 올리지 않고 고쳐요 */
+  if(!editing&&!place){toast("식당을 골라 주세요");return;}
   if(body.length<10){toast("리뷰 내용을 10자 이상 써 주세요");return;}
   $("#rSubmit").disabled=true;
   try{
-    await ensurePlaceRow(place);
+    if(!editing)await ensurePlaceRow(place);
     const urls=[];
     for(const p of pics)urls.push(p.file?await uploadPhoto(p.file):p.url);
+    if(editing){
+      const name=(place&&place.name)||String(editing.place_id);
+      /* 빈 배열도 그대로 보내 사진·태그를 모두 지울 수 있게 해요 */
+      const {error}=await sb.rpc("ul_seed_update_review",{p_id:editing.id,p_rating:rating,p_kind:kind,p_body:body,p_menu:menu||null,p_visit_count:vc,p_photos:urls,p_price_level:price,p_tags:[...tags]});
+      if(error)throw error;
+      toast(`"${name}" 예시 리뷰를 고쳤어요${vc?` · 방문 인증 ${vc}회`:''}${urls.length?` · 사진 ${urls.length}장`:''}`);
+      endEdit(true);
+      await loadReviews();
+      return;
+    }
     const {error}=await sb.rpc("ul_seed_review",{p_user:w.id,p_place:place.id,p_rating:rating,p_kind:kind,p_body:body,p_menu:menu||null,p_visit_count:vc,p_photos:urls.length?urls:null,p_price_level:price,p_tags:tags.size?[...tags]:null});
     if(error)throw error;
     toast(`"${place.name}"에 예시 리뷰를 올렸어요${vc?` · 방문 인증 ${vc}회`:''}${urls.length?` · 사진 ${urls.length}장`:''}`);
@@ -920,7 +1006,7 @@ $("#rForm").onsubmit=async e=>{e.preventDefault();
     tags=new Set();price=null;renderChips();
     $("#rBody").value="";$("#rMenu").value="";$("#rBody").oninput();place=null;results=[];renderPlaceBox();
     await loadReviews();
-  }catch(err){toast("올리지 못했어요: "+errText(err));}
+  }catch(err){toast((editing?"고지지 못했어요: ":"올리지 못했어요: ")+errText(err));}
   finally{$("#rSubmit").disabled=!curWho();}
 };
 
@@ -1092,9 +1178,10 @@ document.addEventListener("click",async e=>{
   const dp=e.target.closest("[data-delp]"),dr=e.target.closest("[data-delr]"),
         dpo=e.target.closest("[data-delpost]"),dc=e.target.closest("[data-delcmt]"),
         cl=e.target.closest("[data-clk]"),cm=e.target.closest("[data-cmany]"),
-        rl=e.target.closest("[data-rlk]"),rm=e.target.closest("[data-rmany]"),
+        rl=e.target.closest("[data-rlk]"),rm=e.target.closest("[data-rmany]"),rt=e.target.closest("[data-redit]"),
         nr=e.target.closest("[data-near]");
   if(nr){const p=dbNear&&dbNear[+nr.dataset.near];if(p){place=p;results=[];mOpen=false;renderPlaceBox();}return;}
+  if(rt){const rv=reviews.find(x=>String(x.id)===String(rt.dataset.redit));startEditReview(rv);return;}
   if(cl){await actLike("comment",+cl.dataset.clk,false);return;}
   if(cm){await actLike("comment",+cm.dataset.cmany,true);return;}
   if(rl){await actRevLike(+rl.dataset.rlk,false);return;}
@@ -1105,10 +1192,14 @@ document.addEventListener("click",async e=>{
     const extra=[n?`예시 리뷰 ${n}개`:"",np?`로그톡 글 ${np}개`:"",nc?`댓글 ${nc}개`:""].filter(Boolean).join(" · ");
     if(!confirm(`데모 프로필 "${p?p.nick:""}"을(를) 지울까요?${extra?`\n이 프로필의 ${extra}도 함께 지워져요`:""}`))return;
     dp.disabled=true;const {error}=await sb.rpc("ul_seed_delete_profile",{p_user:dp.dataset.delp});
-    if(error){dp.disabled=false;toast(errText(error));return;}toast("지웠어요");await loadAll();return;}
+    if(error){dp.disabled=false;toast(errText(error));return;}toast("지웠어요");
+    if(editRev&&editRev.user_id===dp.dataset.delp)endEdit(true);   /* 고치던 리뷰의 쓴 사람을 지웠으면 수정 모드도 끝내요 */
+    await loadAll();return;}
   if(dr){if(!confirm("이 예시 리뷰를 지울까요?"))return;
     dr.disabled=true;const {error}=await sb.rpc("ul_seed_delete_review",{p_id:+dr.dataset.delr});
-    if(error){dr.disabled=false;toast(errText(error));return;}toast("지웠어요");await loadReviews();return;}
+    if(error){dr.disabled=false;toast(errText(error));return;}toast("지웠어요");
+    if(editRev&&String(editRev.id)===String(dr.dataset.delr))endEdit(true);   /* 지운 리뷰를 고치는 중이었으면 빠져나와요 */
+    await loadReviews();return;}
   if(dpo){if(!confirm("이 로그톡 글을 지울까요? 달린 댓글도 함께 사라져요."))return;
     dpo.disabled=true;const {error}=await sb.rpc("ul_seed_delete_post",{p_id:+dpo.dataset.delpost});
     if(error){dpo.disabled=false;toast(errText(error));return;}
