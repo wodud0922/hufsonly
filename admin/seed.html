@@ -397,6 +397,8 @@ const sLabel=id=>{const s=SCHOOL(id);return s?(s[2]+(s[5]?" "+s[5]:"")):String(i
 const rel=t=>{const m=Math.round((Date.now()-new Date(t))/60000);if(m<1)return"방금";if(m<60)return m+"분 전";const h=Math.round(m/60);if(h<24)return h+"시간 전";return Math.round(h/24)+"일 전";};
 
 let profiles=[],reviews=[],place=null,kind="visit",results=[],kakaoReady=null,center=null;
+let kakaoErr=null,kakaoFailNote=null;            /* 마지막 카카오 실패 이유 · 마지막 검색이 카카오 없이 끝났는지 */
+let mOpen=false,dbNear=null,dbNearKey=null,nearBusy=false;   /* 직접 추가 펼침 · 기준 위치 근처 DB 가게 */
 let talkCat="질문",tPlace=null,tResults=[];
 let cPicked=null,cComments=[],cPosts=[],cNicks={},cPostLike={likes:0,liked:false},cCmtLikes={};
 let minePosts=[],mineComments=[],mineTab="post";
@@ -516,14 +518,40 @@ function syncWho(){
 $("#who").onchange=async()=>{const w=curWho();if(w&&w.school_id){$("#tSchool").value=w.school_id;$("#cSchool").value=w.school_id;}syncWho();await updateCenter();if(cPicked)await refreshLikes();};
 
 /* ===== 카카오 ===== */
+/* 실패 이유는 네 가지로 남겨요: NO_KEY(키 없음) · SCRIPT_ERROR(스크립트 오류) · LOAD_ERR(차단·네트워크) · TIMEOUT(8초) */
+const KAKAO_ERR={NO_KEY:"키 없음",SCRIPT_ERROR:"스크립트 오류",LOAD_ERR:"스크립트 차단·네트워크",TIMEOUT:"응답 시간 초과"};
+const kakaoWhy=()=>kakaoErr?`${kakaoErr} · ${KAKAO_ERR[kakaoErr]||""}`.replace(/ · $/,""):"";
 function loadKakao(){
-  if(kakaoReady)return kakaoReady;
-  kakaoReady=new Promise(res=>{if(window.kakao&&window.kakao.maps&&window.kakao.maps.services)return res(true);if(!CFG.KAKAO_JS_KEY)return res(false);
-    const s=document.createElement("script");
-    s.src=`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(CFG.KAKAO_JS_KEY)}&libraries=services&autoload=false`;
-    s.onload=()=>window.kakao.maps.load(()=>res(true));s.onerror=()=>res(false);document.head.appendChild(s);
-    setTimeout(()=>res(false),8000);});
-  return kakaoReady;
+  if(kakaoReady)return kakaoReady;                       /* 이미 성공했거나 지금 시도 중이면 그 약속을 그대로 */
+  if(!CFG.KAKAO_JS_KEY){kakaoErr="NO_KEY";return Promise.resolve(false);}
+  kakaoErr=null;
+  let res0=null;const p=new Promise(r=>{res0=r;});
+  kakaoReady=p;                                          /* 시도가 동기로 실패해도 kakaoReady를 비울 수 있게 먼저 넣어 둬요 */
+  let done=false,timer=null,s=null;
+  /* 한 번만 끝내요. 실패면 kakaoReady를 비워서 다음 클릭에 다시 시도해요(성공만 기억) */
+  const fin=ok=>{if(done)return;done=true;if(timer)clearTimeout(timer);
+    if(!ok&&s&&s.parentNode)try{s.parentNode.removeChild(s);}catch(e){}
+    if(!ok&&kakaoReady===p)kakaoReady=null;
+    res0(ok);};
+  const boot=()=>{try{
+      /* 여기서 던지면 예전엔 아무도 못 잡아서 그냥 8초를 기다렸어요 → 바로 실패 처리 */
+      window.kakao.maps.load(()=>{if(window.kakao&&window.kakao.maps&&window.kakao.maps.services)fin(true);
+        else{kakaoErr="SCRIPT_ERROR";fin(false);}});
+    }catch(e){kakaoErr="SCRIPT_ERROR";fin(false);}};
+  try{
+    if(window.kakao&&window.kakao.maps&&window.kakao.maps.services)fin(true);
+    else if(window.kakao&&window.kakao.maps&&typeof window.kakao.maps.load==="function")boot();
+    else{
+      s=document.createElement("script");
+      s.src=`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(CFG.KAKAO_JS_KEY)}&libraries=services&autoload=false`;
+      s.onload=()=>{if(window.kakao&&window.kakao.maps&&typeof window.kakao.maps.load==="function")boot();
+        else{kakaoErr="SCRIPT_ERROR";fin(false);}};
+      s.onerror=()=>{kakaoErr="LOAD_ERR";fin(false);};
+      document.head.appendChild(s);
+    }
+    if(!done)timer=setTimeout(()=>{kakaoErr="TIMEOUT";fin(false);},8000);
+  }catch(e){kakaoErr="SCRIPT_ERROR";fin(false);}
+  return p;
 }
 function kw(ps,q,opt){return new Promise(res=>ps.keywordSearch(q,(d,st)=>res(st===kakao.maps.services.Status.OK?d:[]),opt||{}));}
 const coordCache={};
@@ -549,12 +577,13 @@ async function updateCenter(){
   $("#rCenter").textContent="학교 위치를 확인하는 중…";
   const c=await schoolCoord(w.school_id);
   center=c;
-  $("#rCenter").innerHTML=c?`기준 위치: <b>${esc(c.name)}</b> 주변 3km에서 가게를 찾아요.`:`학교 위치를 찾지 못했어요. <b>기준 위치 직접 찾기</b>로 한 번만 잡아 주세요.`;
+  $("#rCenter").innerHTML=c?`기준 위치: <b>${esc(c.name)}</b> 주변 3km에서 가게를 찾아요.${kakaoErr?` <b>카카오 지도 연결 실패(${esc(kakaoWhy())})</b>`:""}`
+    :`학교 위치를 찾지 못했어요${kakaoErr?` (카카오 지도 연결 실패 ${esc(kakaoWhy())})`:""}. <b>기준 위치 직접 찾기</b>로 한 번만 잡아 주세요. 아래에서 <b>가게 이름·주소 직접 입력</b>으로 넣어도 리뷰는 올라가요.`;
   place=null;results=[];renderPlaceBox();
 }
 $("#locBtn").onclick=async()=>{
   const q=$("#locQ").value.trim();if(!q){toast("동네나 장소 이름을 넣어 주세요");return;}
-  if(!(await loadKakao())){toast("카카오 지도를 불러오지 못했어요");return;}
+  if(!(await loadKakao())){toast(`카카오 지도를 불러오지 못했어요(${kakaoErr||"LOAD_ERR"}) — 앱·광고 차단기에서 dapi.kakao.com을 풀어 주세요`);return;}
   const d=await kw(new kakao.maps.services.Places(),q);
   if(!d.length){toast("그 이름으로는 위치를 못 찾았어요");return;}
   center={name:d[0].place_name,x:+d[0].x,y:+d[0].y};
@@ -563,19 +592,95 @@ $("#locBtn").onclick=async()=>{
 };
 
 /* ===== 가게 찾기 (리뷰용·글 태그용 공용) ===== */
-async function searchPlaces(q){
-  if(q.length<1){toast("가게 이름을 넣어 주세요");return null;}
-  if(!center){toast("기준 위치를 먼저 잡아 주세요");return null;}
-  const out=[],seen=new Set();
-  const {data:db}=await sb.from("ul_places").select("*").ilike("name",`%${q.replace(/[%_]/g,"")}%`).limit(15);
-  (db||[]).forEach(r=>{seen.add(r.id);out.push({...r,_db:true});});
-  if(await loadKakao()){
-    const ps=new kakao.maps.services.Places();
-    const d=await kw(ps,q,{location:new kakao.maps.LatLng(center.y,center.x),radius:3000,sort:kakao.maps.services.SortBy.DISTANCE});
-    d.filter(x=>["FD6","CE7"].includes(x.category_group_code)&&!seen.has(x.id)).forEach(x=>out.push({
-      id:x.id,name:x.place_name,category:x.category_name,phone:x.phone||null,address:x.address_name||null,
-      road_address:x.road_address_name||null,x:+x.x,y:+x.y,place_url:x.place_url||null}));
+const distM=(y1,x1,y2,x2)=>{const k=Math.PI/180,dy=(y2-y1)*k,dx=(x2-x1)*k*Math.cos((y1+y2)*k/2);
+  return Math.sqrt(dx*dx+dy*dy)*6371000;};
+const fmtD=m=>m==null?"":(m<1000?`${Math.max(0,Math.round(m))}m`:`${(m/1000).toFixed(1)}km`);
+/* 기준 위치 3km 안의 ul_places (q가 있으면 이름으로도 좁혀요) */
+async function dbPlacesNear(q){
+  if(!center||!isFinite(center.x)||!isFinite(center.y))return [];
+  const R=3000,dy=R/111000,dx=R/(111000*Math.cos(center.y*Math.PI/180));
+  try{
+    let qy=sb.from("ul_places").select("*").gte("x",center.x-dx).lte("x",center.x+dx).gte("y",center.y-dy).lte("y",center.y+dy).limit(500);
+    if(q)qy=qy.ilike("name",`%${q.replace(/[%_]/g,"")}%`);
+    const {data,error}=await qy;
+    if(error)return [];
+    return (data||[]).filter(r=>isFinite(+r.x)&&isFinite(+r.y))
+      .map(r=>{const d=distM(center.y,center.x,+r.y,+r.x);return {...r,_db:true,_dist:d};})
+      .filter(r=>r._dist<=R).sort((a,b)=>a._dist-b._dist).slice(0,20);
+  }catch(e){return [];}
+}
+const nearKey=()=>center&&isFinite(center.x)&&isFinite(center.y)?`${center.x},${center.y}`:"";
+async function refreshNear(force){
+  const key=nearKey();
+  if(!key){dbNear=null;dbNearKey=null;renderNear();return;}
+  if(!force&&dbNearKey===key&&dbNear)return;
+  if(nearBusy)return;
+  nearBusy=true;dbNearKey=key;dbNear=null;renderNear();
+  const rows=await dbPlacesNear("");
+  nearBusy=false;
+  if(nearKey()!==key)return;
+  dbNear=rows;renderNear();
+}
+function renderNear(){
+  const el=$("#rNear");if(!el)return;
+  if(!nearKey()){el.innerHTML=`<p class="empty">기준 위치를 잡으면 근처에 저장된 가게를 보여줘요.</p>`;return;}
+  if(dbNear===null){el.innerHTML=`<p class="empty">근처 저장된 가게를 불러오는 중…</p>`;return;}
+  if(!dbNear.length){el.innerHTML=`<p class="empty">기준 위치 3km 안에 유니로그에 저장된 가게가 아직 없어요. 위에서 이름으로 찾거나 직접 넣어 주세요.</p>`;return;}
+  el.innerHTML=`<p class="mini" style="margin:0 0 6px">기준 위치 근처, 유니로그에 저장된 가게 <b>${dbNear.length}곳</b> <button class="btn line sm" type="button" id="nearRe" style="margin-left:6px">새로고침</button></p>`
+    +dbNear.map((r,i)=>`<button type="button" data-near="${i}"><b>${esc(r.name)}</b><small>${placeMeta(r)}</small></button>`).join("");
+  const re=$("#nearRe");if(re)re.onclick=()=>refreshNear(true);
+}
+/* 기준 위치 좌표에 직접 넣는 가게(카카오가 막혀도 리뷰 등록이 막히지 않게) */
+function renderManual(){
+  const box=$("#rManual");if(!box)return;
+  if(!mOpen){
+    box.innerHTML=`<button class="btn line sm" type="button" id="mOpen">＋ 카카오 없이 가게 이름·주소 직접 입력해서 추가</button>`;
+    const o=$("#mOpen");if(o)o.onclick=()=>{mOpen=true;renderManual();};
+    return;
   }
+  box.innerHTML=`<div class="stack" style="gap:8px;border:1.5px dashed var(--line);border-radius:10px;padding:12px">
+    <label>가게 이름 <small>카카오 지도가 막혀도 이렇게 넣으면 리뷰는 그대로 올라가요</small><input class="field" id="mName" placeholder="예) 모현 순대국" autocomplete="off" maxlength="60"></label>
+    <label>주소 <small>(선택)</small><input class="field" id="mAddr" placeholder="예) 용인시 처인구 모현읍 …" autocomplete="off" maxlength="120"></label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="mSave">이 가게로 넣기</button><button class="btn line" type="button" id="mClose">닫기</button></div>
+    <p class="mini" style="margin:0">${center?`좌표는 기준 위치 <b>${esc(center.name||"")}</b>로 저장해요.`:`기준 위치가 없어 좌표 없이 저장해요(리뷰는 그대로 올라가요).`}</p>
+  </div>`;
+  const c=$("#mClose");if(c)c.onclick=()=>{mOpen=false;renderManual();};
+  const sv=$("#mSave");if(sv)sv.onclick=()=>addManual();
+  const n=$("#mName");if(n)n.focus();
+}
+async function addManual(){
+  const name=($("#mName")?$("#mName").value:"").trim();
+  const addr=($("#mAddr")?$("#mAddr").value:"").trim();
+  if(!name){toast("가게 이름을 넣어 주세요");return;}
+  const p={id:`manual-${Date.now()}`,name,category:null,phone:null,address:addr||null,road_address:null,place_url:null,
+    x:center?center.x:null,y:center?center.y:null,_manual:true,_db:false,_dist:center?0:null};
+  let saved=true;
+  try{await ensurePlaceRow(p);}catch(e){saved=false;}
+  place=p;results=[];mOpen=false;dbNear=null;dbNearKey=null;
+  renderPlaceBox();
+  toast(saved?`"${name}"을(를) 넣었어요 · 이제 리뷰를 올리면 돼요`:`"${name}"을(를) 골랐어요 · DB 저장은 리뷰 올릴 때 다시 해요`);
+}
+const kakaoNoteHtml=()=>kakaoFailNote?`<p class="mini" style="margin:0 0 6px"><b>카카오 지도 연결 실패(${esc(kakaoFailNote)}${KAKAO_ERR[kakaoFailNote]?" · "+esc(KAKAO_ERR[kakaoFailNote]):""})</b> — DB에 저장된 가게만 보여요. 아래 <b>직접 입력해서 추가</b>로 넣으면 리뷰는 그대로 올릴 수 있어요.</p>`:"";
+async function searchPlaces(q){
+  q=(q||"").trim();
+  if(!center){toast("기준 위치를 먼저 잡아 주세요");return [];}
+  const out=[],seen=new Set();
+  (await dbPlacesNear(q)).forEach(r=>{seen.add(r.id);out.push(r);});   /* DB에 있는 가게는 카카오가 막혀도 항상 보여요 */
+  if(!q)return out;
+  let ok=false;
+  try{ok=await loadKakao();}catch(e){kakaoErr=kakaoErr||"LOAD_ERR";ok=false;}
+  if(ok){
+    try{
+      const ps=new kakao.maps.services.Places();
+      const d=await kw(ps,q,{location:new kakao.maps.LatLng(center.y,center.x),radius:3000,sort:kakao.maps.services.SortBy.DISTANCE});
+      d.filter(x=>["FD6","CE7"].includes(x.category_group_code)&&!seen.has(x.id)).forEach(x=>out.push({
+        id:x.id,name:x.place_name,category:x.category_name,phone:x.phone||null,address:x.address_name||null,
+        road_address:x.road_address_name||null,x:+x.x,y:+x.y,place_url:x.place_url||null,_dist:distM(center.y,center.x,+x.y,+x.x)}));
+    }catch(e){kakaoErr=kakaoErr||"LOAD_ERR";ok=false;}
+  }
+  kakaoFailNote=ok?null:(kakaoErr||"LOAD_ERR");
+  /* 조용히 빈 배열을 돌려주지 않고, 왜 막혔는지 정확히 알려줘요 */
+  if(!ok)toast(`카카오 지도 연결 실패(${kakaoFailNote}) — DB에 저장된 가게만 보여요`);
   return out;
 }
 async function ensurePlaceRow(p){
@@ -585,25 +690,35 @@ async function ensurePlaceRow(p){
   if(error)throw error;
   p._db=true;
 }
-const placeMeta=r=>`${esc(r.category||"")}${r.road_address||r.address?" · "+esc(r.road_address||r.address):""}${r._db?" · 유니로그에 있음":""}`;
+const placeMeta=r=>{const a=[];if(r.category)a.push(esc(r.category));const ad=r.road_address||r.address;if(ad)a.push(esc(ad));
+  if(r._dist!=null)a.push(fmtD(r._dist));if(r._manual)a.push("직접 추가");else if(r._db)a.push("유니로그에 있음");return a.join(" · ");};
 
 /* 리뷰용 */
 function renderPlaceBox(){
   const box=$("#placeBox");
-  if(place){box.innerHTML=`<div class="picked"><div><b>${esc(place.name)}</b><small>${esc(place.road_address||place.address||"")}</small></div><button class="btn line sm" type="button" id="unpick">바꾸기</button></div>`;
-    $("#unpick").onclick=()=>{place=null;renderPlaceBox();$("#rQ").focus();};return;}
+  if(place){const sub=[place.road_address||place.address||"",place._manual?"직접 추가":""].filter(Boolean).join(" · ");
+    box.innerHTML=`<div class="picked"><div><b>${esc(place.name)}</b><small>${esc(sub)}</small></div><button class="btn line sm" type="button" id="unpick">바꾸기</button></div>`;
+    $("#unpick").onclick=()=>{place=null;mOpen=false;renderPlaceBox();$("#rQ").focus();};return;}
   box.innerHTML=`<div style="display:flex;gap:8px"><input class="field" id="rQ" placeholder="가게 이름 (예: 순대국, 마라탕)" autocomplete="off"><button class="btn line" type="button" id="rQBtn">찾기</button></div>
-    <div class="res" id="rRes"></div>`;
-  const go=async()=>{const q=$("#rQ").value.trim();if(!q)return;results=null;renderResults();
-    const out=await searchPlaces(q);results=out||[];if(!results.length)toast("가게를 찾지 못했어요");renderResults();};
+    <div class="res" id="rRes"></div>
+    <div id="rManual" style="margin-top:10px"></div>
+    <div class="res" id="rNear" style="max-height:220px;margin-top:6px"></div>`;
+  const go=async()=>{const q=$("#rQ").value.trim();
+    if(!center){toast("기준 위치를 먼저 잡아 주세요");return;}
+    results=null;renderResults();
+    if(!q){await refreshNear(true);results=[];renderResults();toast("가게 이름을 비우면 아래 '근처 저장된 가게'에서 골라 주세요");return;}
+    results=(await searchPlaces(q))||[];
+    if(!results.length&&!kakaoFailNote)toast("가게를 찾지 못했어요");
+    renderResults();};
   $("#rQBtn").onclick=go;$("#rQ").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go();}};
-  renderResults();
+  renderResults();renderManual();renderNear();refreshNear();
 }
 function renderResults(){
   const el=$("#rRes");if(!el)return;
   if(results===null){el.innerHTML=`<p class="empty">찾는 중…</p>`;return;}
-  if(!results.length){el.innerHTML="";return;}
-  el.innerHTML=results.map((r,i)=>`<button type="button" data-pick="${i}"><b>${esc(r.name)}</b><small>${placeMeta(r)}</small></button>`).join("");
+  const note=kakaoNoteHtml();
+  if(!results.length){el.innerHTML=note;return;}
+  el.innerHTML=note+results.map((r,i)=>`<button type="button" data-pick="${i}"><b>${esc(r.name)}</b><small>${placeMeta(r)}</small></button>`).join("");
   el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{place=results[+b.dataset.pick];results=[];renderPlaceBox();});
 }
 
@@ -614,16 +729,19 @@ function renderTPlaceBox(){
     $("#tUnpick").onclick=()=>{tPlace=null;renderTPlaceBox();};return;}
   box.innerHTML=`<div style="display:flex;gap:8px"><input class="field" id="tQ" placeholder="가게 이름 (선택)" autocomplete="off"><button class="btn line" type="button" id="tQBtn">찾기</button></div>
     <div class="res" id="tRes"></div>`;
-  const go=async()=>{const q=$("#tQ").value.trim();if(!q)return;tResults=null;renderTResults();
-    const out=await searchPlaces(q);tResults=out||[];if(!tResults.length)toast("가게를 찾지 못했어요");renderTResults();};
+  const go=async()=>{const q=$("#tQ").value.trim();if(!q){toast("가게 이름을 넣어 주세요");return;}
+    if(!center){toast("기준 위치를 먼저 잡아 주세요");return;}
+    tResults=null;renderTResults();
+    tResults=(await searchPlaces(q))||[];if(!tResults.length&&!kakaoFailNote)toast("가게를 찾지 못했어요");renderTResults();};
   $("#tQBtn").onclick=go;$("#tQ").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go();}};
   renderTResults();
 }
 function renderTResults(){
   const el=$("#tRes");if(!el)return;
   if(tResults===null){el.innerHTML=`<p class="empty">찾는 중…</p>`;return;}
-  if(!tResults.length){el.innerHTML="";return;}
-  el.innerHTML=tResults.map((r,i)=>`<button type="button" data-tpick="${i}"><b>${esc(r.name)}</b><small>${placeMeta(r)}</small></button>`).join("");
+  const note=kakaoNoteHtml();
+  if(!tResults.length){el.innerHTML=note;return;}
+  el.innerHTML=note+tResults.map((r,i)=>`<button type="button" data-tpick="${i}"><b>${esc(r.name)}</b><small>${placeMeta(r)}</small></button>`).join("");
   el.querySelectorAll("[data-tpick]").forEach(b=>b.onclick=()=>{tPlace=tResults[+b.dataset.tpick];tResults=[];renderTPlaceBox();});
 }
 
@@ -921,7 +1039,9 @@ function renderMine(){
 document.addEventListener("click",async e=>{
   const dp=e.target.closest("[data-delp]"),dr=e.target.closest("[data-delr]"),
         dpo=e.target.closest("[data-delpost]"),dc=e.target.closest("[data-delcmt]"),
-        cl=e.target.closest("[data-clk]"),cm=e.target.closest("[data-cmany]");
+        cl=e.target.closest("[data-clk]"),cm=e.target.closest("[data-cmany]"),
+        nr=e.target.closest("[data-near]");
+  if(nr){const p=dbNear&&dbNear[+nr.dataset.near];if(p){place=p;results=[];mOpen=false;renderPlaceBox();}return;}
   if(cl){await actLike("comment",+cl.dataset.clk,false);return;}
   if(cm){await actLike("comment",+cm.dataset.cmany,true);return;}
   if(dp){const p=profiles.find(x=>x.id===dp.dataset.delp);
