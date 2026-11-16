@@ -24,7 +24,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
 <script defer src="/_vercel/insights/script.js"></script>
-<link rel="icon" href="data:image/svg+xml,<svg viewBox='0 0 32 32' aria-hidden='true'><rect width='32' height='32' rx='10' fill='%23E35C0B'/><path d='M6.5 15.5h19a9.5 9.5 0 0 1-19 0z' fill='%23fff'/><path d='M10.5 4.5l7.5 10M15 3.5l6 11' stroke='%23fff' stroke-width='2.3' stroke-linecap='round' fill='none'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg viewBox='0 0 32 32' aria-hidden='true'><rect width='32' height='32' rx='10' fill='%23E35C0B'/><path d='M6.5 15.5h19a9.5 9.5 0 0 1-19 0z' fill='%23fff'/><path class='lg-c' pathLength='1' d='M10.5 4.5l7.5 10M15 3.5l6 11' stroke='%23fff' stroke-width='2.3' stroke-linecap='round' fill='none'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
@@ -1188,18 +1188,22 @@ header.top{border-bottom:1px solid var(--line);box-shadow:none}
 .sheet{border-radius:20px 20px 0 0;background:var(--page)}
 .sheet .panel{border-radius:var(--r-card)}
 
-/* ---------- 시작 화면: 오렌지 그라데이션 머리 + 웨이브 ---------- */
-.ob{background:linear-gradient(180deg,var(--soft) 0,var(--panel) 240px)}
-.ob-hero{position:relative;margin:calc(-14px - env(safe-area-inset-top,0px)) calc(-1 * max(12px,env(safe-area-inset-left,0px))) 0;
-  padding:calc(34px + env(safe-area-inset-top,0px)) 20px 52px;background:linear-gradient(150deg,#EA580C 0%,#F97316 55%,#FB923C 100%);color:#fff;overflow:hidden}
-.ob-hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:34px;background:var(--panel);
-  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 34' preserveAspectRatio='none'%3E%3Cpath d='M0 20 C 90 2 170 2 240 14 S 350 30 400 12 V34 H0Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;
-          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 34' preserveAspectRatio='none'%3E%3Cpath d='M0 20 C 90 2 170 2 240 14 S 350 30 400 12 V34 H0Z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
-.ob-hero h1{color:#fff!important}
-.ob-hero p{color:rgba(255,255,255,.9)!important}
-.ob-hero .lg rect{fill:#fff!important}
-.ob-hero .lg path:first-of-type{fill:#EA580C}
-.ob-hero .lg path:last-of-type{stroke:#EA580C}
+/* ---------- 시작·학교 선택 화면: 아이보리 위로 은은한 오렌지 빛 번짐 + 완만한 곡선 하나 ---------- */
+.ob{background-color:#FAF9F6;
+  background-image:
+    radial-gradient(60% 38% at 12% 0%,rgba(234,88,12,.16),transparent 70%),
+    radial-gradient(55% 34% at 92% 6%,rgba(253,186,116,.18),transparent 72%),
+    radial-gradient(70% 30% at 50% 22%,rgba(253,186,116,.12),transparent 75%);
+  background-repeat:no-repeat;background-attachment:local}
+.ob .wrap{position:relative}
+.ob .wrap::before{content:"";position:absolute;left:-12px;right:-12px;top:calc(2px + env(safe-area-inset-top,0px));height:34px;pointer-events:none;z-index:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 40' preserveAspectRatio='none'%3E%3Cpath d='M-10 30 C 120 6 280 6 410 26' fill='none' stroke='%23EA580C' stroke-opacity='.16' stroke-width='1.2'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.ob .wrap>*{position:relative;z-index:1}
+.ob-hero{padding-top:6vh}
+.ob-hero h1{color:var(--accent)!important}
+.ob-hero p{color:var(--sub)!important}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ob{background-color:#141210}}
+:root[data-theme="dark"] .ob{background-color:#141210}
 .ob .fld input,.ob .fld select,.ob .fld textarea,.ob input[type="search"]{border:1px solid var(--line2)!important;border-radius:16px!important;background:var(--panel);padding:12px 14px;font-size:16px}
 .ob .fld input:focus,.ob .fld select:focus,.ob .fld textarea:focus,.ob input[type="search"]:focus,
 .swsheet input:focus,.sheet input:focus,.sheet textarea:focus,.sheet select:focus{outline:none;border-color:var(--accent)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
@@ -1232,6 +1236,121 @@ button:active:not(:disabled),.btn:active,a.btn:active{scale:.97}
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
   button:active,.btn:active,.rs:active{scale:1}
 }
+
+/* ---------- 배지: 그라데이션·여러 색 없이 오렌지 계열 + 중립 ---------- */
+:root{--lv0:#F3F2EE;--lv0t:#8C857B;--lv1:#FFF7ED;--lv1t:#C2410C;--lv2:#FFEDD5;--lv2t:#C2410C;--lv3:#EA580C;--lv3t:#FFFFFF;--cert:#7A7268;--cert-soft:transparent}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--lv0:#2A2723;--lv0t:#A29A8F;--lv1:#2A1E14;--lv1t:#FDBA74;--lv2:#3A2414;--lv2t:#FDBA74;--lv3:#FB7A32;--lv3t:#1C1A17;--cert:#A29A8F;--cert-soft:transparent}}
+:root[data-theme="dark"]{--lv0:#2A2723;--lv0t:#A29A8F;--lv1:#2A1E14;--lv1t:#FDBA74;--lv2:#3A2414;--lv2t:#FDBA74;--lv3:#FB7A32;--lv3t:#1C1A17;--cert:#A29A8F;--cert-soft:transparent}
+.cert{border:1px solid var(--line2)!important;background:transparent!important;color:var(--cert)!important}
+.cert .ico{width:11px;height:11px}
+.fd svg{filter:none!important}
+
+/* ---------- 로고: 첫 로드 때 한 번만 0.5s, 누르면 살짝 눌림 ---------- */
+button.logo{appearance:none;border:0;background:none;padding:0;margin:0;display:inline-flex;align-items:center;gap:6px;cursor:pointer;flex:none;font:inherit;font-family:var(--f-body);font-weight:900;font-size:21px;letter-spacing:-.06em;color:var(--accent);transition:scale .2s var(--ease)}
+button.logo:active{scale:.95}
+.top .logo .lg,.boot-logo .lg{transform-box:fill-box;transform-origin:center;animation:lgIn .5s var(--ease) both}
+.top .logo .lg-c,.boot-logo .lg-c{stroke-dasharray:1;stroke-dashoffset:1;animation:lgDraw .5s var(--ease) .12s forwards}
+@keyframes lgIn{from{opacity:0;scale:.92}to{opacity:1;scale:1}}
+@keyframes lgDraw{to{stroke-dashoffset:0}}
+
+/* ---------- 첫 진입: 스피너 없이 심볼만 한 번 ---------- */
+.boot{background:var(--page)}
+.boot-in{gap:12px}
+.boot-logo svg{width:60px;height:60px}
+.boot-in b{font-family:var(--f-body);font-weight:900;letter-spacing:-.06em;color:var(--accent);font-size:24px;animation:fadeUp .4s var(--ease) .15s both}
+@keyframes fadeUp{from{opacity:0;translate:0 4px}to{opacity:1;translate:0 0}}
+.app:not([hidden]){animation:softIn .25s var(--ease)}
+
+/* ---------- 스켈레톤: 웜그레이 + 부드러운 쉬머 ---------- */
+.skel{display:flex;flex-direction:column}
+.sk{display:flex;gap:14px;align-items:center}
+.sk-place{padding-block:16px;border-top:1px solid var(--line)}
+.sk-place:first-child{border-top:0}
+.sk-row{padding-block:12px}
+.sk-post{flex-direction:column;align-items:stretch;gap:9px;padding-block:16px;border-top:1px solid var(--line)}
+.sk-post:first-child{border-top:0}
+.sk>span{flex:1;display:flex;flex-direction:column;gap:9px;min-width:0}
+.sk-b{display:block;height:12px;border-radius:6px;background:#F3F2EE;position:relative;overflow:hidden}
+.sk-th{width:84px;height:84px;border-radius:var(--r-thumb);flex:none}
+.sk-av{width:40px;height:40px;border-radius:50%;flex:none}
+.sk-place .sk-b:first-child:not(.sk-th),.sk-place span .sk-b:first-child{height:15px}
+.sk-b::after{content:"";position:absolute;inset:0;translate:-100% 0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);animation:shimmer 1.3s ease-in-out infinite}
+@keyframes shimmer{to{translate:100% 0}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sk-b{background:#26231F}:root:not([data-theme="light"]) .sk-b::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent)}}
+:root[data-theme="dark"] .sk-b{background:#26231F}
+:root[data-theme="dark"] .sk-b::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent)}
+
+/* 위치 확인 중: 도는 원 대신 핀이 살짝 숨쉬기 */
+.locating .pulse{display:inline-grid;color:var(--accent);margin-right:6px;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45;scale:.9}}
+/* 혹시 남은 원형 스피너도 점 세 개 숨쉬기로 */
+.spin{border:0!important;width:6px!important;height:6px!important;border-radius:50%!important;background:var(--accent)!important;animation:pulse 1s ease-in-out infinite!important;display:inline-block}
+
+/* ---------- 숫자는 모두 고정폭 ---------- */
+body,.num,.rank,.score,.sc,.val,.rcount,.area,.tbadge,.nbadge{font-variant-numeric:tabular-nums}
+
+/* ---------- 타이포 위계: 가게명 semibold / 부가정보 12.5px 웜그레이 ---------- */
+.rs .nm{font-weight:600;font-size:16.5px;color:var(--ink)}
+.rs .score{font-weight:700}
+.rs .area,.rs .rcount.first{font-size:12.5px;color:var(--sub);letter-spacing:-.01em}
+.rs .snip{font-size:13px}
+.rank{font-weight:700;min-width:2.4em;text-align:center;justify-content:center}
+
+/* ---------- 사진 없는 가게: 웜 아이보리 둥근 박스 + 1.5px 라인 아이콘 하나 ---------- */
+.thumb.ph,.cchip .sq.ph{background:#F6F3EE!important;color:var(--accent)!important;--t:transparent;border-radius:12px!important}
+.thumb.ph svg{width:46%!important;height:46%!important}
+.thumb.ph svg *,.cchip .sq.ph svg *{vector-effect:non-scaling-stroke;stroke-width:1.5px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .thumb.ph,:root:not([data-theme="light"]) .cchip .sq.ph{background:#26231F!important}}
+:root[data-theme="dark"] .thumb.ph,:root[data-theme="dark"] .cchip .sq.ph{background:#26231F!important}
+.rs .thumb,.sk-th{border-radius:12px!important}
+
+/* ---------- 학교명 = 드롭다운 ---------- */
+#where{display:flex;align-items:center;gap:8px}
+.wname{appearance:none;border:0;background:none;padding:4px 6px 4px 0;margin:0;display:inline-flex;align-items:center;gap:4px;font:inherit;color:var(--sub);cursor:pointer;min-width:0;border-radius:8px}
+.wname>.ico:first-child{color:var(--accent)}
+.wname b{color:var(--ink);font-weight:600}
+.wname .chev{width:16px;height:16px;color:var(--ink);transition:translate .2s var(--ease)}
+.wname:active .chev{translate:0 2px}
+
+/* ---------- iOS 사파리: 입력할 때 자동 확대 막기 (16px 이상) ---------- */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),textarea,select{font-size:16px!important}
+.search input{padding-block:6px}
+
+/* ---------- 비로그인: 헤더 오른쪽 카카오 로그인 ---------- */
+.hlogin{display:none;flex:none;align-items:center;gap:4px;border:0;border-radius:999px;background:#FEE500;color:#191919;font:inherit;font-size:12.5px;font-weight:700;padding:7px 11px;white-space:nowrap;cursor:pointer}
+body.guest .hlogin{display:inline-flex}
+.hrow{gap:8px}
+
+/* ---------- 바텀시트: 딤 0↔1, 시트 100%↔0, 열고 닫을 때 모두 300ms ---------- */
+.scrim,.lgpop{background:rgba(20,14,8,.45);animation:dimIn .28s var(--ease) both}
+.scrim>.sheet,.lgpop>.lgpop-in{animation:sheetUp .28s var(--ease) both;will-change:transform}
+.scrim.closing,.lgpop.closing{animation:dimOut .28s var(--ease) both;pointer-events:none}
+.scrim.closing>.sheet,.lgpop.closing>.lgpop-in{animation:sheetDown .28s var(--ease) both}
+@keyframes dimIn{from{background-color:rgba(20,14,8,0)}to{background-color:rgba(20,14,8,.45)}}
+@keyframes dimOut{from{background-color:rgba(20,14,8,.45)}to{background-color:rgba(20,14,8,0)}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes sheetDown{from{transform:translateY(0)}to{transform:translateY(100%)}}
+.intro-screen .scrim,.intro-screen .scrim>.sheet{animation:none}
+
+/* ---------- 터치 피드백: 버튼·칩·카드 모두 150ms, 0.97 ---------- */
+button,.btn,a.btn,[role="tab"],.rs,.lacc-h,[data-post],.opt,.cchip{transition:scale .15s var(--ease),background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease),box-shadow .2s var(--ease)}
+button:active:not(:disabled),.btn:active,a.btn:active,.rs:active,.lacc-h:active,[data-post]:active,.opt:active{scale:.97}
+.genre button,.sort button,.period button,.metabs button,.cp-tabs button{transition:scale .15s var(--ease),background-color .22s var(--ease),border-color .22s var(--ease),color .22s var(--ease)}
+
+/* ---------- 도움돼요·공감 팝 ---------- */
+.pop{animation:pop .22s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{scale:1}45%{scale:1.25}100%{scale:1}}
+[data-like] svg,[data-clike] svg,[data-plike] svg,[data-save] svg,[data-pbm] svg{transition:color .2s var(--ease),fill .2s var(--ease)}
+[data-like][aria-pressed="true"],[data-clike][aria-pressed="true"],[data-plike][aria-pressed="true"]{color:var(--accent)}
+
+/* ---------- 토스트: 둥근 알약, translateY로 올라왔다 내려가기 ---------- */
+.toast{border-radius:999px!important;padding:10px 18px!important;background:rgba(43,41,38,.94)!important;color:#fff;font-size:13.5px!important;font-weight:600;box-shadow:none;max-width:calc(100% - 48px);text-align:center;
+  bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+.toast.in{animation:toastIn .28s var(--ease) both}
+.toast.out{animation:toastOut .26s var(--ease) both}
+@keyframes toastIn{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
+@keyframes toastOut{from{opacity:1;translate:0 0}to{opacity:0;translate:0 10px}}
+@media (prefers-reduced-motion:reduce){.pop,.toast.in,.toast.out{animation:none}}
 </style>
 </head>
 <body>
@@ -1239,19 +1358,20 @@ button:active:not(:disabled),.btn:active,a.btn:active{scale:.97}
 <linearGradient id="fdG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF1A8"/><stop offset=".45" stop-color="#FFC93C"/><stop offset="1" stop-color="#E0861A"/></linearGradient>
 <linearGradient id="fdI" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8A3D"/><stop offset="1" stop-color="#D9481C"/></linearGradient>
 <clipPath id="fdC"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z"/></clipPath>
-<symbol id="fdS" viewBox="0 0 24 24"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z" fill="url(#fdG)" stroke="#B5651A" stroke-width="1.1" stroke-linejoin="round"/><path d="M12 3.4 L18.9 5.9 V11.2 C18.9 15.6 16 18.9 12 20.5 C8 18.9 5.1 15.6 5.1 11.2 V5.9 Z" fill="url(#fdI)"/><path d="M12.00 6.10 L13.32 9.58 L17.04 9.76 L14.14 12.10 L15.12 15.69 L12.00 13.65 L8.88 15.69 L9.86 12.10 L6.96 9.76 L10.68 9.58Z" fill="#FFF6D6" stroke="#FFD25A" stroke-width=".5" stroke-linejoin="round"/><g clip-path="url(#fdC)"><rect x="-14" y="-4" width="5" height="34" fill="#fff" opacity=".6" transform="rotate(24 12 12)"><animate attributeName="x" values="-14;-14;32" keyTimes="0;.72;1" dur="3.6s" repeatCount="indefinite"/></rect></g></symbol>
+<symbol id="fdS" viewBox="0 0 24 24"><path d="M12 1.6 L20.6 4.7 V11.2 C20.6 16.6 16.9 20.5 12 22.4 C7.1 20.5 3.4 16.6 3.4 11.2 V4.7 Z" fill="#F59E0B"/><path d="M12.00 6.10 L13.32 9.58 L17.04 9.76 L14.14 12.10 L15.12 15.69 L12.00 13.65 L8.88 15.69 L9.86 12.10 L6.96 9.76 L10.68 9.58Z" fill="#fff"/></symbol>
 </defs></svg>
-<div class="boot" id="boot"><div class="boot-in"><span class="boot-logo"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" style="fill:var(--accent)"/><path d="M6.5 15.5h19a9.5 9.5 0 0 1-19 0z" fill="#fff"/><path d="M10.5 4.5l7.5 10M15 3.5l6 11" stroke="#fff" stroke-width="2.3" stroke-linecap="round" fill="none"/></svg></span><b>유니로그</b><span class="spin"></span></div></div>
+<div class="boot" id="boot"><div class="boot-in"><span class="boot-logo"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" style="fill:var(--accent)"/><path d="M6.5 15.5h19a9.5 9.5 0 0 1-19 0z" fill="#fff"/><path class="lg-c" pathLength="1" d="M10.5 4.5l7.5 10M15 3.5l6 11" stroke="#fff" stroke-width="2.3" stroke-linecap="round" fill="none"/></svg></span><b>유니로그</b></div></div>
 
 <div class="app" id="app" hidden>
   <div class="pending-bar gut" id="pendingBar" hidden>재학생 인증을 확인하고 있어요. 승인되면 리뷰와 글을 쓸 수 있어요.</div>
   <header class="top">
     <div class="hrow gut">
-      <div class="logo"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" style="fill:var(--accent)"/><path d="M6.5 15.5h19a9.5 9.5 0 0 1-19 0z" fill="#fff"/><path d="M10.5 4.5l7.5 10M15 3.5l6 11" stroke="#fff" stroke-width="2.3" stroke-linecap="round" fill="none"/></svg>유니로그</div>
+      <button class="logo" type="button" id="logoBtn" aria-label="유니로그 처음으로"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" style="fill:var(--accent)"/><path d="M6.5 15.5h19a9.5 9.5 0 0 1-19 0z" fill="#fff"/><path class="lg-c" pathLength="1" d="M10.5 4.5l7.5 10M15 3.5l6 11" stroke="#fff" stroke-width="2.3" stroke-linecap="round" fill="none"/></svg>유니로그</button>
       <form class="search" id="searchForm" role="search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
         <input id="q" type="search" placeholder="가게·메뉴 검색" autocomplete="off" aria-label="가게나 메뉴 검색" enterkeyhint="search">
       </form>
+      <button class="hlogin" type="button" data-lgk><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path fill="#191919" d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6l-1 3.6c-.1.3.3.6.6.4l4.2-2.8c.5.1 1 .1 1.5.1 5.5 0 10-3.5 10-7.9S17.5 3 12 3z"/></svg>카카오 로그인</button>
     </div>
     <div class="where gut" id="where"></div>
   </header>
@@ -1337,7 +1457,10 @@ button:active:not(:disabled),.btn:active,a.btn:active{scale:.97}
 const CFG=window.UNILOG_CONFIG||{};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let _tt;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(_tt);_tt=setTimeout(()=>t.hidden=true,2800);}
+/* 토스트: 아래에서 스르르 올라와 1.8초 뒤 내려가며 사라져요 (긴 안내는 조금 더 오래) */
+let _tt,_tt2;function toast(m){const t=$('#toast');t.textContent=m;clearTimeout(_tt);clearTimeout(_tt2);
+  t.hidden=false;t.classList.remove('in','out');void t.offsetWidth;t.classList.add('in');
+  _tt=setTimeout(()=>{t.classList.add('out');_tt2=setTimeout(()=>{t.hidden=true;t.classList.remove('in','out');},260);},String(m).length>26?2800:1800);}
 const errText=e=>{const m=(e&&(e.message||e.error_description||e.msg))||String(e||'');return m||'잠시 후 다시 해 주세요';};
 const sb=(window.supabase&&CFG.SUPABASE_URL&&CFG.SUPABASE_KEY)?window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_KEY):null;
 
@@ -1355,6 +1478,11 @@ const thumbSVG=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stro
 const chatSVG=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>`;
 const BELL=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>`;
 const kakaoSVG=`<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#191919" d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6l-1 3.6c-.1.3.3.6.6.4l4.2-2.8c.5.1 1 .1 1.5.1 5.5 0 10-3.5 10-7.9S17.5 3 12 3z"/></svg>`;
+/* 불러오는 동안: 실제 카드 비율 그대로 연한 스켈레톤 */
+function skel(n,k='place'){const one=k==='place'?'<div class="sk sk-place"><i class="sk-b sk-th"></i><span><i class="sk-b" style="width:55%"></i><i class="sk-b" style="width:80%"></i><i class="sk-b" style="width:68%"></i></span></div>'
+  :k==='row'?'<div class="sk sk-row"><i class="sk-b sk-av"></i><span><i class="sk-b" style="width:45%"></i><i class="sk-b" style="width:70%"></i></span></div>'
+  :'<div class="sk sk-post"><i class="sk-b" style="width:22%"></i><i class="sk-b" style="width:72%"></i><i class="sk-b" style="width:90%"></i></div>';
+  return `<div class="skel" aria-busy="true" aria-label="불러오는 중">${one.repeat(n)}</div>`;}
 /* 1.5px 라인 아이콘 (이모지 대신) */
 const ICP={
   pin:'<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
@@ -1368,7 +1496,7 @@ const ICP={
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>'
 };
 const ico=(n,c='')=>`<svg class="ico${c?' '+c:''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICP[n]}</svg>`;
-const LOGO=`<svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" style="fill:var(--accent)"/><path d="M6.5 15.5h19a9.5 9.5 0 0 1-19 0z" fill="#fff"/><path d="M10.5 4.5l7.5 10M15 3.5l6 11" stroke="#fff" stroke-width="2.3" stroke-linecap="round" fill="none"/></svg>`;
+const LOGO=`<svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" style="fill:var(--accent)"/><path d="M6.5 15.5h19a9.5 9.5 0 0 1-19 0z" fill="#fff"/><path class="lg-c" pathLength="1" d="M10.5 4.5l7.5 10M15 3.5l6 11" stroke="#fff" stroke-width="2.3" stroke-linecap="round" fill="none"/></svg>`;
 const NICON={like:thumbSVG.replace('width="13" height="13"','width="14" height="14"'),
   cmt:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M4 5h16v11H10l-5 4v-4H4z"/></svg>`,
   adopt:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>`,
@@ -1684,7 +1812,7 @@ const miniThumb=p=>thumb(p,true,0,'mini');
    ===================================================================== */
 function renderWhere(){
   const label=S.school?(S.school.campus?`${S.school.short} ${S.school.campus}`:S.school.short):'';
-  $('#where').innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span><b>${esc(label)}</b> 주변 맛집</span>${S.me?`<span class="wsw-wrap">${isOtherSchool()?'<button class="wsw home" type="button" data-school-home>내 학교로</button>':''}<button class="wsw" type="button" data-school-switch>${isOtherSchool()?'학교 바꾸기':'다른 학교 보기'} ▾</button></span>`:S.guest?'<span class="wsw-wrap"><button class="wsw" type="button" data-school-switch>학교 바꾸기 ▾</button></span>':''}`;
+  $('#where').innerHTML=`<button class="wname" type="button" data-school-switch aria-haspopup="dialog" aria-label="학교 바꾸기, 지금 ${esc(label)}">${ico('pin')}<span><b>${esc(label)}</b> 주변 맛집</span><svg class="ico chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>${S.me&&isOtherSchool()?'<span class="wsw-wrap"><button class="wsw home" type="button" data-school-home>내 학교로</button></span>':''}`;
   $('#where').classList.toggle('other',isOtherSchool());
 }
 function filtered(){
@@ -1701,7 +1829,7 @@ function renderFilters(){
 }
 function renderList(){
   const el=$('#placeList');
-  if(S.placesState==='loading'){el.innerHTML='<div class="empty"><span class="spin"></span><br>학교 주변 가게를 불러오는 중이에요</div>';return;}
+  if(S.placesState==='loading'){el.innerHTML=skel(5,'place');return;}
   if(S.placesState==='error'){el.innerHTML=`<div class="empty">${S.placesErr}</div>`;return;}
   const ps=filtered();
   const has=p=>p.reviews.length>0;
@@ -1807,7 +1935,7 @@ const demoPanel=p=>(p.demo||[]).length?`<div class="panel gut demopanel"><div cl
 function vBoxHTML(p){const v=S.visits[p.id];
   if(draft.kind!=='visit')return `<p class="hint">${draft.kind==='delivery'?'배달':'포장'} 리뷰는 따로 인증 없이 바로 올라가요. 리뷰에는 "${draft.kind==='delivery'?'배달':'포장'}" 표시가 붙어요.</p>`;
   if(v&&v.recent)return `<label>방문 인증<span>${ico('check')} ${v.n}회 완료</span></label>`;
-  if(verifying)return `<div class="locating"><span class="spin"></span>가게 근처인지 위치를 확인하는 중…</div>`;
+  if(verifying)return `<div class="locating"><span class="pulse">${ico('pin')}</span>위치 확인 중…</div>`;
   return `<label>방문 인증</label><button class="btn line" type="button" data-verify>${ico('pin')} 지금 가게 근처에서 인증하기</button><p class="hint">매장 리뷰는 방문 인증 후 7일 안에 쓸 수 있어요.</p>`;}
 function writeHTML(p){
   const mine=p.reviews.filter(r=>r.user_id===S.uid).length;
@@ -1989,7 +2117,7 @@ function openLB(url){const el=$('#lb');el.innerHTML=`<div class="lbimg" style="b
    ===================================================================== */
 const TCATS=['전체','질문','추천','정보'],PER=10;
 async function loadTalk(){
-  const T=S.talk;$('#talkList').innerHTML='<div class="empty"><span class="spin"></span></div>';
+  const T=S.talk;$('#talkList').innerHTML=skel(4,'post');
   let q=sb.from('ul_posts').select('*',{count:'exact'}).eq('school_id',S.school.id).order('created_at',{ascending:false}).range((T.page-1)*PER,T.page*PER-1);
   if(T.cat!=='전체')q=q.eq('cat',T.cat);
   const {data,count,error}=await q;
@@ -2028,7 +2156,7 @@ async function loadTalkLists(ids){
 }
 async function openPost(id){
   postMode='view';editPost=null;delPost=false;cEdit=-1;cDel=-1;replyTo=-1;replyMention=null;openRep=new Set();showAllC=false;cpick={open:false,tab:'place',place:'',list:'',text:''};
-  $('#psheet').innerHTML='<div class="empty" style="padding:60px 0"><span class="spin"></span></div>';$('#pscrim').hidden=false;
+  $('#psheet').innerHTML='<div class="gut" style="padding-top:24px">'+skel(1,'post')+skel(3,'row')+'</div>';$('#pscrim').hidden=false;
   if(!(await loadPost(id))){closePost();return;}
   renderPost();$('#psheet').scrollTop=0;
 }
@@ -2202,7 +2330,7 @@ function renderPeople(){
   $('#peopleTitle').textContent=`${S.school?S.school.short+(S.school.campus?' '+S.school.campus:''):''} 리뷰어 랭킹`;
   $('#periodCap').textContent=PERIOD_CAP[S.rank.period]+' · 재학생 인증한 학생만 랭킹에 올라요';
   document.querySelectorAll('[data-period]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.period===S.rank.period));
-  if(!S.rank.loaded){$('#peopleList').innerHTML='<div class="empty"><span class="spin"></span></div>';return;}
+  if(!S.rank.loaded){$('#peopleList').innerHTML=skel(6,'row');return;}
   const all=S.rank.list,show=all.slice(0,S.rank.show),meIdx=all.findIndex(r=>r.user_id===S.uid);
   const row=(r,rank)=>`<div class="row2 ${r.user_id===S.uid?'is-me':''}"><span class="n ${rank&&rank<=3?'top':''} num">${rank||'-'}</span>${av(r.user_id)}
       <span class="who"><span class="nm"><b>${esc(r.nick)}</b>${fdB(U[r.user_id])}${lvBadge(r.reviews)}</span><span class="d">${esc(r.school_short+' '+r.year)} · 리뷰 ${r.reviews} · 댓글 ${r.comments}</span></span>
@@ -2241,7 +2369,7 @@ function renderMeTabs(){
 }
 async function renderMeBody(){
   const el=$('#meBody'),k=S.meTab;if(!k){el.innerHTML='';return;}
-  if(k!=='saved'&&!S.meCache[k]){el.innerHTML='<div class="empty"><span class="spin"></span></div>';
+  if(k!=='saved'&&!S.meCache[k]){el.innerHTML=skel(3,'row');
     let res;
     if(k==='reviews')res=await sb.from('ul_reviews').select('id,place_id,rating,body,likes,photos,created_at,ul_places(name,category)').eq('user_id',S.uid).order('created_at',{ascending:false}).limit(60);
     if(k==='posts')res=await sb.from('ul_posts').select('id,cat,title,created_at,comment_count,likes').eq('user_id',S.uid).order('created_at',{ascending:false}).limit(60);
@@ -2686,7 +2814,10 @@ async function boot(){
     if(listId){const {data:l}=await sb.from('ul_lists').select('school_id').eq('id',listId).maybeSingle();
       const sid=(l&&l.school_id&&SCHOOLS.some(x=>x.id===l.school_id))?l.school_id:(store.get('ul_guest_school')||'');
       if(sid)return enterGuest(sid);}
-    ob.step=0;obRender();return;}
+    /* 처음 온 사람도 바로 맛집 리스트: ?school= 학교 → 지난번 본 학교 → 외대 서울캠퍼스 */
+    const qs=new URLSearchParams(location.search).get('school');
+    const first=[qs,store.get('ul_guest_school'),'hufs-s'].find(x=>x&&SCHOOLS.some(s=>s.id===x));
+    return enterGuest(first);}
   S.uid=session.user.id;
   sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')location.replace(location.origin+location.pathname);});
   await route();
@@ -2742,6 +2873,7 @@ async function enterApp(){
   const go=new URLSearchParams(location.search).get('go');if(go||S.pendingList){history.replaceState(null,'',location.pathname);if(go)setTimeout(()=>goTo(go),400);}
   if(S.pendingList){const id=S.pendingList;S.pendingList=0;setTimeout(()=>openList(id),300);}
   else if(S.me){const rs=resumeGet();if(rs){resumeClear();if(rs.list)setTimeout(()=>openList(rs.list),500);else if(rs.place)setTimeout(()=>openPlaceById(rs.place,rs.tab||'top'),900);}}
+  {const qs=new URLSearchParams(location.search).get('school');if(S.me&&qs&&S.school&&qs!==S.school.id&&SCHOOLS.some(x=>x.id===qs))setTimeout(()=>switchSchool(qs),0);}
   setInterval(()=>{if(!document.hidden&&S.tab==='near'&&!(S.fdHide&&S.school&&S.fdHide[S.school.id]))loadFounders();},30000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadFounders();});
   try{await loadKakao();S.ps=new kakao.maps.services.Places();S.coord=await schoolCoord();await loadPlaces();renderMeTabs();}
@@ -2896,12 +3028,11 @@ function askLogin(what){
     <button class="kakao" type="button" data-lg="kakao">${kakaoSVG}카카오로 시작하기</button>
     <button class="guestbtn" type="button" data-lg="close">계속 둘러볼게요</button></div>`;
   document.body.appendChild(d);kakaoPrep();
-  d.onclick=e=>{const b=e.target.closest('[data-lg]');if(e.target===d||(b&&b.dataset.lg==='close')){d.remove();return;}if(b&&b.dataset.lg==='kakao')startLogin();};
+  d.onclick=e=>{const b=e.target.closest('[data-lg]');if(e.target===d||(b&&b.dataset.lg==='close')){closeLgpop(d);return;}if(b&&b.dataset.lg==='kakao')startLogin();};
 }
 function renderMeGuest(){
-  $('#profile').innerHTML=`<div class="guestme"><span class="lg-mk">${LOGO}</span><b>로그인하면 이런 걸 할 수 있어요</b>
-    <ul><li>맛집 리뷰 쓰고 사진 올리기</li><li>"도움돼요" 누르고 가게 저장하기</li><li>나만의 로그 만들고 공유하기</li><li>로그톡에 묻고 답하기</li></ul>
-    <button class="kakao" type="button" data-lgk>${kakaoSVG}카카오로 시작하기</button><p class="fine" style="margin:0">재학생 인증은 하고 싶을 때 해도 돼요</p></div>`;
+  $('#profile').innerHTML=`<div class="guestme"><span class="lg-mk">${LOGO}</span><b>로그인하고 리뷰를 남겨 보세요</b>
+    <button class="kakao" type="button" data-lgk>${kakaoSVG}카카오로 시작하기</button></div>`;
   $('#meTabs').innerHTML='';$('#meBody').innerHTML='';
 }
 
@@ -2959,7 +3090,7 @@ function pickHTML(f){
   </div>`;
 }
 function pickListHTML(f,list){
-  if(list===null)return '<div class="empty"><span class="spin"></span></div>';
+  if(list===null)return skel(3,'row');
   if(!list.length)return `<div class="cp-empty" style="margin:0">${f.src==='reviews'?'아직 리뷰를 쓴 가게가 없어요.':f.src==='near'?'찾는 가게가 없어요.':'아직 저장한 가게가 없어요.'}</div>`;
   return list.map(id=>pickRow(id,f.sel.includes(id))).join('');
 }
@@ -2980,7 +3111,7 @@ function listRowHTML(l,by){
   const open=!!S.lopen[l.id],c=S.lcache[l.id];
   let body='';
   if(open){
-    if(!c)body='<div class="empty" style="padding:14px 0"><span class="spin"></span></div>';
+    if(!c)body=skel(2,'row');
     else if(c.err)body=`<div class="empty" style="padding:14px 0">${esc(c.err)}</div>`;
     else{const mine=!!S.uid&&c.l.user_id===S.uid;
       body=(c.items.length?c.items.map(({p},i)=>{const sc=scoreOf(p);return `<button class="lacc-i" type="button" data-openplace="${esc(p.id)}"><span class="lno num">${i+1}</span><span class="who"><b>${esc(p.name)}</b><span class="d">${esc(p.cat)}${sc.n?` · <span class="sc num">${ico('star','on')}${sc.w.toFixed(2)}</span>`:''}${p.dist&&p.dist<3000?` · 도보 ${walk(p.dist)}분`:''}</span></span><span class="go">›</span></button>`;}).join('')
@@ -3030,7 +3161,7 @@ function renderListView(){
   const sh=$('#lsheet'),v=LVS;if(!v)return;
   const head=`<div class="nhead"><h3>${v.isNew?'새 로그':'나만의 로그'}</h3><span><button class="x" type="button" data-lclose aria-label="닫기">×</button></span></div>`;
   let body='';
-  if(v.loading)body='<div class="empty"><span class="spin"></span></div>';
+  if(v.loading)body=skel(4,'place');
   else if(v.err)body=`<div class="empty">${esc(v.err)}</div>`;
   else if(v.form)body=listFormHTML(v.f,v.isNew);
   else{
@@ -3126,7 +3257,7 @@ function renderAddList(){
   sh.innerHTML=`<div class="gut pe-wrap" style="gap:12px">
     <div class="nhead"><h3>로그에 담기</h3><span><button class="x" type="button" data-aclose aria-label="닫기">×</button></span></div>
     <p class="hint" style="margin:0;font-size:13px;color:var(--sub)"><b style="color:var(--ink)">${esc(a.p.name)}</b>을(를) 담을 로그를 골라 주세요. 다시 누르면 빠져요.</p>
-    ${!a.ready?'<div class="empty"><span class="spin"></span></div>':S.myLists.length?`<div class="alist">${S.myLists.map(l=>{const on=a.has.has(l.id);return `<button class="prow2${on?' on':''}" type="button" data-alt="${l.id}" aria-pressed="${on}">${lcover(S.myListCats[l.id]||[],'sm')}<span class="who"><b>${esc(l.title)}</b><span class="d"><span class="num">${l.item_count}</span>곳${l.is_public?'':' · 나만 보기'}</span></span><span class="ck" aria-hidden="true">${on?ico('check'):''}</span></button>`;}).join('')}</div>`:'<div class="cp-empty" style="margin:0">아직 만든 로그가 없어요. 아래에서 첫 로그를 만들어 보세요.</div>'}
+    ${!a.ready?skel(3,'row'):S.myLists.length?`<div class="alist">${S.myLists.map(l=>{const on=a.has.has(l.id);return `<button class="prow2${on?' on':''}" type="button" data-alt="${l.id}" aria-pressed="${on}">${lcover(S.myListCats[l.id]||[],'sm')}<span class="who"><b>${esc(l.title)}</b><span class="d"><span class="num">${l.item_count}</span>곳${l.is_public?'':' · 나만 보기'}</span></span><span class="ck" aria-hidden="true">${on?ico('check'):''}</span></button>`;}).join('')}</div>`:'<div class="cp-empty" style="margin:0">아직 만든 로그가 없어요. 아래에서 첫 로그를 만들어 보세요.</div>'}
     <div class="lnew"><input id="alNew" maxlength="30" placeholder="새 로그 이름 (예: 비 오는 날 국물)" value="${esc(a.newT)}" autocomplete="off"><button class="btn" type="button" data-anew ${a.newT.trim()?'':'disabled'}>만들고 담기</button></div>
     <button class="btn line" type="button" data-aclose>완료</button></div>`;
   const i=sh.querySelector('#alNew');i.oninput=e=>{a.newT=e.target.value;sh.querySelector('[data-anew]').disabled=!a.newT.trim();};
@@ -3171,7 +3302,7 @@ document.addEventListener('click',e=>{
   const l=t.closest('[data-list]');if(l)return openList(+l.dataset.list);
 });
 [['#lscrim',closeList],['#ascrim',()=>{$('#ascrim').hidden=true;AL=null;}]].forEach(([id,fn])=>$(id).addEventListener('click',e=>{if(e.target===$(id))fn();}));
-document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const lg=$('#lgpop');if(lg){lg.remove();return;}
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const lg=$('#lgpop');if(lg){closeLgpop(lg);return;}
   if(!$('#ascrim').hidden){$('#ascrim').hidden=true;AL=null;return;}if(!$('#lscrim').hidden&&$('#scrim').hidden)closeList();});
 
 /* =====================================================================
@@ -3208,6 +3339,38 @@ async function softRefresh(){
     busy=true;ind.classList.add('busy');ind.style.transform='translate(-50%,56px)';
     try{await softRefresh();toast('새로 불러왔어요');}catch(e){}
     busy=false;ind.classList.remove('busy');reset();},{passive:true});
+})();
+
+/* 상단 로고: 누르면 맛집 찾기 맨 위로 */
+(()=>{const b=document.getElementById('logoBtn');if(b)b.addEventListener('click',()=>{if(S.tab!=='near'&&typeof setTab==='function')setTab('near');window.scrollTo({top:0,behavior:'smooth'});});})();
+
+/* 바텀시트·딤: 열릴 때도 닫힐 때도 300ms 부드럽게 (닫을 때 바로 숨기지 않고 내려간 뒤 숨겨요) */
+const SHEET_MS=280;
+const reduceMotion=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function closeLgpop(d){if(!d||d._closing)return;if(reduceMotion())return d.remove();d._closing=true;d.classList.add('closing');setTimeout(()=>d.remove(),SHEET_MS);}
+(()=>{const H=Object.getOwnPropertyDescriptor(HTMLElement.prototype,'hidden');if(!H||!H.set)return;
+  document.querySelectorAll('.scrim[id]').forEach(el=>{
+    Object.defineProperty(el,'hidden',{configurable:true,
+      get(){return !!el._closing||H.get.call(el);},
+      set(v){
+        if(v){
+          if(H.get.call(el)||el._closing)return;
+          if(reduceMotion())return H.set.call(el,true);
+          el._closing=true;el.classList.add('closing');
+          el._t=setTimeout(()=>{el._closing=false;el.classList.remove('closing');H.set.call(el,true);},SHEET_MS);
+        }else{
+          clearTimeout(el._t);el._closing=false;el.classList.remove('closing');H.set.call(el,false);
+        }
+      }});
+  });
+})();
+
+/* 도움돼요·공감·저장·북마크: 누르면 아이콘이 톡 (1 → 1.25 → 1, 220ms) */
+(()=>{const SEL=['data-like','data-clike','data-plike','data-save','data-pbm'];
+  document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest(SEL.map(a=>'['+a+']').join(','));if(!b||b.disabled)return;
+    const a=SEL.find(x=>b.hasAttribute(x)),v=b.getAttribute(a),q=v?`[${a}="${CSS.escape(v)}"]`:`[${a}]`;
+    const pop=()=>{const el=document.querySelector(q);if(!el)return;const i=el.querySelector('svg')||el;i.classList.remove('pop');void i.getBoundingClientRect();i.classList.add('pop');};
+    pop();setTimeout(pop,90);},true);
 })();
 
 </script>
