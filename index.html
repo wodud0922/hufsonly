@@ -1742,7 +1742,8 @@ async function loadPlaces(){
   (await nearbyKakao()).forEach(d=>addPlace(fromKakao(d),true));
   // 카카오 검색에서 빠졌더라도, 학교 근처에서 누가 리뷰·저장·방문 인증한 가게는 항상 목록에 넣어요
   await addKnownNearby();
-  const {data:sv}=S.uid?await sb.from('ul_saved_places').select('place_id, ul_places(*)').order('created_at',{ascending:false}):{data:[]};
+  let sv=[];
+  if(S.uid){try{const r=await sb.from('ul_saved_places').select('place_id, ul_places(*)').order('created_at',{ascending:false});sv=r.data||[];}catch(e){sv=[];}}
   S.saved=new Set((sv||[]).map(x=>x.place_id));
   (sv||[]).forEach(x=>{if(x.ul_places){const p=addPlace(fromRow(x.ul_places),false);p._inDb=true;}});
   await loadReviewsFor(Object.keys(S.placeMap));
@@ -1781,7 +1782,8 @@ async function loadReviewsFor(ids){
 }
 async function loadMyVisits(){
   if(!S.uid){S.visits={};return;}
-  const {data}=await sb.from('ul_visits').select('place_id,visit_day').eq('user_id',S.uid);
+  let data=[];
+  try{({data}=await sb.from('ul_visits').select('place_id,visit_day').eq('user_id',S.uid));}catch(e){data=[];}
   const t=todayKST(),lim=new Date(Date.now()+9*3600e3-7*864e5).toISOString().slice(0,10);S.visits={};
   (data||[]).forEach(v=>{const o=S.visits[v.place_id]||(S.visits[v.place_id]={n:0,today:false,recent:false});o.n++;if(v.visit_day===t)o.today=true;if(v.visit_day>=lim)o.recent=true;});
 }
