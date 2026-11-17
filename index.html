@@ -932,11 +932,6 @@ body.guest .melists{display:none}
 .cp-tabs button{border:1px solid var(--line);background:var(--panel);color:var(--sub);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
 .cp-tabs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--soft)}
 .plhint{display:block;margin-top:4px;font-size:11.5px;color:var(--sub)}
-/* 운영팀 예시 리뷰 */
-.demotag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;border:1px dashed var(--sub);color:var(--sub);font-size:11px;font-weight:700;line-height:1.5;vertical-align:middle;white-space:nowrap}
-.demopanel{border-top:1px dashed var(--line)}
-.demonote{margin:0 0 6px;font-size:12px;color:var(--sub)}
-.rv.demo{opacity:.92}
 
 /* =====================================================================
    무드: 일본 맛집 가이드 사이트 느낌
@@ -1650,45 +1645,84 @@ function loadKakao(){return new Promise((res,rej)=>{
   s.onload=()=>{try{kakao.maps.load(()=>res());}catch(e){rej(e);}};s.onerror=()=>rej(new Error('LOAD'));
   document.head.appendChild(s);});}
 const kOK=()=>kakao.maps.services.Status.OK;
-function kKey(q,opt){return new Promise(res=>S.ps.keywordSearch(q,(d,st)=>res(st===kOK()?d:[]),opt||{}));}
-function kCat(code,rect,page){return new Promise(res=>S.ps.categorySearch(code,(d,st,pg)=>res({data:st===kOK()?d:[],more:!!(pg&&pg.hasNextPage),total:(pg&&pg.totalCount)||0}),
-  {rect,page}));}
+const kZERO=()=>kakao.maps.services.Status.ZERO_RESULT;
+/* 카카오 검색은 좋은 날에도 한두 번은 네트워크 오류·일시 제한으로 실패해요(특히 가게가 많은 학교는 요청 수가 많아요).
+   한 번 실패로 목록 전체를 못 그리지 않도록, 부를 때마다 3번까지 다시 시도하고 시간이 너무 걸리면 실패로 돌려줘요 */
+function kTry(fn,ms=8000){
+  return new Promise(res=>{let done=false;const fin=v=>{if(done)return;done=true;clearTimeout(t);res(v);};
+    const t=setTimeout(()=>fin({err:true}),ms);
+    try{fn(fin);}catch(e){fin({err:true});}});
+}
+const kWait=ms=>new Promise(r=>setTimeout(r,ms));
+function kKey(q,opt){
+  const run=async()=>{
+    for(let a=0;a<3;a++){
+      const r=await kTry(cb=>S.ps.keywordSearch(q,(d,st)=>cb({data:st===kOK()||st===kZERO()?d:[],err:!(st===kOK()||st===kZERO())}),opt||{}));
+      if(!r.err)return r.data;
+      await kWait(250*(a+1));
+    }
+    return [];
+  };
+  return run();
+}
+function kCat(code,rect,page){
+  const run=async()=>{
+    for(let a=0;a<3;a++){
+      const r=await kTry(cb=>S.ps.categorySearch(code,(d,st,pg)=>cb({data:st===kOK()||st===kZERO()?d:[],more:!!(pg&&pg.hasNextPage),total:(pg&&pg.totalCount)||0,err:!(st===kOK()||st===kZERO())}),{rect,page}));
+      if(!r.err)return r;
+      await kWait(250*(a+1));
+    }
+    return {data:[],more:false,total:0,err:true};
+  };
+  return run();
+}
 const NEAR_M=1500;   // 학교에서 이 거리 안의 가게를 모두 불러와요
 // 카카오는 한 번 검색에 최대 45곳까지만 줘서, 지역을 칸으로 나눠 칸마다 검색해요. 가게가 많은 칸은 더 잘게 나눠요.
 async function gridSearch(code,c){
-  const dy=1/111000,dx=1/(111000*Math.cos(c.y*Math.PI/180)),out=[];
+  const dy=1/111000,dx=1/(111000*Math.cos(c.y*Math.PI/180)),out=[],fail={n:0};
   async function cell(x1,y1,x2,y2,depth){
+    try{
     const rect=`${x1},${y1},${x2},${y2}`;
     const first=await kCat(code,rect,1);
+    if(first.err){fail.n++;return;}   /* 이 칸만 건너뛰고 나머지 칸은 그대로 모아요 */
     if(first.total>45&&depth<3){const mx=(x1+x2)/2,my=(y1+y2)/2;
       await Promise.all([cell(x1,y1,mx,my,depth+1),cell(mx,y1,x2,my,depth+1),cell(x1,my,mx,y2,depth+1),cell(mx,my,x2,y2,depth+1)]);return;}
     out.push(...first.data);
-    for(let page=2,more=first.more;more&&page<=3;page++){const r=await kCat(code,rect,page);out.push(...r.data);more=r.more;}
+    for(let page=2,more=first.more;more&&page<=3;page++){const r=await kCat(code,rect,page);if(r.err){fail.n++;break;}out.push(...r.data);more=r.more;}
+    }catch(e){fail.n++;}
   }
   const R=NEAR_M,step=R*2/3,jobs=[];
   for(let i=0;i<3;i++)for(let j=0;j<3;j++){
     const x1=c.x+(-R+i*step)*dx,y1=c.y+(-R+j*step)*dy;jobs.push(()=>cell(x1,y1,x1+step*dx,y1+step*dy,0));}
-  for(let k=0;k<jobs.length;k+=3)await Promise.all(jobs.slice(k,k+3).map(f=>f()));
-  return out;
+  for(let k=0;k<jobs.length;k+=3)await Promise.all(jobs.slice(k,k+3).map(f=>f().catch(()=>{fail.n++;})));
+  return {data:out,failed:fail.n};
 }
 async function nearbyKakao(){
   const key='ul_near_v3_'+S.school.id,c=store.get(key);
-  if(c){try{const v=JSON.parse(c);if(Date.now()-v.t<6*3600e3&&v.d.length)return v.d;}catch(e){}}
-  const all=[...await gridSearch('FD6',S.coord),...await gridSearch('CE7',S.coord)];
-  const seen=new Set(),d=[];
-  all.forEach(x=>{if(seen.has(x.id))return;seen.add(x.id);if(distM(S.coord.y,S.coord.x,+x.y,+x.x)<=NEAR_M)
-    d.push({id:x.id,place_name:x.place_name,category_name:x.category_name,phone:x.phone,address_name:x.address_name,road_address_name:x.road_address_name,x:x.x,y:x.y,place_url:x.place_url});});
-  store.set(key,JSON.stringify({t:Date.now(),d}));
+  let stale=null;
+  if(c){try{const v=JSON.parse(c);if(v&&Array.isArray(v.d)&&v.d.length){if(Date.now()-v.t<6*3600e3)return v.d;stale=v.d;}}catch(e){}}
+  const d=[],seen=new Set();let failed=0;
+  for(const code of ['FD6','CE7']){
+    const g=await gridSearch(code,S.coord);failed+=g.failed;
+    g.data.forEach(x=>{if(seen.has(x.id))return;seen.add(x.id);if(distM(S.coord.y,S.coord.x,+x.y,+x.x)<=NEAR_M)
+      d.push({id:x.id,place_name:x.place_name,category_name:x.category_name,phone:x.phone,address_name:x.address_name,road_address_name:x.road_address_name,x:x.x,y:x.y,place_url:x.place_url});});
+  }
+  /* 일부 칸이 실패했으면 지난번에 받아 둔 목록과 합쳐서 빈자리를 메워요 */
+  if(stale&&(failed||d.length<stale.length)){const have=new Set(d.map(x=>x.id));
+    stale.forEach(x=>{if(!have.has(x.id)){have.add(x.id);d.push(x);}});}
+  if(!d.length)return stale||[];
+  if(!failed||d.length>=(stale||[]).length)store.set(key,JSON.stringify({t:Date.now(),d}));
   return d;
 }
 async function schoolCoord(){
   const sc=S.school,key='ul_coord_v1_'+sc.id,c=store.get(key);
-  if(c){try{return JSON.parse(c);}catch(e){}}
+  let stale=null;
+  if(c){try{const v=JSON.parse(c);if(v&&v.x&&v.y){if(!v.t||Date.now()-v.t<30*86400e3)return v;stale=v;}}catch(e){}}
   let r=await kKey(`${sc.n} ${sc.campus}`.trim(),{category_group_code:'SC4'});
   if(!r.length)r=await kKey(sc.n,{category_group_code:'SC4'});
   if(!r.length)r=await kKey(`${sc.n} ${sc.campus}`.trim());
-  if(!r.length)throw new Error('학교 위치를 찾지 못했어요');
-  const v={x:+r[0].x,y:+r[0].y};store.set(key,JSON.stringify(v));return v;
+  if(!r.length){if(stale)return stale;throw new Error('학교 위치를 찾지 못했어요');}
+  const v={x:+r[0].x,y:+r[0].y,t:Date.now()};store.set(key,JSON.stringify(v));return v;
 }
 const genreOf=cat=>{const a=String(cat||'').split('>').map(x=>x.trim()).filter(Boolean);if(a.includes('카페'))return '카페';if(a[0]==='카페')return '카페';return a[1]||a[0]||'기타';};
 function mkPlace(o){const p={id:String(o.id),name:o.name,catFull:o.catFull||'',cat:genreOf(o.catFull),phone:o.phone||'',address:o.address||'',road:o.road||'',
@@ -1726,13 +1760,19 @@ async function addKnownNearby(){
 }
 async function loadReviewsFor(ids){
   ids=[...new Set(ids)];if(!ids.length)return;
-  ids.forEach(id=>{if(S.placeMap[id]){S.placeMap[id].reviews=[];S.placeMap[id].demo=[];S.placeMap[id]._vc={};}});
+  ids.forEach(id=>{if(S.placeMap[id]){S.placeMap[id].reviews=[];S.placeMap[id]._vc={};}});
   const rows=[];
   for(let i=0;i<ids.length;i+=60){
-    const {data,error}=await sb.from('ul_reviews').select('*').in('place_id',ids.slice(i,i+60)).order('created_at',{ascending:false}).limit(3000);
-    if(error)throw error;rows.push(...(data||[]));
+    /* 한 덩어리가 잠깐 실패해도 목록 전체가 안 깨지게 한 번 더 시도하고, 그래도 안 되면 그 덩어리만 건너뛰어요 */
+    let data=null,error=null;
+    for(let a=0;a<2;a++){
+      const r=await sb.from('ul_reviews').select('*').in('place_id',ids.slice(i,i+60)).order('created_at',{ascending:false}).limit(3000);
+      data=r.data;error=r.error;if(!error)break;await new Promise(res=>setTimeout(res,300));
+    }
+    if(error)continue;
+    rows.push(...(data||[]));
   }
-  rows.forEach(r=>{const p=S.placeMap[r.place_id];if(p){(r.is_demo?p.demo:p.reviews).push(r);p._inDb=true;}});   /* 예시 리뷰는 따로: 평점·리뷰 수에 안 들어가요 */
+  rows.forEach(r=>{const p=S.placeMap[r.place_id];if(p){p.reviews.push(r);p._inDb=true;}});   /* /admin/seed로 올린 리뷰도 일반 리뷰와 똑같이 평점·리뷰 수·랭킹에 들어가요 */
   await ensureUsers(rows.map(r=>r.user_id));
   // 리뷰마다 "이 가게 방문 인증 횟수" (사람별 횟수만 받아와요)
   for(let i=0;i<ids.length;i+=150){const {data:vc,error:ve}=await sb.rpc('ul_visit_counts',{p_places:ids.slice(i,i+150)});if(ve)break;
@@ -1843,7 +1883,7 @@ function renderList(){
         <span class="info">
           <span class="top">${rank?`<span class="rank num${rank>3?' low':''}">${rank}위</span>`:''}<span class="nm">${esc(p.name)}</span>${has(p)?`<span class="score num">${ico('star','on')}${s.w.toFixed(2)}</span>`:''}${S.saved.has(p.id)?`<span class="svd" aria-label="저장함">${ico('bookmark','on')}</span>`:''}</span>
           <span class="area">${esc(p.cat)} · 도보 ${walk(p.dist)}분${price?` · ${price}`:''}${has(p)?` · <span class="num">리뷰 ${p.reviews.length}${pc?` · 사진 ${pc}`:''}</span>`:''}</span>
-          ${has(p)?'':`<span class="rating"><span class="rcount first">${firstCall()}</span>${(p.demo||[]).length?`<span class="demotag">예시 리뷰 ${p.demo.length}</span>`:''}</span>`}
+          ${has(p)?'':`<span class="rating"><span class="rcount first">${firstCall()}</span></span>`}
           ${b?`<span class="snip">“${esc(b.body)}”</span>`:''}
           ${(()=>{const t=has(p)?tagsOf(p).slice(0,3):[];return t.length?`<span class="ptags">${t.map(x=>`<span>${esc(x)}</span>`).join('')}</span>`:'';})()}
         </span></button>`}).join('')+(ps.length>S.listShow?`<button class="morebtn" type="button" data-listmore>가게 더 보기 ▼ <small class="num">(${S.listShow}/${ps.length})</small></button>`:'')+more
@@ -1924,14 +1964,6 @@ function reviewHTML(p,rv){const me=rv.user_id===S.uid,u=U[rv.user_id]||{},no1=fi
     ${picsHTML(rv)}
     <div class="foot"><small class="num">${ymd(rv.created_at)} ${rv.kind==='delivery'?'배달':rv.kind==='takeout'?'포장':'방문'}${rv.edited?' · 수정됨':''}</small><span class="foot-r">${me?`<span class="mine-act"><button type="button" data-edit="${rv.id}">수정</button><button type="button" data-del="${rv.id}">삭제</button></span>`:`<button class="report" type="button" data-report="review:${rv.id}">신고</button>`}<button class="like num" type="button" data-like="${rv.id}" aria-pressed="${S.likedRev.has(rv.id)}" ${me?'disabled':''}>${thumbSVG} 도움돼요 ${rv.likes}</button></span></div>
     ${me&&delAsk===rv.id?`<div class="delask"><span>이 리뷰를 삭제할까요? 받은 "도움돼요"도 함께 사라져요.</span><span class="btns"><button type="button" data-delno>취소</button><button type="button" class="danger" data-delyes="${rv.id}">삭제</button></span></div>`:''}</article>`;}
-/* 운영팀 예시 리뷰: 평점·리뷰 수·등급·랭킹에 안 들어가고, 도움돼요·신고도 없어요 */
-function demoHTML(rv){
-  return `<article class="rv demo"><div class="who">${av(rv.user_id)}<div><b>${esc(nameOf(rv.user_id))}</b><span class="demotag">예시</span><span class="d">유니로그 운영팀</span></div></div>
-    <div class="meta">${starsHTML(+rv.rating)}<span class="val num">${(+rv.rating).toFixed(1)}</span>${rv.kind==='visit'?'':`<span class="kind">${rv.kind==='delivery'?'배달':'포장'}</span>`}</div>
-    ${rv.menu?`<div class="menu"><span>먹은 메뉴 · </span>${menuShow(rv.menu)}</div>`:''}
-    <p>${esc(rv.body)}</p></article>`;}
-const demoPanel=p=>(p.demo||[]).length?`<div class="panel gut demopanel"><div class="sh"><h2>예시 리뷰</h2><small>평점·리뷰 수에 안 들어가요</small></div>
-  <p class="demonote">운영팀이 쓴 예시예요. 학생 리뷰가 아니에요.</p>${p.demo.slice(0,3).map(demoHTML).join('')}</div>`:'';
 function vBoxHTML(p){const v=S.visits[p.id];
   if(draft.kind!=='visit')return `<p class="hint">${draft.kind==='delivery'?'배달':'포장'} 리뷰는 따로 인증 없이 바로 올라가요. 리뷰에는 "${draft.kind==='delivery'?'배달':'포장'}" 표시가 붙어요.</p>`;
   if(v&&v.recent)return `<label>방문 인증<span>${ico('check')} ${v.n}회 완료</span></label>`;
@@ -1977,7 +2009,6 @@ function renderSheet(){
       <div class="panel gut" id="repRev"><div class="sh"><h2>${expanded?`리뷰 ${p.reviews.length}건`:'대표 리뷰'}</h2><small>신뢰도 높은 순</small></div>
         ${revs.length?revs.slice(0,expanded?10:1).map(rv=>reviewHTML(p,rv)).join(''):`<div class="empty">${firstCall()}<br><small>가게의 첫 리뷰에는 <span class="no1">1호</span> 뱃지가 붙어요</small></div>`}
         ${p.reviews.length>1?`<div class="cta" style="padding-top:0"><button class="btn line" type="button" data-exp>${expanded?'리뷰 접기 ▲':p.reviews.length>10?'리뷰 더 보기 ▼':`리뷰 ${p.reviews.length}건 모두 보기 ▼`}</button></div>`:''}</div>
-      ${demoPanel(p)}
       <div class="panel gut"><div class="sh"><h2>가게 정보</h2></div>
         <table class="facts"><tr><th>장르</th><td>${esc(p.catFull||p.cat)}</td></tr>
         <tr><th>주소</th><td>${esc(p.road||p.address)} <small class="num" style="color:var(--sub)">(${Math.round(p.dist)}m)</small></td></tr>
@@ -1990,7 +2021,7 @@ function renderSheet(){
         <div class="sh"><h2>리뷰 ${p.reviews.length}건</h2><span class="rsort" role="group" aria-label="리뷰 정렬"><button type="button" data-rs="trust" aria-pressed="${revSort==='trust'}">신뢰도순</button><button type="button" data-rs="new" aria-pressed="${revSort==='new'}">최신순</button><button type="button" data-rs="photo" aria-pressed="${revSort==='photo'}">사진 리뷰</button></span></div>
         <p class="allcert"><span class="cert vb" style="margin:0">재학생 인증</span> 뱃지는 재학생 인증을 마친 학생에게만 붙어요</p>
         ${revs.length?revs.slice(0,revShow).map(rv=>reviewHTML(p,rv)).join(''):`<div class="empty">${revSort==='photo'?'사진이 있는 리뷰가 없어요.':`${firstCall()}<br><small>가게의 첫 리뷰에는 <span class="no1">1호</span> 뱃지가 붙어요</small>`}</div>`}
-        ${revs.length>revShow?`<button class="morebtn" type="button" data-revmore>리뷰 ${Math.min(10,revs.length-revShow)}개 더 보기 ▼ <small class="num">(${revShow}/${revs.length})</small></button>`:''}</div>${demoPanel(p)}`}
+        ${revs.length>revShow?`<button class="morebtn" type="button" data-revmore>리뷰 ${Math.min(10,revs.length-revShow)}개 더 보기 ▼ <small class="num">(${revShow}/${revs.length})</small></button>`:''}</div>`}
     </div>
     <div class="actbar gut"><button class="btn line save" type="button" data-save aria-pressed="${S.saved.has(p.id)}">${S.saved.has(p.id)?ico('bookmark','on')+'저장됨':ico('bookmark')+'저장'}</button>
       <button class="btn line" type="button" data-verify ${v&&v.today||verifying?'disabled':''}>${verifying?'확인 중…':v&&v.today?ico('check')+'오늘 인증됨':ico('pin')+'방문 인증'}</button>
